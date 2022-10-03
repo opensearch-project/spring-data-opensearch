@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.opensearch</groupId>
+	<artifactId>spring-data-opensearch</artifactId>
+	<version>5.0.0-SNAPSHOT</version>
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+	</parent>
+
+	<name>Spring Data Opensearch</name>
+	<description>Spring Data Implementation for Opensearch</description>
+	<url>https://github.com/opensearch-project/spring-data-opensearch</url>
+
+	<properties>
+		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
+		<springdata.elasticsearch>5.0.0-SNAPSHOT</springdata.elasticsearch>
+
+		<!-- version of the RestHighLevelClient	-->
+		<opensearch-rhlc>2.3.0</opensearch-rhlc>
+
+		<log4j>2.19.0</log4j>
+		<netty>4.1.82.Final</netty>
+
+		<hoverfly>0.14.3</hoverfly>
+		<jsonassert>1.5.1</jsonassert>
+		<testcontainers>1.17.5</testcontainers>
+		<wiremock>2.33.2</wiremock>
+
+		<java-module-name>spring.data.opensearch</java-module-name>
+
+		<!--
+			properties defining the maven phase for the tests and integration tests
+			set to "none" to disable the corresponding test execution (-Dmvn.unit-test.goal=none)
+			default execution for unit-test: "test", for the integration tests: "integration-test"
+		-->
+		<mvn.unit-test.goal>test</mvn.unit-test.goal>
+		<mvn.integration-test-opensearch.goal>integration-test</mvn.integration-test-opensearch.goal>
+	</properties>
+
+	<licenses>
+		<license>
+			<name>Apache License 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>reta</id>
+			<name>Andriy Redko</name>
+			<email>andriy.redko at aiven.io</email>
+			<organization>Aiven Oy</organization>
+			<organizationUrl>https://github.com/opensearch-project</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/opensearch-project/spring-data-opensearch</url>
+		<connection>scm:git:git://github.com/opensearch-project/spring-data-opensearch</connection>
+		<developerConnection>scm:git:ssh://git@github.com/opensearch-project/spring-data-opensearch.git</developerConnection>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/opensearch-project/spring-data-opensearch/issues</url>
+	</issueManagement>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-bom</artifactId>
+				<version>${netty}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- SPRING DATA -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons</artifactId>
+			<version>${springdata.commons}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-elasticsearch</artifactId>
+			<version>${springdata.elasticsearch}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>co.elastic.clients</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.elasticsearch.client</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<!-- Opensearch  RestHighLevelClient -->
+		<dependency>
+			<groupId>org.opensearch.client</groupId>
+			<artifactId>opensearch-rest-high-level-client</artifactId>
+			<version>${opensearch-rhlc}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Jackson JSON Mapper -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- CDI -->
+		<!-- Dependency order required to build against CDI 1.0 and test with CDI 2.0 -->
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jcdi_2.0_spec</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.interceptor</groupId>
+			<artifactId>javax.interceptor-api</artifactId>
+			<version>1.2.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
+			<version>${cdi}</version>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+			<version>${jakarta-annotation-api}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-se</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-spi</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-impl</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<version>${slf4j}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-to-slf4j</artifactId>
+			<version>${log4j}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!--
+		  we don't use lombok in Spring Data Elasticsearch anymore. But the dependency is set in the parent project, and so the
+		  lombok compiler stuff is executed regardless of the fact that we don't need it.
+		  On AdoptOpenJdk 16.0.0 this leads to an error, so the project does not build.
+		  Therefore we replace lombok with a jar - that just contains an empty file - that lives in a local maven repository in
+		  src/test/resources/local-maven-repo/
+		  It was installed with
+		   mvn deploy:deploy-file -DgroupId=org.projectlombok -DartifactId=lombok -Dversion=999999 -Durl=file:./src/test/resources/local-maven-repo/ -DrepositoryId=local-maven-repo -DupdateReleaseInfo=true -Dfile=path/to/empty.jar
+		-->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<!--suppress MavenPackageUpdate -->
+			<version>999999</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.skyscreamer</groupId>
+			<artifactId>jsonassert</artifactId>
+			<version>${jsonassert}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8</artifactId>
+			<version>${wiremock}</version>
+			<scope>test</scope>
+			<exclusions>
+				<!-- these exclusions are needed because of Elasticsearch JarHell-->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.ow2.asm</groupId>
+					<artifactId>asm</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>io.specto</groupId>
+			<artifactId>hoverfly-java-junit5</artifactId>
+			<version>${hoverfly}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Upgrade xbean to 4.5 to prevent incompatibilities due to ASM versions -->
+		<dependency>
+			<groupId>org.apache.xbean</groupId>
+			<artifactId>xbean-asm5-shaded</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>${mockito}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>${testcontainers}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/versions.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/versions.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useSystemClassLoader>true</useSystemClassLoader>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Tests.java</include>
+						<include>**/*Test.java</include>
+					</includes>
+					<systemPropertyVariables>
+						<es.set.netty.runtime.available.processors>false</es.set.netty.runtime.available.processors>
+					</systemPropertyVariables>
+				</configuration>
+				<executions>
+					<!-- the default-test execution runs only the unit tests -->
+					<execution>
+						<id>default-test</id>
+						<phase>${mvn.unit-test.goal}</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<excludedGroups>integration-test</excludedGroups>
+						</configuration>
+					</execution>
+					<!-- execution to run the integration tests against Opensearch -->
+					<execution>
+						<id>integration-test-opensearch</id>
+						<phase>${mvn.integration-test-opensearch.goal}</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<groups>integration-test</groups>
+							<systemPropertyVariables>
+								<sde.integration-test.environment>opensearch</sde.integration-test.environment>
+							</systemPropertyVariables>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>1.7.5</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.pitest</groupId>
+						<artifactId>pitest-junit5-plugin</artifactId>
+						<version>0.12</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<jvmArgs>
+						<jvmArg>-XX:+AllowRedefinitionToAddDeleteMethods</jvmArg>
+					</jvmArgs>
+					<excludedGroups>integration-test</excludedGroups>
+					<targetClasses>
+						<param>org.springframework.data.elasticsearch.core.geo.*</param>
+					</targetClasses>
+					<excludedMethods>toString</excludedMethods>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.27.1</version>
+				<configuration>
+					<formats>
+						<format>
+							<includes>
+								<include>src/main/java/**/*.java</include>
+								<include>src/test/java/org/opensearch/**/*.java</include>
+							</includes>
+							<trimTrailingWhitespace />
+							<endWithNewline />
+							<indent>
+								<spaces>true</spaces>
+							</indent>
+						</format>
+					</formats>
+					<java>
+						<includes>
+							<include>src/main/java/**/*.java</include>
+							<include>src/test/java/org/opensearch/**/*.java</include>
+						</includes>
+						<palantirJavaFormat />
+						<removeUnusedImports />
+						<importOrder />
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>ci</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<configuration>
+							<checkstyleRules>
+								<module name="Checker">
+
+									<!-- Configure checker to use UTF-8 encoding -->
+									<property name="charset" value="UTF-8"/>
+
+									<module name="io.spring.nohttp.checkstyle.check.NoHttpCheck"/>
+								</module>
+							</checkstyleRules>
+							<includes>**/*</includes>
+							<excludes>
+								.git/**/*,target/**/*,**/target/**/*,.idea/**/*,**/spring.schemas,**/*.svg,mvnw,mvnw.cmd,**/*.policy
+							</excludes>
+							<sourceDirectories>./</sourceDirectories>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>jdk13+</id>
+			<!-- on jDK13+, Blockhound needs this JVM flag set -->
+			<activation>
+				<jdk>[13,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+
+		<repository>
+			<id>local-maven-repo</id>
+			<url>file:///${project.basedir}/src/test/resources/local-maven-repo</url>
+		</repository>
+
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
