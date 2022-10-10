@@ -1,0 +1,8 @@
+{
+  "properties": {
+    "email": {
+      "type": "text",
+      "analyzer": "emailAnalyzer"
+    }
+  }
+}
