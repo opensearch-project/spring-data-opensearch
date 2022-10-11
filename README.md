@@ -4,7 +4,7 @@ Spring Data for Opensearch
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
 The Spring Data Opensearch project provides [Spring Data](https://projects.spring.io/spring-data) compatible integration with the [Opensearch](https://opensearch.org/) search engine.
-Key functional areas of Spring Data Opensearch are a POJO centric model for interacting with a Opensearch Documents and easily writing a Repository style data access layer. This project is built on top of the [Spring Data Elasticsearch](https://spring.io/projects/spring-data-elasticsearch/).
+Key functional areas of Spring Data Opensearch are a POJO centric model for interacting with a Opensearch Documents and easily writing a Repository style data access layer. This project is built on top of [Spring Data Elasticsearch](https://spring.io/projects/spring-data-elasticsearch/).
 
 ## Features
 
@@ -165,13 +165,26 @@ In this code snippet, the client configuration was customized to:
 - A `Supplier<Header>` function can be specified which is called every time before a request is sent to Opensearch - here, as an example, the current time is written in a header.
 - A function configuring the low level REST client
 
+### Spring Boot integration
+
+If you are using Spring Data Opensearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery. 
+
+```java
+@SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
+public class OpensearchDemoApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(OpensearchDemoApplication.class, args);
+  }
+}
+```
+
 ### Apache Maven configuration
 
 Add the Maven dependency:
 
 ```xml
 <dependency>
-	<groupId>org.opensearch</groupId>
+  <groupId>org.opensearch</groupId>
   <artifactId>spring-data-opensearch</artifactId>
   <version>${version}</version>
 </dependency>
@@ -209,7 +222,7 @@ Attach a link to your code or a compressed file containing your code.
 
 You need [Apache Maven 3.5.0 or above](https://maven.apache.org/run-maven/index.html) and JDK 17 (or above) to build the `main` branch.
 
-```
+```bash
 $ mvn clean install
 ```
 
@@ -218,7 +231,7 @@ $ mvn clean install
 This project has adopted the [Amazon Open Source Code of Conduct](CODE_OF_CONDUCT.md). For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq), or contact [opensource-codeofconduct@amazon.com](mailto:opensource-codeofconduct@amazon.com) with any additional questions or comments.
 
 ## License
-Spring Data Opensearch is licensed under the Apache license, version 2.0. Full license text is available in the [LICENSE](LICENSE) file.
+Spring Data Opensearch is licensed under the Apache license, version 2.0. Full license text is available in the [LICENSE](LICENSE.txt) file.
 
 Please note that the project explicitly does not require a CLA (Contributor License Agreement) from its contributors.
 
