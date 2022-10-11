@@ -16,7 +16,7 @@ import org.springframework.lang.NonNull;
 
 /**
  * AggregationsContainer implementation for the Opensearch aggregations.
- * @since 5.0
+ * @since 0.1
  */
 public class OpensearchAggregations implements AggregationsContainer<Aggregations> {
 

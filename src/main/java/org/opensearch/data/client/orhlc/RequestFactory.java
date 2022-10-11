@@ -112,7 +112,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Factory class to create Opensearch request instances from Spring Data Opensearch query objects.
- * @since 5.0
+ * @since 0.1
  */
 class RequestFactory {
 

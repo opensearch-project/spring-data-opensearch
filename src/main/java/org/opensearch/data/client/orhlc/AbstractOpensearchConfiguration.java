@@ -18,7 +18,7 @@ import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverte
 
 /**
  * @see ElasticsearchConfigurationSupport
- * @since 5.0
+ * @since 0.1
  */
 public abstract class AbstractOpensearchConfiguration extends ElasticsearchConfigurationSupport {
 

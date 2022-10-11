@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
  * post_filter
  * {@see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/filter-search-results.html#post-filter}, if a
  * filter is needed that filters before aggregations are build, it must be included in the query constructor parameter.
- * @since 5.0
+ * @since 0.1
  */
 public class NativeSearchQuery extends BaseQuery {
 

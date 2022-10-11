@@ -75,7 +75,7 @@ import org.springframework.util.Assert;
 
 /**
  * OpensearchRestTemplate
- * @since 5.0
+ * @since 0.1
  */
 public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
 

@@ -18,7 +18,7 @@ import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 
 /**
  * Default implementation of {@link ClusterOperations} using the {@link OpensearchRestTemplate}.
- * @since 5.0
+ * @since 0.1
  */
 class DefaultClusterOperations implements ClusterOperations {
 

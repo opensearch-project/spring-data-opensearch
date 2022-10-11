@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
 /**
  * Utility class for common access to Opensearch clients. {@link RestClients} consolidates set up routines for the
  * various drivers into a single place.
- * @since 5.0
+ * @since 0.1
  */
 public final class RestClients {
 

@@ -14,7 +14,7 @@ import org.opensearch.search.SearchHits;
 
 /**
  * Utility class to prevent leaking of Lucene API into Spring Data Opensearch.
- * @since 5.0
+ * @since 0.1
  */
 public final class SearchHitsUtil {
     private SearchHitsUtil() {}

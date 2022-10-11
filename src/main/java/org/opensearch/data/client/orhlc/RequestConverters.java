@@ -105,7 +105,7 @@ import org.springframework.lang.Nullable;
  * Original implementation source {@link org.opensearch.client.RequestConverters},
  * {@link org.opensearch.client.IndicesRequestConverters} and
  * {@link org.opensearch.client.ClusterRequestConverters}. Only intended for internal use.
- * @since 5.0
+ * @since 0.1
  */
 @SuppressWarnings("JavadocReference")
 public class RequestConverters {

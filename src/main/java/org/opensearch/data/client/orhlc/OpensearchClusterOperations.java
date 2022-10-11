@@ -15,7 +15,7 @@ import org.springframework.util.Assert;
 
 /**
  * Opensearch cluster operations
- * @since 5.0
+ * @since 0.1
  */
 public class OpensearchClusterOperations {
     /**
