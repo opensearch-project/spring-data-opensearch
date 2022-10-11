@@ -30,7 +30,7 @@
 		<hoverfly>0.14.3</hoverfly>
 		<jsonassert>1.5.1</jsonassert>
 		<testcontainers>1.17.5</testcontainers>
-		<wiremock>2.33.2</wiremock>
+		<wiremock>2.34.0</wiremock>
 
 		<java-module-name>spring.data.opensearch</java-module-name>
 
