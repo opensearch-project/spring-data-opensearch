@@ -22,7 +22,7 @@ Includes integrated object mapping between documents and POJOs.
 
 | Spring Data Release Train | Spring Data Opensearch | Spring Data Elasticsearch | Opensearch     | Spring Framework | Spring Boot |
 |---------------------------|------------------------|---------------------------|----------------|------------------|-------------|
-| 2022.0 (Turing)           | 5.0.x                  | 5.0.x                     | 1.3.6 / 2.3.0  | 6.0.x            | 3.0.x       |
+| 2022.0 (Turing)           | 0.1.x                  | 5.0.x                     | 1.3.6 / 2.3.0  | 6.0.x            | 3.0.x       |
 
 ### Opensearch 2.x / 1.x client libraries
 
