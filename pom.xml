@@ -41,6 +41,7 @@
 		-->
 		<mvn.unit-test.goal>test</mvn.unit-test.goal>
 		<mvn.integration-test-opensearch.goal>integration-test</mvn.integration-test-opensearch.goal>
+		<sde.testcontainers.image-version>2.3.0</sde.testcontainers.image-version>
 	</properties>
 
 	<licenses>
@@ -336,6 +337,23 @@
 				</excludes>
 			</resource>
 		</resources>
+
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/testcontainers-opensearch.properties</include>
+				</includes>
+			</testResource>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/testcontainers-opensearch.properties</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
 
 		<plugins>
 			<plugin>
