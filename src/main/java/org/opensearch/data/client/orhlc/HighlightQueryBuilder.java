@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Converts the {@link Highlight} annotation from a method to an Opensearch {@link HighlightBuilder}.
- * @since since 5.0
+ * @since 0.1
  */
 public class HighlightQueryBuilder {
 

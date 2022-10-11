@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * RestClientFactoryBean
- * @since since 5.0
+ * @since 0.1
  */
 public class RestClientFactoryBean implements FactoryBean<RestHighLevelClient>, InitializingBean, DisposableBean {
 

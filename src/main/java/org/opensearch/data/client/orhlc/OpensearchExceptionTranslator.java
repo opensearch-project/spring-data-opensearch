@@ -30,7 +30,7 @@ import org.springframework.data.elasticsearch.UncategorizedElasticsearchExceptio
  * Simple {@link PersistenceExceptionTranslator} for Opensearch. Convert the given runtime exception to an
  * appropriate exception from the {@code org.springframework.dao} hierarchy. Return {@literal null} if no translation is
  * appropriate: any other exception may have resulted from user code, and should not be translated.
- * @since 5.0
+ * @since 0.1
  */
 public class OpensearchExceptionTranslator implements PersistenceExceptionTranslator {
     /**

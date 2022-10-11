@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
 
 /**
  * {@link IndexOperations} implementation using the RestClient.
- * @since 5.0
+ * @since 0.1
  */
 class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations {
 

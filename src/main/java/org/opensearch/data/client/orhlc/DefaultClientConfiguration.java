@@ -24,7 +24,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Default {@link ClientConfiguration} implementation.
- * @since 5.0
+ * @since 0.1
  */
 class DefaultClientConfiguration implements ClientConfiguration {
 

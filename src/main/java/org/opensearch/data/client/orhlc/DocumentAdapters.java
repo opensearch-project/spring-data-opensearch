@@ -53,7 +53,7 @@ import org.springframework.util.StringUtils;
  * {@link org.opensearch.index.get.GetResult}, {@link org.opensearchs.action.get.MultiGetResponse}
  * {@link org.opensearch.search.SearchHit}, {@link org.opensearch.common.document.DocumentField} to
  * {@link Document}.
- * @since 5.0
+ * @since 0.1
  */
 public final class DocumentAdapters {
 

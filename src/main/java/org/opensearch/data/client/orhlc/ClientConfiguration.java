@@ -23,7 +23,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Configuration interface exposing common client configuration properties for Opensearch clients.
- * @since 5.0
+ * @since 0.1
  */
 public interface ClientConfiguration {
 

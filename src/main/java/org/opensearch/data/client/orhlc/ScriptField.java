@@ -14,7 +14,7 @@ import org.opensearch.script.Script;
 
 /**
  * Scripted field
- * @since since 5.0
+ * @since 0.1
  */
 public class ScriptField {
 

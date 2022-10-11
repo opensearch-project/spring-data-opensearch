@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * NativeSearchQuery
- * @since 5.0
+ * @since 0.1
  */
 public class NativeSearchQueryBuilder extends BaseQueryBuilder<NativeSearchQuery, NativeSearchQueryBuilder> {
 

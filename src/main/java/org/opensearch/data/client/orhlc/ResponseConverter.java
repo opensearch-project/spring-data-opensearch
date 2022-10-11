@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
 
 /**
  * Factory class to convert Opensearch responses to different type of data classes.
- * @since 5.0
+ * @since 0.1
  */
 public class ResponseConverter {
     private ResponseConverter() {}
