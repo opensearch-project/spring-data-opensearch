@@ -167,7 +167,7 @@ In this code snippet, the client configuration was customized to:
 
 ### Spring Boot integration
 
-If you are using Spring Data Opensearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery. 
+If you are using Spring Data Opensearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in).
 
 ```java
 @SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
@@ -223,7 +223,7 @@ Attach a link to your code or a compressed file containing your code.
 You need [Apache Maven 3.5.0 or above](https://maven.apache.org/run-maven/index.html) and JDK 17 (or above) to build the `main` branch.
 
 ```bash
-$ mvn clean install
+mvn clean install
 ```
 
 ## Code of Conduct
