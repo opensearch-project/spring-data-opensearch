@@ -331,7 +331,7 @@ public abstract class ElasticsearchIntegrationTests {
 
 	@Test // #1678
 	@DisplayName("should return failure in multiget result")
-	void shouldReturnFailureInMultigetResult() {
+	public void shouldReturnFailureInMultigetResult() {
 
 		Query query = queryWithIds("42");
 		List<MultiGetItem<SampleEntity>> sampleEntities = operations.multiGet(query, SampleEntity.class,
