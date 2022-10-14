@@ -10,7 +10,7 @@
 package org.opensearch.data.client.config.nested;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -23,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class EnableNestedRepositoriesORHLCIntegrationTests extends EnableNestedRepositoriesIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     @EnableElasticsearchRepositories(
             basePackages = {
                 "org.opensearch.data.client.config.nested",

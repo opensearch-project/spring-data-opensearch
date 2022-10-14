@@ -17,14 +17,14 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.opensearch.Version;
 import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnection;
 
-public class EnabledIfOpensearchVersionCondition implements ExecutionCondition {
+public class EnabledIfOpenSearchVersionCondition implements ExecutionCondition {
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
         final AnnotatedElement element = context.getElement().orElseThrow(IllegalStateException::new);
 
-        final EnabledIfOpensearchVersion annotation = element.getAnnotation(EnabledIfOpensearchVersion.class);
+        final EnabledIfOpenSearchVersion annotation = element.getAnnotation(EnabledIfOpenSearchVersion.class);
         if (annotation == null) {
-            return ConditionEvaluationResult.enabled("@EnabledIfOpensearchVersion is not present");
+            return ConditionEvaluationResult.enabled("@EnabledIfOpenSearchVersion is not present");
         }
 
         final Version onOrAfter = Version.fromString(annotation.onOrAfter());

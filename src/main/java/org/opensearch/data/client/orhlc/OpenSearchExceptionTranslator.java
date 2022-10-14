@@ -27,12 +27,12 @@ import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
 
 /**
- * Simple {@link PersistenceExceptionTranslator} for Opensearch. Convert the given runtime exception to an
+ * Simple {@link PersistenceExceptionTranslator} for OpenSearch. Convert the given runtime exception to an
  * appropriate exception from the {@code org.springframework.dao} hierarchy. Return {@literal null} if no translation is
  * appropriate: any other exception may have resulted from user code, and should not be translated.
  * @since 0.1
  */
-public class OpensearchExceptionTranslator implements PersistenceExceptionTranslator {
+public class OpenSearchExceptionTranslator implements PersistenceExceptionTranslator {
     /**
      * translates an Exception if possible. Exceptions that are no {@link RuntimeException}s are wrapped in a
      * RuntimeException

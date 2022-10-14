@@ -74,19 +74,19 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * OpensearchRestTemplate
+ * OpenSearchRestTemplate
  * @since 0.1
  */
-public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
+public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
 
-    private static final Log LOGGER = LogFactory.getLog(OpensearchRestTemplate.class);
+    private static final Log LOGGER = LogFactory.getLog(OpenSearchRestTemplate.class);
 
     private final RestHighLevelClient client;
-    private final OpensearchExceptionTranslator exceptionTranslator = new OpensearchExceptionTranslator();
+    private final OpenSearchExceptionTranslator exceptionTranslator = new OpenSearchExceptionTranslator();
     protected RequestFactory requestFactory;
 
     // region _initialization
-    public OpensearchRestTemplate(RestHighLevelClient client) {
+    public OpenSearchRestTemplate(RestHighLevelClient client) {
 
         Assert.notNull(client, "Client must not be null!");
 
@@ -94,7 +94,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
         requestFactory = new RequestFactory(this.elasticsearchConverter);
     }
 
-    public OpensearchRestTemplate(RestHighLevelClient client, ElasticsearchConverter opensearchConverter) {
+    public OpenSearchRestTemplate(RestHighLevelClient client, ElasticsearchConverter opensearchConverter) {
 
         super(opensearchConverter);
 
@@ -106,7 +106,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
 
     @Override
     protected AbstractElasticsearchTemplate doCopy() {
-        OpensearchRestTemplate copy = new OpensearchRestTemplate(client, elasticsearchConverter);
+        OpenSearchRestTemplate copy = new OpenSearchRestTemplate(client, elasticsearchConverter);
         copy.requestFactory = this.requestFactory;
         return copy;
     }
@@ -138,7 +138,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
     // region ClusterOperations
     @Override
     public ClusterOperations cluster() {
-        return OpensearchClusterOperations.forTemplate(this);
+        return OpenSearchClusterOperations.forTemplate(this);
     }
     // endregion
 
@@ -229,7 +229,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
         UpdateRequest request = requestFactory.updateRequest(query, index);
 
         if (query.getRefreshPolicy() == null && getRefreshPolicy() != null) {
-            request.setRefreshPolicy(RequestFactory.toOpensearchRefreshPolicy(getRefreshPolicy()));
+            request.setRefreshPolicy(RequestFactory.toOpenSearchRefreshPolicy(getRefreshPolicy()));
         }
 
         if (query.getRouting() == null && routingResolver.getRouting() != null) {
@@ -308,7 +308,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
             return request;
         }
 
-        return request.setRefreshPolicy(RequestFactory.toOpensearchRefreshPolicy(refreshPolicy));
+        return request.setRefreshPolicy(RequestFactory.toOpenSearchRefreshPolicy(refreshPolicy));
     }
 
     /**
@@ -612,7 +612,7 @@ public class OpensearchRestTemplate extends AbstractElasticsearchTemplate {
 
     @Override
     public String getVendor() {
-        return "Opensearch";
+        return "OpenSearch";
     }
 
     @Override

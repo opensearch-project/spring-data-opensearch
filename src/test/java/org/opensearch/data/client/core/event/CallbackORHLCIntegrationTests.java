@@ -10,7 +10,7 @@
 package org.opensearch.data.client.core.event;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 class CallbackORHLCIntegrationTests extends CallbackIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class, CallbackIntegrationTests.Config.class})
+    @Import({OpenSearchRestTemplateConfiguration.class, CallbackIntegrationTests.Config.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {

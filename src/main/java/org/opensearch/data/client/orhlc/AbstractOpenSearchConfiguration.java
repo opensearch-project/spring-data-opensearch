@@ -20,7 +20,7 @@ import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverte
  * @see ElasticsearchConfigurationSupport
  * @since 0.1
  */
-public abstract class AbstractOpensearchConfiguration extends ElasticsearchConfigurationSupport {
+public abstract class AbstractOpenSearchConfiguration extends ElasticsearchConfigurationSupport {
 
     /**
      * Return the {@link RestHighLevelClient} instance used to connect to the cluster. <br />
@@ -39,7 +39,7 @@ public abstract class AbstractOpensearchConfiguration extends ElasticsearchConfi
     public ElasticsearchOperations elasticsearchOperations(
             ElasticsearchConverter elasticsearchConverter, RestHighLevelClient elasticsearchClient) {
 
-        OpensearchRestTemplate template = new OpensearchRestTemplate(elasticsearchClient, elasticsearchConverter);
+        OpenSearchRestTemplate template = new OpenSearchRestTemplate(elasticsearchClient, elasticsearchConverter);
         template.setRefreshPolicy(refreshPolicy());
 
         return template;

@@ -42,7 +42,7 @@ import org.springframework.data.elasticsearch.support.HttpHeaders;
 import org.springframework.util.Assert;
 
 /**
- * Utility class for common access to Opensearch clients. {@link RestClients} consolidates set up routines for the
+ * Utility class for common access to OpenSearch clients. {@link RestClients} consolidates set up routines for the
  * various drivers into a single place.
  * @since 0.1
  */
@@ -58,9 +58,9 @@ public final class RestClients {
     /**
      * Start here to create a new client tailored to your needs.
      *
-     * @return new instance of {@link OpensearchRestClient}.
+     * @return new instance of {@link OpenSearchRestClient}.
      */
-    public static OpensearchRestClient create(ClientConfiguration clientConfiguration) {
+    public static OpenSearchRestClient create(ClientConfiguration clientConfiguration) {
 
         Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
 
@@ -142,7 +142,7 @@ public final class RestClients {
      * @author Christoph Strobl
      */
     @FunctionalInterface
-    public interface OpensearchRestClient extends Closeable {
+    public interface OpenSearchRestClient extends Closeable {
 
         /**
          * Apply the configuration to create a {@link RestHighLevelClient}.
@@ -167,7 +167,7 @@ public final class RestClients {
     }
 
     /**
-     * Logging interceptors for Opensearch client logging.
+     * Logging interceptors for OpenSearch client logging.
      *
      * @see ClientLogger
      */

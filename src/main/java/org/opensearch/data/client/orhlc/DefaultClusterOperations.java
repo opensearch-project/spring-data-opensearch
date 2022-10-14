@@ -17,14 +17,14 @@ import org.springframework.data.elasticsearch.core.cluster.ClusterHealth;
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 
 /**
- * Default implementation of {@link ClusterOperations} using the {@link OpensearchRestTemplate}.
+ * Default implementation of {@link ClusterOperations} using the {@link OpenSearchRestTemplate}.
  * @since 0.1
  */
 class DefaultClusterOperations implements ClusterOperations {
 
-    private final OpensearchRestTemplate template;
+    private final OpenSearchRestTemplate template;
 
-    DefaultClusterOperations(OpensearchRestTemplate template) {
+    DefaultClusterOperations(OpenSearchRestTemplate template) {
         this.template = template;
     }
 

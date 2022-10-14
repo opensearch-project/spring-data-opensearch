@@ -58,16 +58,16 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
     private static final Log LOGGER = LogFactory.getLog(RestIndexTemplate.class);
 
-    private final OpensearchRestTemplate restTemplate;
+    private final OpenSearchRestTemplate restTemplate;
     protected final RequestFactory requestFactory;
 
-    public RestIndexTemplate(OpensearchRestTemplate restTemplate, Class<?> boundClass) {
+    public RestIndexTemplate(OpenSearchRestTemplate restTemplate, Class<?> boundClass) {
         super(restTemplate.getElasticsearchConverter(), boundClass);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);
     }
 
-    public RestIndexTemplate(OpensearchRestTemplate restTemplate, IndexCoordinates boundIndex) {
+    public RestIndexTemplate(OpenSearchRestTemplate restTemplate, IndexCoordinates boundIndex) {
         super(restTemplate.getElasticsearchConverter(), boundIndex);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);

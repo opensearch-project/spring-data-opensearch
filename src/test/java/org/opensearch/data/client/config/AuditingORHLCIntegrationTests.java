@@ -10,7 +10,7 @@
 package org.opensearch.data.client.config;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.config.AuditingIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;
@@ -18,6 +18,6 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {AuditingORHLCIntegrationTests.Config.class})
 public class AuditingORHLCIntegrationTests extends AuditingIntegrationTests {
 
-    @Import({OpensearchRestTemplateConfiguration.class, AuditingIntegrationTests.Config.class})
+    @Import({OpenSearchRestTemplateConfiguration.class, AuditingIntegrationTests.Config.class})
     static class Config {}
 }

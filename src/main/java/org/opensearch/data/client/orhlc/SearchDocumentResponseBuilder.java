@@ -67,7 +67,7 @@ public class SearchDocumentResponseBuilder {
      * @param searchHits the {@link SearchHits} to process
      * @param scrollId scrollId
      * @param aggregations aggregations
-     * @param suggestOS the suggestion response from Opensearch
+     * @param suggestOS the suggestion response from OpenSearch
      * @param entityCreator function to create an entity from a {@link SearchDocument}
      * @param <T> entity type
      * @return the {@link SearchDocumentResponse}
@@ -101,8 +101,8 @@ public class SearchDocumentResponseBuilder {
             }
         }
 
-        OpensearchAggregations aggregationsContainer =
-                aggregations != null ? new OpensearchAggregations(aggregations) : null;
+        OpenSearchAggregations aggregationsContainer =
+                aggregations != null ? new OpenSearchAggregations(aggregations) : null;
         Suggest suggest = suggestFrom(suggestOS, entityCreator);
 
         return new SearchDocumentResponse(

@@ -11,7 +11,7 @@ package org.opensearch.data.client.core.geo;
 
 
 import org.junit.jupiter.api.DisplayName;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -23,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 @DisplayName("GeoJson integration test with RestHighLevelClient")
 public class GeoJsonORHLCIntegrationTests extends GeoJsonIntegrationTests {
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {

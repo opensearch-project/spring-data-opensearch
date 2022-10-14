@@ -10,7 +10,7 @@
 package org.opensearch.data.client.repositories.geo;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {GeoRepositoryORHLCIntegrationTests.Config.class})
 public class GeoRepositoryORHLCIntegrationTests extends GeoRepositoryIntegrationTests {
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     @EnableElasticsearchRepositories(
             basePackages = {"org.springframework.data.elasticsearch.repositories.geo"},
             considerNestedRepositories = true)

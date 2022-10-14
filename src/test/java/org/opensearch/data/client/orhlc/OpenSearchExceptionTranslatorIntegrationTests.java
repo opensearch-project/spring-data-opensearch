@@ -22,13 +22,13 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.elasticsearch.junit.jupiter.Tags;
 
 @Tag(Tags.INTEGRATION_TEST)
-class OpensearchExceptionTranslatorIntegrationTests {
-    private final OpensearchExceptionTranslator translator = new OpensearchExceptionTranslator();
+class OpenSearchExceptionTranslatorIntegrationTests {
+    private final OpenSearchExceptionTranslator translator = new OpenSearchExceptionTranslator();
 
     @Test // DATAES-799
-    void shouldConvertOpensearchStatusExceptionWithSeqNoConflictToOptimisticLockingFailureException() {
+    void shouldConvertOpenSearchStatusExceptionWithSeqNoConflictToOptimisticLockingFailureException() {
         OpenSearchStatusException ex = new OpenSearchStatusException(
-                "Opensearch exception [type=version_conflict_engine_exception, reason=[WPUUsXEB6uuA6j8_A7AB]: version conflict, required seqNo [34], primary term [16]. current document has seqNo [35] and primary term [16]]",
+                "OpenSearch exception [type=version_conflict_engine_exception, reason=[WPUUsXEB6uuA6j8_A7AB]: version conflict, required seqNo [34], primary term [16]. current document has seqNo [35] and primary term [16]]",
                 RestStatus.CONFLICT);
 
         DataAccessException translated = translator.translateExceptionIfPossible(ex);
@@ -43,7 +43,7 @@ class OpensearchExceptionTranslatorIntegrationTests {
         VersionConflictEngineException ex = new VersionConflictEngineException(
                 new ShardId("index", "uuid", 1),
                 "exception-id",
-                "Opensearch exception [type=version_conflict_engine_exception, reason=[WPUUsXEB6uuA6j8_A7AB]: version conflict, required seqNo [34], primary term [16]. current document has seqNo [35] and primary term [16]]");
+                "OpenSearch exception [type=version_conflict_engine_exception, reason=[WPUUsXEB6uuA6j8_A7AB]: version conflict, required seqNo [34], primary term [16]. current document has seqNo [35] and primary term [16]]");
 
         DataAccessException translated = translator.translateExceptionIfPossible(ex);
 

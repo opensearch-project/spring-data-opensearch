@@ -10,7 +10,7 @@
 package org.opensearch.data.client.orhlc;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -23,11 +23,11 @@ import org.springframework.test.context.ContextConfiguration;
  * The base class for these tests lives in the org.opensearch.data.client.core.query package, but we need
  * access to the {@link RequestFactory} class here
  */
-@ContextConfiguration(classes = {OpensearchPartQueryORHLCIntegrationTests.Config.class})
-public class OpensearchPartQueryORHLCIntegrationTests extends ElasticsearchPartQueryIntegrationTests {
+@ContextConfiguration(classes = {OpenSearchPartQueryORHLCIntegrationTests.Config.class})
+public class OpenSearchPartQueryORHLCIntegrationTests extends ElasticsearchPartQueryIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {}
 
     protected String buildQueryString(CriteriaQuery criteriaQuery, Class<?> clazz) {

@@ -986,17 +986,17 @@ class RequestFactoryIntegrationTests {
     }
 
     @Test // #2075
-    @DisplayName("should not fail on empty Option set during toOpensearchIndicesOptions")
+    @DisplayName("should not fail on empty Option set during toOpenSearchIndicesOptions")
     void shouldNotFailOnEmptyOptionsOnToElasticsearchIndicesOptions() {
-        assertThat(requestFactory.toOpensearchIndicesOptions(new IndicesOptions(
+        assertThat(requestFactory.toOpenSearchIndicesOptions(new IndicesOptions(
                         EnumSet.noneOf(IndicesOptions.Option.class), EnumSet.of(IndicesOptions.WildcardStates.OPEN))))
                 .isNotNull();
     }
 
     @Test // #2075
-    @DisplayName("should not fail on empty WildcardState set during toOpensearchIndicesOptions")
+    @DisplayName("should not fail on empty WildcardState set during toOpenSearchIndicesOptions")
     void shouldNotFailOnEmptyWildcardStatesOnToElasticsearchIndicesOptions() {
-        assertThat(requestFactory.toOpensearchIndicesOptions(
+        assertThat(requestFactory.toOpenSearchIndicesOptions(
                         IndicesOptions.STRICT_SINGLE_INDEX_NO_EXPAND_FORBID_CLOSED))
                 .isNotNull();
     }

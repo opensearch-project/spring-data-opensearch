@@ -11,7 +11,7 @@ package org.opensearch.data.client.core.mapping;
 
 import static org.opensearch.index.query.QueryBuilders.*;
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class FieldNamingStrategyORHLCIntegrationTests extends FieldNamingStrategyIntegrationTests {
 
     @Configuration
-    static class Config extends OpensearchRestTemplateConfiguration {
+    static class Config extends OpenSearchRestTemplateConfiguration {
 
         @Bean
         IndexNameProvider indexNameProvider() {

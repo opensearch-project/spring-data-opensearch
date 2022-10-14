@@ -202,7 +202,7 @@ public class RestClientsIntegrationTests {
         });
     }
 
-    private StubMapping stubForOpensearchVersionCheck() {
+    private StubMapping stubForOpenSearchVersionCheck() {
         return stubFor(get(urlEqualTo("/")) //
                 .willReturn(okJson("{\n" + //
                                 "    \"cluster_name\": \"docker-cluster\",\n"
@@ -263,7 +263,7 @@ public class RestClientsIntegrationTests {
 
     /**
      * starts a Wiremock server and calls consumer with the server as argument. Stops the server after consumer execution.
-     * Before the consumer ids called the {@link #stubForHead()} and {@link #stubForOpensearchVersionCheck()} are
+     * Before the consumer ids called the {@link #stubForHead()} and {@link #stubForOpenSearchVersionCheck()} are
      * registered.
      *
      * @param consumer the consumer
@@ -279,7 +279,7 @@ public class RestClientsIntegrationTests {
             wireMockServer.start();
             WireMock.configureFor(wireMockServer.port());
             stubForHead();
-            stubForOpensearchVersionCheck();
+            stubForOpenSearchVersionCheck();
 
             consumer.accept(wireMockServer);
         } finally {
