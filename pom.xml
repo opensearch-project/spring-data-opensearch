@@ -18,7 +18,7 @@
 	<url>https://github.com/opensearch-project/spring-data-opensearch</url>
 
 	<properties>
-		<springdata.commons>3.0.0-RC1</springdata.commons>
+		<springdata.commons>3.0.x-GH-2680-SNAPSHOT</springdata.commons>
 		<springdata.elasticsearch>5.0.0-RC1</springdata.elasticsearch>
 
 		<!-- version of the RestHighLevelClient	-->
