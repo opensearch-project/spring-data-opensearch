@@ -13,7 +13,7 @@ import static org.opensearch.index.query.QueryBuilders.*;
 
 import org.apache.lucene.search.join.ScoreMode;
 import org.jetbrains.annotations.NotNull;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {NestedObjectORHLCIntegrationTests.Config.class})
 public class NestedObjectORHLCIntegrationTests extends NestedObjectIntegrationTests {
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {

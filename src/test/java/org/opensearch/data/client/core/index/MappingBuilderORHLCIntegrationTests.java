@@ -13,7 +13,7 @@ package org.opensearch.data.client.core.index;
 import java.util.List;
 import java.util.Map;
 import org.junit.Ignore;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class MappingBuilderORHLCIntegrationTests extends MappingBuilderIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {
@@ -48,13 +48,13 @@ public class MappingBuilderORHLCIntegrationTests extends MappingBuilderIntegrati
     @Ignore
     @Override
     public void shouldWriteRuntimeFields() {
-        // Not supported by Opensearch
+        // Not supported by OpenSearch
     }
 
     @Ignore
     @Override
     public void shouldWriteWildcardFieldMapping() {
-        // Not supported by Opensearch
+        // Not supported by OpenSearch
     }
 
     @Override

@@ -15,14 +15,14 @@ import org.springframework.data.elasticsearch.core.AggregationsContainer;
 import org.springframework.lang.NonNull;
 
 /**
- * AggregationsContainer implementation for the Opensearch aggregations.
+ * AggregationsContainer implementation for the OpenSearch aggregations.
  * @since 0.1
  */
-public class OpensearchAggregations implements AggregationsContainer<Aggregations> {
+public class OpenSearchAggregations implements AggregationsContainer<Aggregations> {
 
     private final Aggregations aggregations;
 
-    public OpensearchAggregations(Aggregations aggregations) {
+    public OpenSearchAggregations(Aggregations aggregations) {
         this.aggregations = aggregations;
     }
 

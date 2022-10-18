@@ -12,7 +12,7 @@ package org.opensearch.data.client.core;
 import static org.opensearch.index.query.QueryBuilders.*;
 
 import org.apache.lucene.search.join.ScoreMode;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.index.query.InnerHitBuilder;
 import org.opensearch.index.query.NestedQueryBuilder;
@@ -28,7 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class InnerHitsORHLCIntegrationTests extends InnerHitsIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {

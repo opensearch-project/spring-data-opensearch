@@ -18,8 +18,8 @@ import java.util.Set;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.AbstractOpensearchConfiguration;
-import org.opensearch.data.client.orhlc.OpensearchRestTemplate;
+import org.opensearch.data.client.orhlc.AbstractOpenSearchConfiguration;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -30,10 +30,10 @@ import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMa
 import org.springframework.data.elasticsearch.junit.jupiter.Tags;
 
 /**
- * Integration tests for {@link OpensearchConfigurationSupport}.
+ * Integration tests for {@link OpenSearchConfigurationSupport}.
  */
 @Tag(Tags.INTEGRATION_TEST)
-public class OpensearchConfigurationSupportIntegrationTests {
+public class OpenSearchConfigurationSupportIntegrationTests {
 
     @Test // DATAES-504
     public void usesConfigClassPackageAsBaseMappingPackage() throws ClassNotFoundException {
@@ -72,10 +72,10 @@ public class OpensearchConfigurationSupportIntegrationTests {
     }
 
     @Test // DATAES-504
-    public void restConfigContainsOpensearchTemplate() {
+    public void restConfigContainsOpenSearchTemplate() {
 
         AbstractApplicationContext context = new AnnotationConfigApplicationContext(RestConfig.class);
-        assertThat(context.getBean(OpensearchRestTemplate.class)).isNotNull();
+        assertThat(context.getBean(OpenSearchRestTemplate.class)).isNotNull();
     }
 
     @Test // DATAES-563
@@ -101,7 +101,7 @@ public class OpensearchConfigurationSupportIntegrationTests {
     }
 
     @Configuration
-    static class RestConfig extends AbstractOpensearchConfiguration {
+    static class RestConfig extends AbstractOpenSearchConfiguration {
 
         @Override
         public RestHighLevelClient opensearchClient() {

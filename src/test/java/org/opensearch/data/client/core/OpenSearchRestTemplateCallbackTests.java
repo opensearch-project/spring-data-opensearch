@@ -35,11 +35,11 @@ import org.opensearch.action.search.SearchScrollRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.common.bytes.BytesArray;
-import org.opensearch.data.client.orhlc.OpensearchRestTemplate;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class OpensearchRestTemplateCallbackTests extends OpensearchTemplateCallbackTests {
+class OpenSearchRestTemplateCallbackTests extends OpenSearchTemplateCallbackTests {
 
     @Mock
     private RestHighLevelClient client;
@@ -68,7 +68,7 @@ class OpensearchRestTemplateCallbackTests extends OpensearchTemplateCallbackTest
     @SuppressWarnings("deprecation") // we know what we test
     @BeforeEach
     public void setUp() throws Exception {
-        initTemplate(new OpensearchRestTemplate(client));
+        initTemplate(new OpenSearchRestTemplate(client));
 
         doReturn(indexResponse).when(client).index(any(IndexRequest.class), any(RequestOptions.class));
         doReturn("response-id").when(indexResponse).getId();

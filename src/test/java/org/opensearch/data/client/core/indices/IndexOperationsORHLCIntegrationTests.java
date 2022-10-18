@@ -10,7 +10,7 @@
 package org.opensearch.data.client.core.indices;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class IndexOperationsORHLCIntegrationTests extends IndexOperationsIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {

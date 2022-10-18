@@ -15,9 +15,9 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import org.opensearch.data.client.orhlc.ClientConfiguration;
-import org.opensearch.data.client.orhlc.OpensearchRestTemplate;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.opensearch.data.client.orhlc.RestClients;
-import org.opensearch.data.client.orhlc.RestClients.OpensearchRestClient;
+import org.opensearch.data.client.orhlc.RestClients.OpenSearchRestClient;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnection;
 import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnectionInfo;
@@ -28,15 +28,15 @@ import org.springframework.data.elasticsearch.repositories.cdi.PersonDB;
 public class ElasticsearchOperationsProducer {
 
     @Produces
-    public ElasticsearchOperations createElasticsearchTemplate(OpensearchRestClient client) {
-        return new OpensearchRestTemplate(client.rest());
+    public ElasticsearchOperations createElasticsearchTemplate(OpenSearchRestClient client) {
+        return new OpenSearchRestTemplate(client.rest());
     }
 
     @Produces
     @OtherQualifier
     @PersonDB
-    public ElasticsearchOperations createQualifiedOpensearchTemplate(OpensearchRestClient client) {
-        return new OpensearchRestTemplate(client.rest());
+    public ElasticsearchOperations createQualifiedOpenSearchTemplate(OpenSearchRestClient client) {
+        return new OpenSearchRestTemplate(client.rest());
     }
 
     @PreDestroy
@@ -45,7 +45,7 @@ public class ElasticsearchOperationsProducer {
     }
 
     @Produces
-    public OpensearchRestClient opensearchClient() {
+    public OpenSearchRestClient opensearchClient() {
         // we rely on the tests being run with the SpringDataElasticsearchExtension class that sets up a containerized
         // ES.
         ClusterConnectionInfo connectionInfo = ClusterConnection.clusterConnectionInfo();

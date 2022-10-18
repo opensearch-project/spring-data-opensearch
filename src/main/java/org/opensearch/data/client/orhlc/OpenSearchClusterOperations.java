@@ -14,17 +14,17 @@ import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.util.Assert;
 
 /**
- * Opensearch cluster operations
+ * OpenSearch cluster operations
  * @since 0.1
  */
-public class OpensearchClusterOperations {
+public class OpenSearchClusterOperations {
     /**
-     * Creates a ClusterOperations for a {@link OpensearchRestTemplate}.
+     * Creates a ClusterOperations for a {@link OpenSearchRestTemplate}.
      *
      * @param template the template, must not be {@literal null}
      * @return ClusterOperations
      */
-    public static ClusterOperations forTemplate(OpensearchRestTemplate template) {
+    public static ClusterOperations forTemplate(OpenSearchRestTemplate template) {
 
         Assert.notNull(template, "template must not be null");
 

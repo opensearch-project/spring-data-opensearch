@@ -17,14 +17,14 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Meta-annotation to enable Opensearch-specific test cases only on or after specific version
+ * Meta-annotation to enable OpenSearch-specific test cases only on or after specific version
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(EnabledIfOpensearchVersionCondition.class)
-public @interface EnabledIfOpensearchVersion {
+@ExtendWith(EnabledIfOpenSearchVersionCondition.class)
+public @interface EnabledIfOpenSearchVersion {
     /**
-     * The minimal required version of the Opensearch this test could run on
+     * The minimal required version of the OpenSearch this test could run on
      */
     String onOrAfter();
 

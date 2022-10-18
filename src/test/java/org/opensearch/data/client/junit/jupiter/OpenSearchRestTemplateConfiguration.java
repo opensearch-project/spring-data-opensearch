@@ -13,9 +13,9 @@ import static org.springframework.util.StringUtils.*;
 
 import java.time.Duration;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.AbstractOpensearchConfiguration;
+import org.opensearch.data.client.orhlc.AbstractOpenSearchConfiguration;
 import org.opensearch.data.client.orhlc.ClientConfiguration;
-import org.opensearch.data.client.orhlc.OpensearchRestTemplate;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 import org.opensearch.data.client.orhlc.RestClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,10 +27,10 @@ import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverte
 import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnectionInfo;
 
 /**
- * Configuration for Spring Data Opensearch using {@link OpensearchRestTemplate}.
+ * Configuration for Spring Data OpenSearch using {@link OpenSearchRestTemplate}.
  */
 @Configuration
-public class OpensearchRestTemplateConfiguration extends AbstractOpensearchConfiguration {
+public class OpenSearchRestTemplateConfiguration extends AbstractOpenSearchConfiguration {
 
     @Autowired
     private ClusterConnectionInfo clusterConnectionInfo;
@@ -74,7 +74,7 @@ public class OpensearchRestTemplateConfiguration extends AbstractOpensearchConfi
     public ElasticsearchOperations elasticsearchOperations(
             ElasticsearchConverter elasticsearchConverter, RestHighLevelClient elasticsearchClient) {
 
-        OpensearchRestTemplate template = new OpensearchRestTemplate(elasticsearchClient, elasticsearchConverter) {
+        OpenSearchRestTemplate template = new OpenSearchRestTemplate(elasticsearchClient, elasticsearchConverter) {
             @Override
             public <T> T execute(ClientCallback<T> callback) {
                 try {

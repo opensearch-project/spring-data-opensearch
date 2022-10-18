@@ -111,7 +111,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Factory class to create Opensearch request instances from Spring Data Opensearch query objects.
+ * Factory class to create OpenSearch request instances from Spring Data OpenSearch query objects.
  * @since 0.1
  */
 class RequestFactory {
@@ -213,7 +213,7 @@ class RequestFactory {
         }
 
         if (bulkOptions.getRefreshPolicy() != null) {
-            bulkRequest.setRefreshPolicy(toOpensearchRefreshPolicy(bulkOptions.getRefreshPolicy()));
+            bulkRequest.setRefreshPolicy(toOpenSearchRefreshPolicy(bulkOptions.getRefreshPolicy()));
         }
 
         if (bulkOptions.getWaitForActiveShards() != null) {
@@ -797,7 +797,7 @@ class RequestFactory {
         }
 
         if (query.getIndicesOptions() != null) {
-            request.indicesOptions(toOpensearchIndicesOptions(query.getIndicesOptions()));
+            request.indicesOptions(toOpenSearchIndicesOptions(query.getIndicesOptions()));
         }
 
         if (query.isLimiting()) {
@@ -907,7 +907,7 @@ class RequestFactory {
 
         if (query instanceof NativeSearchQuery) {
             NativeSearchQuery nativeSearchQuery = (NativeSearchQuery) query;
-            List<SortBuilder<?>> sorts = nativeSearchQuery.getOpensearchSorts();
+            List<SortBuilder<?>> sorts = nativeSearchQuery.getOpenSearchSorts();
             if (sorts != null) {
                 sorts.forEach(sourceBuilder::sort);
             }
@@ -1060,7 +1060,7 @@ class RequestFactory {
         }
 
         if (query.getRefreshPolicy() != null) {
-            updateRequest.setRefreshPolicy(RequestFactory.toOpensearchRefreshPolicy(query.getRefreshPolicy()));
+            updateRequest.setRefreshPolicy(RequestFactory.toOpenSearchRefreshPolicy(query.getRefreshPolicy()));
         }
 
         if (query.getRetryOnConflict() != null) {
@@ -1097,7 +1097,7 @@ class RequestFactory {
             updateByQueryRequest.setQuery(getQuery(queryQuery));
 
             if (queryQuery.getIndicesOptions() != null) {
-                updateByQueryRequest.setIndicesOptions(toOpensearchIndicesOptions(queryQuery.getIndicesOptions()));
+                updateByQueryRequest.setIndicesOptions(toOpenSearchIndicesOptions(queryQuery.getIndicesOptions()));
             }
 
             if (queryQuery.getScrollTime() != null) {
@@ -1193,7 +1193,7 @@ class RequestFactory {
         return opensearchFilter;
     }
 
-    public static WriteRequest.RefreshPolicy toOpensearchRefreshPolicy(RefreshPolicy refreshPolicy) {
+    public static WriteRequest.RefreshPolicy toOpenSearchRefreshPolicy(RefreshPolicy refreshPolicy) {
         switch (refreshPolicy) {
             case IMMEDIATE:
                 return WriteRequest.RefreshPolicy.IMMEDIATE;
@@ -1217,7 +1217,7 @@ class RequestFactory {
         return null;
     }
 
-    public org.opensearch.action.support.IndicesOptions toOpensearchIndicesOptions(IndicesOptions indicesOptions) {
+    public org.opensearch.action.support.IndicesOptions toOpenSearchIndicesOptions(IndicesOptions indicesOptions) {
 
         Assert.notNull(indicesOptions, "indicesOptions must not be null");
 

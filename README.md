@@ -1,32 +1,32 @@
-Spring Data for Opensearch
+Spring Data for OpenSearch
 === 
 
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-The Spring Data Opensearch project provides [Spring Data](https://projects.spring.io/spring-data) compatible integration with the [Opensearch](https://opensearch.org/) search engine.
-Key functional areas of Spring Data Opensearch are a POJO centric model for interacting with a Opensearch Documents and easily writing a Repository style data access layer. This project is built on top of [Spring Data Elasticsearch](https://spring.io/projects/spring-data-elasticsearch/).
+The Spring Data OpenSearch project provides [Spring Data](https://projects.spring.io/spring-data) compatible integration with the [OpenSearch](https://opensearch.org/) search engine.
+Key functional areas of Spring Data OpenSearch are a POJO centric model for interacting with a OpenSearch Documents and easily writing a Repository style data access layer. This project is built on top of [Spring Data Elasticsearch](https://spring.io/projects/spring-data-elasticsearch/).
 
 ## Features
 
-* Spring configuration support using Java based `@Configuration` classes or an XML namespace for a Opensearch clients instances.
-* `ElasticsearchOperations` class and implementations that increases productivity performing common Opensearch operations.
+* Spring configuration support using Java based `@Configuration` classes or an XML namespace for a OpenSearch clients instances.
+* `ElasticsearchOperations` class and implementations that increases productivity performing common OpenSearch operations.
 Includes integrated object mapping between documents and POJOs.
 * Feature Rich Object Mapping integrated with Spring’s Conversion Service
 * Annotation based mapping metadata
 * Automatic implementation of `Repository` interfaces including support for custom search methods.
 * CDI support for repositories
 
-## About Opensearch versions and clients
+## About OpenSearch versions and clients
 
 ### Compatibility Matrix
 
-| Spring Data Release Train | Spring Data Opensearch | Spring Data Elasticsearch | Opensearch     | Spring Framework | Spring Boot |
+| Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch     | Spring Framework | Spring Boot |
 |---------------------------|------------------------|---------------------------|----------------|------------------|-------------|
 | 2022.0 (Turing)           | 0.1.x                  | 5.0.x                     | 1.3.6 / 2.3.0  | 6.0.x            | 3.0.x       |
 
-### Opensearch 2.x / 1.x client libraries
+### OpenSearch 2.x / 1.x client libraries
 
-At the moment, Spring Data Opensearch provides the possibility to use the `RestHighLevelCLient` to connect to Opensearch clusters. 
+At the moment, Spring Data OpenSearch provides the possibility to use the `RestHighLevelCLient` to connect to OpenSearch clusters. 
 
 ```xml
 <dependency>
@@ -74,25 +74,25 @@ public class MyService {
 }
 ```
 
-### Using the Opensearch RestClient
+### Using the OpenSearch RestClient
 
-Spring Data Opensearch operates upon an Opensearch client that is connected to a single Opensearch node or a cluster. Although the Opensearch Client can be used directly to work with the cluster, applications using Spring Data Elasticsearch normally use the higher level abstractions of `ElasticsearchOperations` and repositories (please consult [official Spring Data Elasticsearch documentation](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)). Use the builder to provide cluster addresses, set default `HttpHeaders` or enable SSL.
+Spring Data OpenSearch operates upon an OpenSearch client that is connected to a single OpenSearch node or a cluster. Although the OpenSearch Client can be used directly to work with the cluster, applications using Spring Data Elasticsearch normally use the higher level abstractions of `ElasticsearchOperations` and repositories (please consult [official Spring Data Elasticsearch documentation](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)). Use the builder to provide cluster addresses, set default `HttpHeaders` or enable SSL.
 
 ```java
-import org.opensearch.data.client.orhlc.AbstractOpensearchConfiguration;
+import org.opensearch.data.client.orhlc.AbstractOpenSearchConfiguration;
 import org.opensearch.data.client.orhlc.ClientConfiguration;
 import org.opensearch.data.client.orhlc.RestClients;
 
 @Configuration
-public class RestClientConfig extends AbstractOpensearchConfiguration {
+public class RestClientConfig extends AbstractOpenSearchConfiguration {
 
     @Override
     @Bean
     public RestHighLevelClient opensearchClient() {
 
         final ClientConfiguration clientConfiguration = ClientConfiguration.builder()
-            .connectedTo("localhost:9200")
-            .build();
+                .connectedTo("localhost:9200")
+                .build();
 
         return RestClients.create(clientConfiguration).rest();
     }
@@ -162,18 +162,18 @@ In this code snippet, the client configuration was customized to:
 - Set the socket timeout (default is `5 sec`).
 - Optionally set headers.
 - Add basic authentication.
-- A `Supplier<Header>` function can be specified which is called every time before a request is sent to Opensearch - here, as an example, the current time is written in a header.
+- A `Supplier<Header>` function can be specified which is called every time before a request is sent to OpenSearch - here, as an example, the current time is written in a header.
 - A function configuring the low level REST client
 
 ### Spring Boot integration
 
-If you are using Spring Data Opensearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in).
+If you are using Spring Data OpenSearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in).
 
 ```java
 @SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
-public class OpensearchDemoApplication {
+public class OpenSearchDemoApplication {
   public static void main(String[] args) {
-    SpringApplication.run(OpensearchDemoApplication.class, args);
+    SpringApplication.run(OpenSearchDemoApplication.class, args);
   }
 }
 ```
@@ -207,13 +207,13 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 
 ## Reporting Issues
 
-Spring Data Opensearch uses GitHub as issue tracking system to record bugs and feature requests.
+Spring Data OpenSearch uses GitHub as issue tracking system to record bugs and feature requests.
 If you want to raise an issue, please follow the recommendations below:
 
 * Before you log a bug, please search the
 [issue tracker](https://github.com/opensearch-project/spring-data-opensearch/issues) to see if someone has already reported the problem.
 * If the issue doesn’t already exist, [create a new issue](https://github.com/opensearch-project/spring-data-opensearch/issues/new).
-* Please provide as much information as possible with the issue report, we like to know the version of Spring Data Opensearch that you are using and JVM version.
+* Please provide as much information as possible with the issue report, we like to know the version of Spring Data OpenSearch that you are using and JVM version.
 * If you need to paste code, or include a stack trace use Markdown +++```+++ escapes before and after your text.
 * If possible try to create a test-case or project that replicates the issue.
 Attach a link to your code or a compressed file containing your code.
@@ -231,7 +231,7 @@ mvn clean install
 This project has adopted the [Amazon Open Source Code of Conduct](CODE_OF_CONDUCT.md). For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq), or contact [opensource-codeofconduct@amazon.com](mailto:opensource-codeofconduct@amazon.com) with any additional questions or comments.
 
 ## License
-Spring Data Opensearch is licensed under the Apache license, version 2.0. Full license text is available in the [LICENSE](LICENSE.txt) file.
+Spring Data OpenSearch is licensed under the Apache license, version 2.0. Full license text is available in the [LICENSE](LICENSE.txt) file.
 
 Please note that the project explicitly does not require a CLA (Contributor License Agreement) from its contributors.
 

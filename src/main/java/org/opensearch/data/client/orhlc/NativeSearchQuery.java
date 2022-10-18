@@ -27,7 +27,7 @@ import org.springframework.data.elasticsearch.core.query.IndexBoost;
 import org.springframework.lang.Nullable;
 
 /**
- * A query created from Opensearch QueryBuilder instances. Note: the filter constructor parameter is used to create a
+ * A query created from OpenSearch QueryBuilder instances. Note: the filter constructor parameter is used to create a
  * post_filter
  * {@see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/filter-search-results.html#post-filter}, if a
  * filter is needed that filters before aggregations are build, it must be included in the query constructor parameter.
@@ -140,7 +140,7 @@ public class NativeSearchQuery extends BaseQuery {
     }
 
     @Nullable
-    public List<SortBuilder<?>> getOpensearchSorts() {
+    public List<SortBuilder<?>> getOpenSearchSorts() {
         return sorts;
     }
 
