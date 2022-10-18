@@ -25,7 +25,7 @@
 		<opensearch-rhlc>2.3.0</opensearch-rhlc>
 
 		<log4j>2.19.0</log4j>
-		<netty>4.1.82.Final</netty>
+		<netty>4.1.84.Final</netty>
 
 		<hoverfly>0.14.3</hoverfly>
 		<jsonassert>1.5.1</jsonassert>
