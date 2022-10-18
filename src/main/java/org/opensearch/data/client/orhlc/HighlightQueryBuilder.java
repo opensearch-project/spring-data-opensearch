@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
- * Converts the {@link Highlight} annotation from a method to an Opensearch {@link HighlightBuilder}.
+ * Converts the {@link Highlight} annotation from a method to an OpenSearch {@link HighlightBuilder}.
  * @since 0.1
  */
 public class HighlightQueryBuilder {
@@ -41,7 +41,7 @@ public class HighlightQueryBuilder {
     }
 
     /**
-     * creates an Opensearch HighlightBuilder from an annotation.
+     * creates an OpenSearch HighlightBuilder from an annotation.
      *
      * @param highlight, must not be {@literal null}
      * @param type the entity type, used to map field names. If null, field names are not mapped.

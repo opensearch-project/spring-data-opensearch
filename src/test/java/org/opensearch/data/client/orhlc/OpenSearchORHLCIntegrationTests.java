@@ -26,8 +26,8 @@ import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.common.lucene.search.function.CombineFunction;
 import org.opensearch.common.lucene.search.function.FunctionScoreQuery;
 import org.opensearch.common.unit.TimeValue;
-import org.opensearch.data.client.EnabledIfOpensearchVersion;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.EnabledIfOpenSearchVersion;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.index.query.InnerHitBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -54,12 +54,12 @@ import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = {OpensearchORHLCIntegrationTests.Config.class})
-@DisplayName("Using Opensearch RestHighLevelClient")
-public class OpensearchORHLCIntegrationTests extends ElasticsearchIntegrationTests {
+@ContextConfiguration(classes = {OpenSearchORHLCIntegrationTests.Config.class})
+@DisplayName("Using OpenSearch RestHighLevelClient")
+public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {
@@ -293,7 +293,7 @@ public class OpensearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
     }
 
     @Test
-    @EnabledIfOpensearchVersion(
+    @EnabledIfOpenSearchVersion(
             onOrAfter = "2.0.0",
             reason = "https://github.com/opensearch-project/OpenSearch/issues/4749")
     @Override
@@ -302,6 +302,6 @@ public class OpensearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
     }
 
     private RequestFactory getRequestFactory() {
-        return ((OpensearchRestTemplate) operations).getRequestFactory();
+        return ((OpenSearchRestTemplate) operations).getRequestFactory();
     }
 }

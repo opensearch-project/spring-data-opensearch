@@ -10,7 +10,7 @@
 package org.opensearch.data.client.core.geo;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class GeoORHLCIntegrationTests extends GeoIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     @EnableElasticsearchRepositories(considerNestedRepositories = true)
     static class Config {
         @Bean

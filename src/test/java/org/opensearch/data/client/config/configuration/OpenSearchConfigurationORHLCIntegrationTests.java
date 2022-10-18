@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.data.client.orhlc.AbstractOpensearchConfiguration;
+import org.opensearch.data.client.orhlc.AbstractOpenSearchConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.annotation.Id;
@@ -27,11 +27,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Tests for {@link AbstractOpensearchConfiguration}.
+ * Tests for {@link AbstractOpenSearchConfiguration}.
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
-public class OpensearchConfigurationORHLCIntegrationTests {
+public class OpenSearchConfigurationORHLCIntegrationTests {
 
     /*
      * using a repository with an entity that is set to createIndex = false as we have no elastic running for this test
@@ -44,7 +44,7 @@ public class OpensearchConfigurationORHLCIntegrationTests {
     @EnableElasticsearchRepositories(
             basePackages = {"org.opensearch.data.client.config.configuration"},
             considerNestedRepositories = true)
-    static class Config extends AbstractOpensearchConfiguration {
+    static class Config extends AbstractOpenSearchConfiguration {
 
         @Override
         public RestHighLevelClient opensearchClient() {

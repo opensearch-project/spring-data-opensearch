@@ -10,9 +10,9 @@
 package org.opensearch.data.client.core.index;
 
 
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.data.elasticsearch.core.index.IndexTemplateIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = {OpensearchRestTemplateConfiguration.class})
+@ContextConfiguration(classes = {OpenSearchRestTemplateConfiguration.class})
 public class IndexTemplateORHLCIntegrationTests extends IndexTemplateIntegrationTests {}

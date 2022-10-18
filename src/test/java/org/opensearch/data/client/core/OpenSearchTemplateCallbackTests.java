@@ -43,7 +43,7 @@ import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
-abstract class OpensearchTemplateCallbackTests {
+abstract class OpenSearchTemplateCallbackTests {
 
     protected AbstractElasticsearchTemplate template;
 

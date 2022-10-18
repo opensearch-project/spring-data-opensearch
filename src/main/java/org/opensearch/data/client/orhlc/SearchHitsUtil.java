@@ -13,7 +13,7 @@ package org.opensearch.data.client.orhlc;
 import org.opensearch.search.SearchHits;
 
 /**
- * Utility class to prevent leaking of Lucene API into Spring Data Opensearch.
+ * Utility class to prevent leaking of Lucene API into Spring Data OpenSearch.
  * @since 0.1
  */
 public final class SearchHitsUtil {

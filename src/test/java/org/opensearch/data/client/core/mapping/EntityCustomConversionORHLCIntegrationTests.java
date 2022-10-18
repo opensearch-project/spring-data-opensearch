@@ -11,7 +11,7 @@ package org.opensearch.data.client.core.mapping;
 
 
 import java.util.Arrays;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -29,7 +29,7 @@ public class EntityCustomConversionORHLCIntegrationTests extends EntityCustomCon
     @EnableElasticsearchRepositories(
             basePackages = {"org.springframework.data.elasticsearch.core.mapping"},
             considerNestedRepositories = true)
-    static class Config extends OpensearchRestTemplateConfiguration {
+    static class Config extends OpenSearchRestTemplateConfiguration {
         @Bean
         IndexNameProvider indexNameProvider() {
             return new IndexNameProvider("entity-customconversions-operations-os");

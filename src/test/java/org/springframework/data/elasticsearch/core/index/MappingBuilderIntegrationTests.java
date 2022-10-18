@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,7 +71,7 @@ import org.springframework.lang.Nullable;
 public abstract class MappingBuilderIntegrationTests extends MappingContextBaseTests {
 
 	@Configuration
-	@Import({ OpensearchRestTemplateConfiguration.class })
+	@Import({ OpenSearchRestTemplateConfiguration.class })
 	static class Config {
 		@Bean
 		IndexNameProvider indexNameProvider() {

@@ -15,9 +15,9 @@ import static org.opensearch.search.aggregations.AggregationBuilders.*;
 import static org.opensearch.search.aggregations.PipelineAggregatorBuilders.*;
 
 import org.opensearch.action.search.SearchType;
-import org.opensearch.data.client.junit.jupiter.OpensearchRestTemplateConfiguration;
+import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
-import org.opensearch.data.client.orhlc.OpensearchAggregations;
+import org.opensearch.data.client.orhlc.OpenSearchAggregations;
 import org.opensearch.search.aggregations.Aggregation;
 import org.opensearch.search.aggregations.Aggregations;
 import org.opensearch.search.aggregations.pipeline.ParsedStatsBucket;
@@ -36,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 public class AggregationORHLCIntegrationTests extends AggregationIntegrationTests {
 
     @Configuration
-    @Import({OpensearchRestTemplateConfiguration.class})
+    @Import({OpenSearchRestTemplateConfiguration.class})
     @EnableElasticsearchRepositories(considerNestedRepositories = true)
     static class Config {
         @Bean
@@ -55,7 +55,7 @@ public class AggregationORHLCIntegrationTests extends AggregationIntegrationTest
     }
 
     protected void assertThatAggsHasResult(AggregationsContainer<?> aggregationsContainer, String aggsName) {
-        Aggregations aggregations = ((OpensearchAggregations) aggregationsContainer).aggregations();
+        Aggregations aggregations = ((OpenSearchAggregations) aggregationsContainer).aggregations();
         assertThat(aggregations.asMap().get(aggsName)).isNotNull();
     }
 
@@ -72,7 +72,7 @@ public class AggregationORHLCIntegrationTests extends AggregationIntegrationTest
 
     protected void assertThatPipelineAggsAreCorrect(
             AggregationsContainer<?> aggregationsContainer, String aggsName, String pipelineAggsName) {
-        Aggregations aggregations = ((OpensearchAggregations) aggregationsContainer).aggregations();
+        Aggregations aggregations = ((OpenSearchAggregations) aggregationsContainer).aggregations();
 
         assertThat(aggregations.asMap().get(aggsName)).isNotNull();
         Aggregation keyword_bucket_stats = aggregations.asMap().get(pipelineAggsName);

@@ -46,7 +46,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Factory class to convert Opensearch responses to different type of data classes.
+ * Factory class to convert OpenSearch responses to different type of data classes.
  * @since 0.1
  */
 public class ResponseConverter {
@@ -108,7 +108,7 @@ public class ResponseConverter {
     /**
      * extract the index settings information from a given index
      *
-     * @param getIndexResponse the Opensearch GetIndexResponse
+     * @param getIndexResponse the OpenSearch GetIndexResponse
      * @param indexName the index name
      * @return a document that represents {@link Settings}
      */
@@ -130,7 +130,7 @@ public class ResponseConverter {
     /**
      * extract the mappings information from a given index
      *
-     * @param getIndexResponse the Opensearch GetIndexResponse
+     * @param getIndexResponse the OpenSearch GetIndexResponse
      * @param indexName the index name
      * @return a document that represents {@link MappingMetadata}
      */
@@ -204,12 +204,12 @@ public class ResponseConverter {
         if (responseHasMappings) {
             Object mappingsObj = getIndexResponse.getMappings().get(indexName);
             MappingMetadata mappings = null;
-            if (mappingsObj instanceof ImmutableOpenMap) { // Opensearch 1.x returns mapping types map
+            if (mappingsObj instanceof ImmutableOpenMap) { // OpenSearch 1.x returns mapping types map
                 @SuppressWarnings("unchecked")
                 final ImmutableOpenMap<String, MappingMetadata> mappingsMap =
                         (ImmutableOpenMap<String, MappingMetadata>) mappingsObj;
                 mappings = mappingsMap.get("_doc");
-            } else if (mappingsObj instanceof MappingMetadata) { // Opensearch 2.x returns mappings
+            } else if (mappingsObj instanceof MappingMetadata) { // OpenSearch 2.x returns mappings
                 mappings = (MappingMetadata) mappingsObj;
             }
 
@@ -275,7 +275,7 @@ public class ResponseConverter {
     /**
      * extract the index settings information for a given index
      *
-     * @param response the Opensearch response
+     * @param response the OpenSearch response
      * @param indexName the index name
      * @return settings
      */

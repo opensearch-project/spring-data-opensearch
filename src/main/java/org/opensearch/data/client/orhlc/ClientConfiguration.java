@@ -22,7 +22,7 @@ import org.springframework.data.elasticsearch.support.HttpHeaders;
 import org.springframework.lang.Nullable;
 
 /**
- * Configuration interface exposing common client configuration properties for Opensearch clients.
+ * Configuration interface exposing common client configuration properties for OpenSearch clients.
  * @since 0.1
  */
 public interface ClientConfiguration {
