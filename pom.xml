@@ -19,11 +19,10 @@
 
 	<properties>
 		<springdata.commons>3.0.0-RC1</springdata.commons>
-		<springdata.elasticsearch>5.0.0-SNAPSHOT</springdata.elasticsearch>
+		<springdata.elasticsearch>5.0.0-RC1</springdata.elasticsearch>
 
 		<!-- version of the RestHighLevelClient	-->
 		<opensearch-rhlc>2.3.0</opensearch-rhlc>
-
 		<log4j>2.19.0</log4j>
 		<netty>4.1.84.Final</netty>
 
@@ -75,18 +74,6 @@
 		<system>GitHub</system>
 		<url>https://github.com/opensearch-project/spring-data-opensearch/issues</url>
 	</issueManagement>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty-bom</artifactId>
-				<version>${netty}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 
@@ -366,9 +353,6 @@
 						<include>**/*Tests.java</include>
 						<include>**/*Test.java</include>
 					</includes>
-					<systemPropertyVariables>
-						<es.set.netty.runtime.available.processors>false</es.set.netty.runtime.available.processors>
-					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<!-- the default-test execution runs only the unit tests -->
