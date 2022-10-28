@@ -25,6 +25,6 @@ jobs:
         with:
           java-version: ${{ matrix.entry.java-version }}
           distribution: 'temurin'
-          cache: maven
-      - name: Build with Apache Maven
-        run: mvn clean verify -Dsde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
+          cache: gradle
+      - name: Build with Gradle
+        run: ./gradlew check -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}

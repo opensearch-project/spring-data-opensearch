@@ -1,6 +1,8 @@
 .DS_Store
 *.graphml
 .springBeans
+.gradle
+build/
 
 atlassian-ide-plugin.xml
 

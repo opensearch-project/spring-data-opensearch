@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.core.geo;
 
-
 import org.junit.jupiter.api.DisplayName;
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;

@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.util.Assert;
 

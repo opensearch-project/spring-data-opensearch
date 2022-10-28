@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

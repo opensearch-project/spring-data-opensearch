@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.core.suggest;
 
-
 import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;

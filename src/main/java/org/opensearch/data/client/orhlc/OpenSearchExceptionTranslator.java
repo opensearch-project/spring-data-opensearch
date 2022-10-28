@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

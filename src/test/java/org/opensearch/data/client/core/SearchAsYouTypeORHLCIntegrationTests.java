@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.core;
 
-
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQuery;
 import org.opensearch.index.query.MultiMatchQueryBuilder;

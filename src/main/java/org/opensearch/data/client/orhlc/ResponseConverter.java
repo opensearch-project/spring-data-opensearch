@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;

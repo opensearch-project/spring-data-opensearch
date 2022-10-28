@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.core.index;
 
-
 import java.util.List;
 import java.util.Map;
 import org.junit.Ignore;

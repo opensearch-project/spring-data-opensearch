@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import org.opensearch.script.Script;
 
 /**

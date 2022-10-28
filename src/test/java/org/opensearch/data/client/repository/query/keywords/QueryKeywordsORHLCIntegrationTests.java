@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.repository.query.keywords;
 
-
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

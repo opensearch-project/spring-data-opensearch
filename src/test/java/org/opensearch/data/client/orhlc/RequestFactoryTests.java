@@ -22,7 +22,6 @@ import java.util.Map;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.opensearch.action.DocWriteRequest;
 import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -59,11 +58,9 @@ import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery.ScoreMode;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.Remote;
-import org.springframework.data.elasticsearch.junit.jupiter.Tags;
 import org.springframework.lang.Nullable;
 
-@Tag(Tags.INTEGRATION_TEST)
-class RequestFactoryIntegrationTests {
+class RequestFactoryTests {
 
     @Nullable
     private static RequestFactory requestFactory;

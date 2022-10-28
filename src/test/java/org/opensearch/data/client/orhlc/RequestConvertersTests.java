@@ -12,18 +12,15 @@ package org.opensearch.data.client.orhlc;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Collections;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.opensearch.action.delete.DeleteRequest;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.client.Request;
-import org.springframework.data.elasticsearch.junit.jupiter.Tags;
 
 /**
  * Unit tests for {@link RequestConverters}.
  */
-@Tag(Tags.INTEGRATION_TEST)
-public class RequestConvertersIntegrationTests {
+public class RequestConvertersTests {
 
     @Test // DATAES-652
     public void shouldNotAddIfSeqNoAndIfPrimaryTermToResultIfInputDoesNotcontainThemWhenConvertingIndexRequest() {
