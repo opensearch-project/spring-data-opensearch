@@ -26,10 +26,10 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.opensearch.testcontainers.OpensearchContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -44,12 +44,12 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 
 	private static final Log LOGGER = LogFactory.getLog(ClusterConnection.class);
 
-	private static final String ENV_ELASTICSEARCH_HOST = "DATAES_ELASTICSEARCH_HOST";
-	private static final String ENV_ELASTICSEARCH_PORT = "DATAES_ELASTICSEARCH_PORT";
+	private static final String ENV_OPENSEARCH_HOST = "DATAOS_OPENSEARCH_HOST";
+	private static final String ENV_OPENSEARCH_PORT = "DATAOS_OPENSEARCH_PORT";
 
 	private static final String SDE_TESTCONTAINER_IMAGE_NAME = "sde.testcontainers.image-name";
 	private static final String SDE_TESTCONTAINER_IMAGE_VERSION = "sde.testcontainers.image-version";
-	private static final int ELASTICSEARCH_DEFAULT_PORT = 9200;
+	private static final int OPENSEARCH_DEFAULT_PORT = 9200;
 
 	private static final ThreadLocal<ClusterConnectionInfo> clusterConnectionInfoThreadLocal = new ThreadLocal<>();
 
@@ -89,11 +89,11 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 	@Nullable
 	private ClusterConnectionInfo createClusterConnectionInfo() {
 
-		String host = System.getenv(ENV_ELASTICSEARCH_HOST);
+		String host = System.getenv(ENV_OPENSEARCH_HOST);
 
 		if (hasText(host)) {
 
-			String envPort = System.getenv(ENV_ELASTICSEARCH_PORT);
+			String envPort = System.getenv(ENV_OPENSEARCH_PORT);
 
 			int port = 9200;
 
@@ -130,15 +130,15 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 
 			DockerImageName dockerImageName = getDockerImageName(testcontainersProperties);
 
-			ElasticsearchContainer elasticsearchContainer = new SpringDataElasticsearchContainer(dockerImageName)
+			OpensearchContainer opensearchContainer = new SpringDataOpensearchContainer(dockerImageName)
 					.withEnv(testcontainersProperties);
-			elasticsearchContainer.start();
+			opensearchContainer.start();
 
 			return ClusterConnectionInfo.builder() //
 					.withIntegrationtestEnvironment(integrationtestEnvironment)
-					.withHostAndPort(elasticsearchContainer.getHost(),
-							elasticsearchContainer.getMappedPort(ELASTICSEARCH_DEFAULT_PORT)) //
-					.withElasticsearchContainer(elasticsearchContainer) //
+					.withHostAndPort(opensearchContainer.getHost(),
+							opensearchContainer.getMappedPort(OPENSEARCH_DEFAULT_PORT)) //
+					.withOpensearchContainer(opensearchContainer) //
 					.build();
 		} catch (Exception e) {
 			LOGGER.error("Could not start Elasticsearch container", e);
@@ -191,11 +191,11 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 	@Override
 	public void close() {
 
-		if (clusterConnectionInfo != null && clusterConnectionInfo.getElasticsearchContainer() != null) {
+		if (clusterConnectionInfo != null && clusterConnectionInfo.getOpensearchContainer() != null) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Stopping container");
 			}
-			clusterConnectionInfo.getElasticsearchContainer().stop();
+			clusterConnectionInfo.getOpensearchContainer().stop();
 		}
 
 		if (LOGGER.isDebugEnabled()) {
@@ -203,9 +203,9 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 		}
 	}
 
-	private static class SpringDataElasticsearchContainer extends ElasticsearchContainer {
+	private static class SpringDataOpensearchContainer extends OpensearchContainer {
 
-		public SpringDataElasticsearchContainer(DockerImageName dockerImageName) {
+		public SpringDataOpensearchContainer(DockerImageName dockerImageName) {
 			super(dockerImageName);
 		}
 
@@ -214,7 +214,7 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 		 */
 		@Override
 		protected Logger logger() {
-			return LoggerFactory.getLogger(SpringDataElasticsearchContainer.class);
+			return LoggerFactory.getLogger(SpringDataOpensearchContainer.class);
 		}
 	}
 }

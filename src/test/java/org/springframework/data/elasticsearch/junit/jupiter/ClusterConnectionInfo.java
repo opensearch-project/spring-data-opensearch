@@ -15,9 +15,9 @@
  */
 package org.springframework.data.elasticsearch.junit.jupiter;
 
+import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
  * The information about the ClusterConnection.<br/>
@@ -34,19 +34,19 @@ public final class ClusterConnectionInfo {
 	private final String host;
 	private final int httpPort;
 	private final String clusterName;
-	@Nullable private final ElasticsearchContainer elasticsearchContainer;
+	@Nullable private final OpensearchContainer opensearchContainer;
 
 	public static Builder builder() {
 		return new Builder();
 	}
 
 	private ClusterConnectionInfo(IntegrationtestEnvironment integrationtestEnvironment, String host, int httpPort,
-			boolean useSsl, @Nullable ElasticsearchContainer elasticsearchContainer) {
+			boolean useSsl, @Nullable OpensearchContainer opensearchContainer) {
 		this.integrationtestEnvironment = integrationtestEnvironment;
 		this.host = host;
 		this.httpPort = httpPort;
 		this.useSsl = useSsl;
-		this.elasticsearchContainer = elasticsearchContainer;
+		this.opensearchContainer = opensearchContainer;
 		this.clusterName = "docker-cluster";
 	}
 
@@ -77,8 +77,8 @@ public final class ClusterConnectionInfo {
 	}
 
 	@Nullable
-	public ElasticsearchContainer getElasticsearchContainer() {
-		return elasticsearchContainer;
+	public OpensearchContainer getOpensearchContainer() {
+		return opensearchContainer;
 	}
 
 	public static class Builder {
@@ -86,7 +86,7 @@ public final class ClusterConnectionInfo {
 		private boolean useSsl = false;
 		private String host;
 		private int httpPort;
-		@Nullable private ElasticsearchContainer elasticsearchContainer;
+		@Nullable private OpensearchContainer opensearchContainer;
 
 		public Builder withIntegrationtestEnvironment(IntegrationtestEnvironment integrationtestEnvironment) {
 			this.integrationtestEnvironment = integrationtestEnvironment;
@@ -107,13 +107,13 @@ public final class ClusterConnectionInfo {
 			return this;
 		}
 
-		public Builder withElasticsearchContainer(ElasticsearchContainer elasticsearchContainer) {
-			this.elasticsearchContainer = elasticsearchContainer;
+		public Builder withOpensearchContainer(OpensearchContainer opensearchContainer) {
+			this.opensearchContainer = opensearchContainer;
 			return this;
 		}
 
 		public ClusterConnectionInfo build() {
-			return new ClusterConnectionInfo(integrationtestEnvironment, host, httpPort, useSsl, elasticsearchContainer);
+			return new ClusterConnectionInfo(integrationtestEnvironment, host, httpPort, useSsl, opensearchContainer);
 		}
 	}
 }
