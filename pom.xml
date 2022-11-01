@@ -28,7 +28,7 @@
 
 		<hoverfly>0.14.3</hoverfly>
 		<jsonassert>1.5.1</jsonassert>
-		<testcontainers>1.17.5</testcontainers>
+		<opensearch-testcontainers>2.0.0</opensearch-testcontainers>
 		<wiremock>2.34.0</wiremock>
 
 		<java-module-name>spring.data.opensearch</java-module-name>
@@ -299,9 +299,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>elasticsearch</artifactId>
-			<version>${testcontainers}</version>
+			<groupId>org.opensearch</groupId>
+			<artifactId>opensearch-testcontainers</artifactId>
+			<version>${opensearch-testcontainers}</version>
 			<scope>test</scope>
 		</dependency>
 
