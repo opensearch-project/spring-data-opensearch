@@ -56,7 +56,7 @@ dependencies {
     exclude("commons-logging", "commons-logging")
   }
   
-  implementation("com.fasterxml.jackson.core:jackson-core:2.14.0-rc2")
+  implementation("com.fasterxml.jackson.core:jackson-core:2.14.0-rc3")
   implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc2")
   implementation(springLibs.context)
   implementation(springLibs.tx)
