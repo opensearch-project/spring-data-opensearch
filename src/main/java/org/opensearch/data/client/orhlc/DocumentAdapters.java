@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;

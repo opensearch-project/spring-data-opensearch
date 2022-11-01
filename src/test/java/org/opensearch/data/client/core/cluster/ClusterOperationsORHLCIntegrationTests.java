@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.core.cluster;
 
-
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperationsIntegrationTests;
 import org.springframework.test.context.ContextConfiguration;

@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import java.net.URL;
 import java.util.ArrayList;
 import org.apache.commons.logging.Log;

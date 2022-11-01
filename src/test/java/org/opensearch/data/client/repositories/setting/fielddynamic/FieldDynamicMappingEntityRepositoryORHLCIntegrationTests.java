@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.repositories.setting.fielddynamic;
 
-
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client;
 
-
 import java.lang.reflect.AnnotatedElement;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;

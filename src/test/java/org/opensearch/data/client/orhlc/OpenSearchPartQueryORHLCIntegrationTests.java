@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.springframework.context.annotation.Configuration;

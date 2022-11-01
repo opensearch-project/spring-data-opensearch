@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import org.opensearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.opensearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.opensearch.client.RequestOptions;

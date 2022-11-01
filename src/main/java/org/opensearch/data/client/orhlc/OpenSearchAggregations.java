@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import org.opensearch.search.aggregations.Aggregations;
 import org.springframework.data.elasticsearch.core.AggregationsContainer;
 import org.springframework.lang.NonNull;

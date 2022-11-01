@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.time.Duration;
