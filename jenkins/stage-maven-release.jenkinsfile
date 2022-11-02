@@ -1,0 +1,138 @@
+lib = library(identifier: 'jenkins@1.0.4', retriever: modernSCM([
+    $class: 'GitSCMSource',
+    remote: 'https://github.com/opensearch-project/opensearch-build-libraries.git',
+]))
+
+pipeline {
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        throttleJobProperty(
+            categories: [],
+            limitOneJobWithMatchingParams: false,
+            maxConcurrentPerNode: 0,
+            maxConcurrentTotal: 1,
+            paramsToUseForLimit: '',
+            throttleEnabled: true,
+            throttleOption: 'project',
+        )
+    }
+    agent {
+        docker {
+            label 'Jenkins-Agent-AL2-X64-C54xlarge-Docker-Host'
+            image 'opensearchstaging/ci-runner:ci-runner-centos7-opensearch-build-v2'
+            args '-e JAVA_HOME=/opt/java/openjdk-17'
+            alwaysPull true
+        }
+    }
+    triggers {
+        GenericTrigger(
+            genericVariables: [
+                [key: 'ref', value: '$.ref'],
+            ],
+            tokenCredentialId: 'jenkins-spring-data-opensearch-generic-webhook-token',
+            causeString: 'A tag was cut on opensearch-project/spring-data-opensearch repository causing this workflow to run',
+            printContributedVariables: false,
+            printPostContent: false,
+            regexpFilterText: '$ref',
+            regexpFilterExpression: '^(release)-[0-9.]+'
+        )
+    }    
+    parameters {
+        string(
+            name: 'GIT_REFERENCE',
+            description: 'Git branch, tag, commitid for reference to checkout commit of OpenSearch core before running the gradle check.',
+            defaultValue: 'main',
+            trim: true
+        )
+    }
+    environment {
+        REPO_URL="https://github.com/opensearch-project/spring-data-opensearch"
+        ARTIFACT_BASE_PATH = "$WORKSPACE/build/repository/org/opensearch/client"
+        USER_BUILD_CAUSE = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
+        TIMER_BUILD_CAUSE = currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause')
+    }
+    stages {
+        stage('Publish to Maven Local') {
+            steps {
+                script {
+                    println('Start Trigger')
+                    def ref_final = "${GIT_REFERENCE}"
+                    def ref_url = "${REPO_URL}/commit/${GIT_REFERENCE}"
+                    if (env.USER_BUILD_CAUSE.equals('[]') && env.TIMER_BUILD_CAUSE.equals('[]')) {
+                        ref_final = "${ref}"
+                        ref_url = "${REPO_URL}/releases/tag/${ref}"
+                        println("Triggered by GitHub: ${ref_url}")
+
+                        currentBuild.description = """GitHub: <a href="${ref_url}">${ref_url}</a>"""
+                    }
+                    else {
+                        println("Triggered by User/Timer: ${ref_url}")
+                        currentBuild.description = """User/Timer: <a href="${ref_url}">${ref_url}</a>"""
+                    }
+
+                    if (ref_final == null || ref_final == '') {
+                        currentBuild.result = 'ABORTED'
+                        error("Missing git reference.")
+                    }
+
+
+                    // checkout the commit
+                    checkout([
+                        $class: 'GitSCM', userRemoteConfigs: [[url: "${REPO_URL}" ]],
+                        branches: [[name: "$ref_final"]]
+                    ])
+
+                    // publish maven artifacts
+                    sh('./gradlew --no-daemon -Dbuild.snapshot=false publishPublishMavenPublicationToLocalRepoRepository')
+                }
+            }
+        }
+        stage('Sign') {
+            steps {
+                script {
+                    VERSION = sh (
+                        script: "./gradlew properties -Dbuild.snapshot=false | grep version | grep -oE '[0-9.]+'",
+                        returnStdout: true
+                    ).trim()
+                    echo("Version ${VERSION}")
+                    signArtifacts(
+                        artifactPath: "${ARTIFACT_BASE_PATH}/spring-data-opensearch/${VERSION}",
+                        type: 'maven',
+                        platform: 'linux'
+                    )
+                    signArtifacts(
+                        artifactPath: "${ARTIFACT_BASE_PATH}/spring-data-opensearch-starter/${VERSION}",
+                        type: 'maven',
+                        platform: 'linux'
+                    )
+                    signArtifacts(
+                        artifactPath: "${ARTIFACT_BASE_PATH}/spring-data-opensearch-test-autoconfigure/${VERSION}",
+                        type: 'maven',
+                        platform: 'linux'
+                    )
+                }
+            }
+        }
+        stage('Stage Maven Artifacts') {
+            environment {
+                REPO_URL = 'https://aws.oss.sonatype.org/'
+                STAGING_PROFILE_ID = "${SONATYPE_STAGING_PROFILE_ID}"
+                BUILD_ID = "${BUILD_NUMBER}"
+            }
+            steps {
+                // checkout the build repo
+                git url: 'https://github.com/opensearch-project/opensearch-build.git', branch: 'main'
+
+                // stage artifacts for release with Sonatype
+                withCredentials([usernamePassword(credentialsId: 'jenkins-sonatype-creds', usernameVariable: 'SONATYPE_USERNAME', passwordVariable: 'SONATYPE_PASSWORD')]) {
+                    sh('$WORKSPACE/publish/stage-maven-release.sh $WORKSPACE/build/repository/')
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs disableDeferredWipeout: true, deleteDirs: true
+        }
+    }
+}
