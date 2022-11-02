@@ -49,7 +49,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Utility class to adapt {@link org.opensearch.action.get.GetResponse},
- * {@link org.opensearch.index.get.GetResult}, {@link org.opensearchs.action.get.MultiGetResponse}
+ * {@link org.opensearch.index.get.GetResult}, {@link org.opensearch.action.get.MultiGetResponse}
  * {@link org.opensearch.search.SearchHit}, {@link org.opensearch.common.document.DocumentField} to
  * {@link Document}.
  * @since 0.1
