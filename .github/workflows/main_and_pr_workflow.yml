@@ -27,4 +27,4 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       - name: Build with Gradle
-        run: ./gradlew check -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
+        run: ./gradlew build -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
