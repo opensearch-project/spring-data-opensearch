@@ -118,7 +118,6 @@ public interface ClientConfiguration {
      * Returns the {@link java.time.Duration connect timeout}.
      *
      * @see java.net.Socket#connect(SocketAddress, int)
-     * @see io.netty.channel.ChannelOption#CONNECT_TIMEOUT_MILLIS
      */
     Duration getConnectTimeout();
 
@@ -126,8 +125,6 @@ public interface ClientConfiguration {
      * Returns the {@link java.time.Duration socket timeout} which is typically applied as SO-timeout/read timeout.
      *
      * @see java.net.Socket#setSoTimeout(int)
-     * @see io.netty.handler.timeout.ReadTimeoutHandler
-     * @see io.netty.handler.timeout.WriteTimeoutHandler
      */
     Duration getSocketTimeout();
 
@@ -263,7 +260,6 @@ public interface ClientConfiguration {
          * @param timeout the timeout to use. Must not be {@literal null}.
          * @return the {@link TerminalClientConfigurationBuilder}
          * @see java.net.Socket#connect(SocketAddress, int)
-         * @see io.netty.channel.ChannelOption#CONNECT_TIMEOUT_MILLIS
          */
         TerminalClientConfigurationBuilder withConnectTimeout(Duration timeout);
 
@@ -284,8 +280,6 @@ public interface ClientConfiguration {
          * @param timeout the timeout to use. Must not be {@literal null}.
          * @return the {@link TerminalClientConfigurationBuilder}
          * @see java.net.Socket#setSoTimeout(int)
-         * @see io.netty.handler.timeout.ReadTimeoutHandler
-         * @see io.netty.handler.timeout.WriteTimeoutHandler
          */
         TerminalClientConfigurationBuilder withSocketTimeout(Duration timeout);
 

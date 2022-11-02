@@ -238,7 +238,7 @@ public final class RestClients {
     }
 
     /**
-     * {@link org.springframework.data.elasticsearch.client.orhcl.ClientConfiguration.ClientConfigurationCallback} to configure
+     * {@link org.opensearch.data.client.orhlc.ClientConfiguration.ClientConfigurationCallback} to configure
      * the RestClient with a {@link HttpAsyncClientBuilder}
      */
     public interface RestClientConfigurationCallback
