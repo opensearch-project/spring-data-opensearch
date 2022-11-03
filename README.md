@@ -180,11 +180,11 @@ public class OpenSearchDemoApplication {
 
 ### Apache Maven configuration
 
-Add the Maven dependency:
+Add the Apache Maven dependency:
 
 ```xml
 <dependency>
-  <groupId>org.opensearch</groupId>
+  <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
   <version>${version}</version>
 </dependency>
@@ -193,7 +193,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 
 ```xml
 <dependency>
-  <groupId>org.opensearch</groupId>
+  <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
   <version>${version}-SNAPSHOT</version>
 </dependency>
@@ -203,6 +203,35 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
   <name>AWS Snapshot Repository</name>
   <url>https://aws.oss.sonatype.org/content/repositories/snapshots/</url>
 </repository>
+```
+
+### Gradle configuration
+
+Add the Gradle dependency:
+
+```groovy
+dependencies {
+  ...
+  implementation "org.opensearch.client:spring-data-opensearch:${version}"
+  ...
+}
+```
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version:
+
+```groovy
+dependencies {
+  ...
+  implementation "org.opensearch.client:spring-data-opensearch:${version}-SNAPSHOT"
+  ...
+}
+
+repositories {
+  ...
+  maven {
+    url = "https://aws.oss.sonatype.org/content/repositories/snapshots/"
+  }
+  ...
+}
 ```
 
 ## Reporting Issues
@@ -220,10 +249,10 @@ Attach a link to your code or a compressed file containing your code.
 
 ## Building from Source
 
-You need [Apache Maven 3.5.0 or above](https://maven.apache.org/run-maven/index.html) and JDK 17 (or above) to build the `main` branch.
+You need JDK 17 (or above) to build the `main` branch. 
 
 ```bash
-mvn clean install
+./gradlew clean check
 ```
 
 ## Code of Conduct
