@@ -5,7 +5,27 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  build:
+  assemble:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [17, 19]
+        runs-on: [ubuntu-latest]
+    name: Assemble on ${{ matrix.runs-on }} with JDK ${{ matrix.java-version }}
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: gradle
+      - name: Assemble with Gradle
+        run: ./gradlew assemble
+
+  check:
     strategy:
       fail-fast: false
       matrix:
@@ -15,7 +35,7 @@ jobs:
           - { opensearch-version: 2.3.0, java-version: 17 }
           - { opensearch-version: 2.3.0, java-version: 19 }
         runs-on: [ubuntu-latest]
-    name: Build on ${{ matrix.runs-on }} with JDK ${{ matrix.entry.java-version }} against OpenSearch ${{ matrix.entry.opensearch-version }}
+    name: Check on ${{ matrix.runs-on }} with JDK ${{ matrix.entry.java-version }} against OpenSearch ${{ matrix.entry.opensearch-version }}
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout code
@@ -26,5 +46,5 @@ jobs:
           java-version: ${{ matrix.entry.java-version }}
           distribution: 'temurin'
           cache: gradle
-      - name: Build with Gradle
+      - name: Check with Gradle
         run: ./gradlew check -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
