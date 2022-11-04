@@ -14,8 +14,8 @@ import org.opensearch.search.builder.SearchSourceBuilder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.ElasticsearchPartQueryIntegrationTests;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -29,7 +29,7 @@ public class OpenSearchPartQueryORHLCIntegrationTests extends ElasticsearchPartQ
     @Import({OpenSearchRestTemplateConfiguration.class})
     static class Config {}
 
-    protected String buildQueryString(CriteriaQuery criteriaQuery, Class<?> clazz) {
+    protected String buildQueryString(Query criteriaQuery, Class<?> clazz) {
         SearchSourceBuilder source = new RequestFactory(operations.getElasticsearchConverter())
                 .searchRequest(criteriaQuery, clazz, IndexCoordinates.of("dummy"))
                 .source();
