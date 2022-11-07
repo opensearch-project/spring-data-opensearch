@@ -57,7 +57,7 @@ dependencies {
   }
   
   implementation("com.fasterxml.jackson.core:jackson-core:2.14.0")
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc2")
+  implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
   implementation(springLibs.context)
   implementation(springLibs.tx)
   compileOnly(springLibs.web)
