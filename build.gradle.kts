@@ -81,7 +81,7 @@ dependencies {
   testImplementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
-  testImplementation("ch.qos.logback:logback-classic:1.2.11")
+  testImplementation("ch.qos.logback:logback-classic:1.4.4")
   testImplementation("org.assertj:assertj-core:3.23.1")
   testImplementation(springLibs.web)
   testImplementation(springLibs.test) {
