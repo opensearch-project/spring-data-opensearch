@@ -34,11 +34,11 @@ public abstract class AbstractOpenSearchConfiguration extends ElasticsearchConfi
      *
      * @return never {@literal null}.
      */
-    @Bean(name = {"elasticsearchOperations", "elasticsearchTemplate"})
+    @Bean(name = {"elasticsearchOperations", "elasticsearchTemplate", "opensearchTemplate"})
     public ElasticsearchOperations elasticsearchOperations(
-            ElasticsearchConverter elasticsearchConverter, RestHighLevelClient elasticsearchClient) {
+            ElasticsearchConverter elasticsearchConverter, RestHighLevelClient opensearchClient) {
 
-        OpenSearchRestTemplate template = new OpenSearchRestTemplate(elasticsearchClient, elasticsearchConverter);
+        OpenSearchRestTemplate template = new OpenSearchRestTemplate(opensearchClient, elasticsearchConverter);
         template.setRefreshPolicy(refreshPolicy());
 
         return template;
