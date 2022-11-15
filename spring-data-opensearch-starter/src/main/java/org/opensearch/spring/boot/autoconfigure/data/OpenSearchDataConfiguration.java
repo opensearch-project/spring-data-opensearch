@@ -1,0 +1,61 @@
+/*
+ * Copyright OpenSearch Contributors.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.opensearch.spring.boot.autoconfigure.data;
+
+import java.util.Collections;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.domain.EntityScanner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.convert.ElasticsearchCustomConversions;
+import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
+
+/**
+ * Configuration classes for Spring Data for Opensearch
+ * <p>
+ * Those should be {@code @Import} in a regular auto-configuration class to guarantee
+ * their order of execution.
+ *
+ * Adaptation of the {@link org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataConfiguration} to
+ * the needs of OpenSearch.
+ */
+abstract class OpenSearchDataConfiguration {
+
+    @Configuration(proxyBeanMethods = false)
+    static class BaseConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        ElasticsearchCustomConversions elasticsearchCustomConversions() {
+            return new ElasticsearchCustomConversions(Collections.emptyList());
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        SimpleElasticsearchMappingContext mappingContext(
+                ApplicationContext applicationContext, ElasticsearchCustomConversions elasticsearchCustomConversions)
+                throws ClassNotFoundException {
+            SimpleElasticsearchMappingContext mappingContext = new SimpleElasticsearchMappingContext();
+            mappingContext.setInitialEntitySet(new EntityScanner(applicationContext).scan(Document.class));
+            mappingContext.setSimpleTypeHolder(elasticsearchCustomConversions.getSimpleTypeHolder());
+            return mappingContext;
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        ElasticsearchConverter elasticsearchConverter(
+                SimpleElasticsearchMappingContext mappingContext,
+                ElasticsearchCustomConversions elasticsearchCustomConversions) {
+            MappingElasticsearchConverter converter = new MappingElasticsearchConverter(mappingContext);
+            converter.setConversions(elasticsearchCustomConversions);
+            return converter;
+        }
+    }
+}

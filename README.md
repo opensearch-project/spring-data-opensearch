@@ -167,7 +167,7 @@ In this code snippet, the client configuration was customized to:
 
 ### Spring Boot integration
 
-If you are using Spring Data OpenSearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in).
+If you are using Spring Data OpenSearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in, see please https://github.com/spring-projects/spring-boot/issues/33010).
 
 ```java
 @SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
