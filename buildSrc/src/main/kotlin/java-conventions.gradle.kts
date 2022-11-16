@@ -46,8 +46,8 @@ version = buildVersion
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.17.5")
-  testImplementation("org.testcontainers:junit-jupiter:1.17.5")
+  testImplementation("org.testcontainers:testcontainers:1.17.6")
+  testImplementation("org.testcontainers:junit-jupiter:1.17.6")
   testImplementation("org.mockito:mockito-junit-jupiter:4.8.1")
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
