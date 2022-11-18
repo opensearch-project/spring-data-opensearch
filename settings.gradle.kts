@@ -21,7 +21,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.3.0")
+      version("opensearch", "2.4.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
