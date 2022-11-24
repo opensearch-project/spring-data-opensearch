@@ -8,8 +8,8 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("springLibs") {
-      version("spring", "6.0.0")
-      version("spring-boot", "3.0.0-RC2")
+      version("spring", "6.0.2")
+      version("spring-boot", "3.0.0")
       library("data-commons", "org.springframework.data:spring-data-commons:3.0.0")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.0")
       library("web", "org.springframework", "spring-web").versionRef("spring")
