@@ -16,8 +16,11 @@ dependencyResolutionManagement {
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
       library("test", "org.springframework", "spring-test").versionRef("spring")
+      library("boot-web", "org.springframework.boot", "spring-boot-starter-web").versionRef("spring-boot")
       library("boot-autoconfigure", "org.springframework.boot", "spring-boot-autoconfigure").versionRef("spring-boot")
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
+      library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
+      plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
     create("opensearchLibs") {
@@ -53,8 +56,12 @@ pluginManagement {
     maven {
       url = uri("https://plugins.gradle.org/m2/")
     }
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
 include("spring-data-opensearch")
 include("spring-data-opensearch-starter")
+include("spring-data-opensearch-examples:spring-boot-gradle")
