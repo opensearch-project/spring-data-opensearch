@@ -7,6 +7,12 @@ rootProject.name = "spring-data-opensearch-parent"
 
 dependencyResolutionManagement {
   versionCatalogs {
+    create("libs") {
+      version("jupiter", "5.9.1")
+      library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
+      library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
+    }
+
     create("springLibs") {
       version("spring", "6.0.2")
       version("spring-boot", "3.0.0")
@@ -64,4 +70,5 @@ pluginManagement {
 
 include("spring-data-opensearch")
 include("spring-data-opensearch-starter")
+include("spring-data-opensearch-test-autoconfigure")
 include("spring-data-opensearch-examples:spring-boot-gradle")

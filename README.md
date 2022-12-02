@@ -36,6 +36,27 @@ At the moment, Spring Data OpenSearch provides the possibility to use the `RestH
 </dependency>
 ```
 
+To use Spring Boot 3.x auto configuration support:
+
+```xml
+<dependency>
+	<groupId>org.opensearch</groupId>
+	<artifactId>spring-data-opensearch-starter</artifactId>
+	<version>${version}</version>
+</dependency>
+```
+
+To use Spring Boot 3.x auto configuration support for testing:
+
+```xml
+<dependency>
+	<groupId>org.opensearch</groupId>
+	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
+	<version>${version}</version>
+	<scope>test</scope>
+</dependency>
+```
+
 ## Getting Started
 
 Here is a quick teaser of an application using Spring Data Repositories in Java:
@@ -167,7 +188,7 @@ In this code snippet, the client configuration was customized to:
 
 ### Spring Boot integration
 
-If you are using Spring Data OpenSearch along with Spring Boot (3.x milestone releases), you may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in, see please https://github.com/spring-projects/spring-boot/issues/33010).
+If you are using Spring Data OpenSearch along with Spring Boot 3.x, there is a dedicated `spring-data-opensearch-starter` module. You may consider excluding the `ElasticsearchDataAutoConfiguration` configuration from automatic discovery (otherwise, the `Elasticsearch` related initialization kicks in, see please https://github.com/spring-projects/spring-boot/issues/33010).
 
 ```java
 @SpringBootApplication(exclude = {ElasticsearchDataAutoConfiguration.class})
@@ -175,6 +196,16 @@ public class OpenSearchDemoApplication {
   public static void main(String[] args) {
     SpringApplication.run(OpenSearchDemoApplication.class, args);
   }
+}
+```
+
+For testing purposes, there is a new `@DataOpenSearchTest` annotation that is provided by `spring-data-opensearch-test-autoconfigure` (requires `spring-boot-test-autoconfigure`) module to simplify testing Spring Data OpenSearch (it explicitly excludes `ElasticsearchDataAutoConfiguration` from the list of configurations). Here is the typical usage along with `@EnableElasticsearchRepositories`:
+
+```java
+@DataOpenSearchTest
+@EnableElasticsearchRepositories
+public class MarketplaceRepositoryIntegrationTests {
+   ...
 }
 ```
 
@@ -258,6 +289,10 @@ You need JDK 17 (or above) to build the `main` branch.
 ```bash
 ./gradlew clean check
 ```
+
+## Examples
+
+Please check [spring-data-opensearch-examples](spring-data-opensearch-examples) for examples.
 
 ## Code of Conduct
 

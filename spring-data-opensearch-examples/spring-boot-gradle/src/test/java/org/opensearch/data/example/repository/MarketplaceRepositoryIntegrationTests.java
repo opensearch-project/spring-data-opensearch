@@ -10,14 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.opensearch.spring.boot.autoconfigure.OpenSearchRestClientAutoConfiguration;
-import org.opensearch.spring.boot.autoconfigure.OpenSearchRestHighLevelClientAutoConfiguration;
-import org.opensearch.spring.boot.autoconfigure.data.OpenSearchDataAutoConfiguration;
+import org.opensearch.spring.boot.autoconfigure.test.DataOpenSearchTest;
 import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.data.elasticsearch.DataElasticsearchTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,14 +22,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers(disabledWithoutDocker = true)
-@ImportAutoConfiguration(
-        exclude = ElasticsearchDataAutoConfiguration.class,
-        classes = {
-            OpenSearchRestClientAutoConfiguration.class,
-            OpenSearchRestHighLevelClientAutoConfiguration.class,
-            OpenSearchDataAutoConfiguration.class
-        })
-@DataElasticsearchTest
+@DataOpenSearchTest
 @EnableElasticsearchRepositories(basePackageClasses = MarketplaceRepository.class)
 @ContextConfiguration(initializers = MarketplaceRepositoryIntegrationTests.Initializer.class)
 @Tag("integration-test")

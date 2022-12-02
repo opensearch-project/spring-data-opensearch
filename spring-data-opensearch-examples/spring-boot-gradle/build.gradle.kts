@@ -31,6 +31,7 @@ dependencies {
   testImplementation(springLibs.boot.test)
   testImplementation(springLibs.boot.test.autoconfigure)
   testImplementation(opensearchLibs.testcontainers)
+  testImplementation(project(":spring-data-opensearch-test-autoconfigure"))
 }
 
 description = "Spring Data OpenSearch Spring Boot Example Project"
