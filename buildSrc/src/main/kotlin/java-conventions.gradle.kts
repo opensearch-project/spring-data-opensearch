@@ -10,6 +10,7 @@ import java.util.Properties
 plugins {
   `java`
   `java-library`
+  `version-catalog`
   `maven-publish`
   jacoco
 }
@@ -45,12 +46,16 @@ if (!buildVersion.equals(tagVersion)) {
 version = buildVersion 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
+// See please https://github.com/gradle/gradle/issues/15383
+val catalogs = extensions.getByType<VersionCatalogsExtension>()
+val jupiter = catalogs.named("libs").findVersion("jupiter").get().requiredVersion
+
 dependencies {
   testImplementation("org.testcontainers:testcontainers:1.17.6")
   testImplementation("org.testcontainers:junit-jupiter:1.17.6")
-  testImplementation("org.mockito:mockito-junit-jupiter:4.8.1")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
+  testImplementation("org.mockito:mockito-junit-jupiter:4.9.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
   testImplementation("org.assertj:assertj-core:3.23.1")
   testImplementation("ch.qos.logback:logback-classic:1.4.4")
 }

@@ -1,0 +1,3 @@
+org.opensearch.spring.boot.autoconfigure.OpenSearchRestClientAutoConfiguration
+org.opensearch.spring.boot.autoconfigure.OpenSearchRestHighLevelClientAutoConfiguration
+org.opensearch.spring.boot.autoconfigure.data.OpenSearchDataAutoConfiguration
