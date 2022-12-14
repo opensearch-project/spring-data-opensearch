@@ -24,7 +24,7 @@ jobs:
       - name: Assemble with Gradle
         run: |
           ./gradlew --no-daemon -Dbuild.snapshot=false publishPublishMavenPublicationToLocalRepoRepository
-          cd build && tar -czf artifacts.tar.gz repository
+          cd build && tar -czf ~/artifacts.tar.gz repository
       - name: Draft a release
         uses: softprops/action-gh-release@v1
         with:
