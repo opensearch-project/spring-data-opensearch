@@ -8,9 +8,7 @@ on:
 
 jobs:
   draft-a-release:
-    strategy:
-      fail-fast: false
-    name: Create release artifacts
+    name: Draft a release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -21,7 +19,7 @@ jobs:
           java-version: 17
           distribution: 'temurin'
           cache: gradle
-      - name: Assemble with Gradle
+      - name: Build with Gradle
         run: |
           ./gradlew --no-daemon -Dbuild.snapshot=false publishPublishMavenPublicationToLocalRepoRepository && tar -C build -cvf artifacts.tar.gz repository
       - name: Draft a release
