@@ -7,7 +7,7 @@ standardReleasePipelineWithGenericTrigger(
     tokenIdCredential: 'jenkins-spring-data-opensearch-generic-webhook-token',
     causeString: 'A tag was cut on opensearch-project/spring-data-opensearch repository causing this workflow to run',
     downloadReleaseAsset: true,
-    publishRelease: false) {
+    publishRelease: true) {
         publishToMaven(
             signingArtifactsPath: "$WORKSPACE/repository/",
             mavenArtifactsPath: "$WORKSPACE/repository/",
