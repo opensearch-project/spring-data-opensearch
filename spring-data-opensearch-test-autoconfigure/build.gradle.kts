@@ -46,7 +46,7 @@ publishing {
       pom {
         name.set("Spring Data OpenSearch Spring Boot Autoconfiguration for Tests")
         packaging = "jar"
-        artifactId = "spring-data-opensearch-starter-test"
+        artifactId = "spring-data-opensearch-test-autoconfigure"
         description.set("Spring Boot autoconfigurations for Spring Data Implementation for OpenSearch to support testing")
         url.set("https://github.com/opensearch-project/spring-data-opensearch/")
         scm {
