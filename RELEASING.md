@@ -23,7 +23,7 @@ Label PRs with the next major version label (e.g. `2.0.0`) and merge changes int
 
 ### Feature Branches
 
-Do not creating branches in the upstream repo, use your fork, for the exception of long lasting feature branches that require active collaboration from multiple developers. Name feature branches `feature/<thing>`. Once the work is merged to `main`, please make sure to delete the feature branch.
+Do not create branches in the upstream repo, use your fork, for the exception of long lasting feature branches that require active collaboration from multiple developers. Name feature branches `feature/<thing>`. Once the work is merged to `main`, please make sure to delete the feature branch.
 
 ## Release Labels
 
