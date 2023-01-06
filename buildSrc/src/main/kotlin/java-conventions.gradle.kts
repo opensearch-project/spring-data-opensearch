@@ -53,7 +53,7 @@ val jupiter = catalogs.named("libs").findVersion("jupiter").get().requiredVersio
 dependencies {
   testImplementation("org.testcontainers:testcontainers:1.17.6")
   testImplementation("org.testcontainers:junit-jupiter:1.17.6")
-  testImplementation("org.mockito:mockito-junit-jupiter:4.9.0")
+  testImplementation("org.mockito:mockito-junit-jupiter:4.10.0")
   testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
   testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
   testImplementation("org.assertj:assertj-core:3.23.1")
