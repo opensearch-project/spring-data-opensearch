@@ -21,8 +21,10 @@ Includes integrated object mapping between documents and POJOs.
 ### Compatibility Matrix
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch     | Spring Framework | Spring Boot |
+
 |---------------------------|------------------------|---------------------------|----------------|------------------|-------------|
-| 2022.0 (Turing)           | 0.1.x                  | 5.0.x                     | 1.3.6 / 2.3.0  | 6.0.x            | 3.0.x       |
+| 2022.0 (Turing)           | 0.2.x                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
+| 2022.0 (Turing)           | 0.1.0                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
 
 ### OpenSearch 2.x / 1.x client libraries
 
@@ -32,7 +34,7 @@ At the moment, Spring Data OpenSearch provides the possibility to use the `RestH
 <dependency>
 	<groupId>org.opensearch</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>${version}</version>
+	<version>0.1.0</version>
 </dependency>
 ```
 
@@ -42,7 +44,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>${version}</version>
+	<version>0.1.0</version>
 </dependency>
 ```
 
@@ -52,7 +54,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>${version}</version>
+	<version>0.1.0</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -217,9 +219,10 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>${version}</version>
+  <version>0.1.0</version>
 </dependency>
 ```
+
 If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version:
 
 ```xml
@@ -245,7 +248,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:${version}"
+  implementation "org.opensearch.client:spring-data-opensearch:0.1.0"
   ...
 }
 ```
