@@ -21,7 +21,6 @@ Includes integrated object mapping between documents and POJOs.
 ### Compatibility Matrix
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch     | Spring Framework | Spring Boot |
-
 |---------------------------|------------------------|---------------------------|----------------|------------------|-------------|
 | 2022.0 (Turing)           | 0.2.x                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
 | 2022.0 (Turing)           | 0.1.0                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
