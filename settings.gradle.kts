@@ -8,16 +8,16 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.9.1")
+      version("jupiter", "5.9.2")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
     }
 
     create("springLibs") {
-      version("spring", "6.0.3")
-      version("spring-boot", "3.0.1")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.0.0")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.0")
+      version("spring", "6.0.4")
+      version("spring-boot", "3.0.2")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.0.1")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.1")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
@@ -30,7 +30,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.4.0")
+      version("opensearch", "2.4.1")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
