@@ -238,8 +238,6 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 </repository>
 ```
 
-> **_NOTE:_** The SNAPSHOT builds are going to be available once https://github.com/opensearch-project/spring-data-opensearch/issues/9 is resolved.
-
 ### Gradle configuration
 
 Add the Gradle dependency:
@@ -268,8 +266,6 @@ repositories {
   ...
 }
 ```
-
-> **_NOTE:_** The SNAPSHOT builds are going to be available once https://github.com/opensearch-project/spring-data-opensearch/issues/9 is resolved.
 
 ## Reporting Issues
 
