@@ -22,7 +22,7 @@ Includes integrated object mapping between documents and POJOs.
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch     | Spring Framework | Spring Boot |
 |---------------------------|------------------------|---------------------------|----------------|------------------|-------------|
-| 2022.0 (Turing)           | 0.2.x                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
+| 2022.0 (Turing)           | 0.2.0                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
 | 2022.0 (Turing)           | 0.1.0                  | 5.0.x                     | 1.3.6 / 2.4.1  | 6.0.x            | 3.0.x       |
 
 ### OpenSearch 2.x / 1.x client libraries
@@ -31,9 +31,9 @@ At the moment, Spring Data OpenSearch provides the possibility to use the `RestH
 
 ```xml
 <dependency>
-	<groupId>org.opensearch</groupId>
+	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 </dependency>
 ```
 
@@ -41,9 +41,9 @@ To use Spring Boot 3.x auto configuration support:
 
 ```xml
 <dependency>
-	<groupId>org.opensearch</groupId>
+	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 </dependency>
 ```
 
@@ -51,9 +51,9 @@ To use Spring Boot 3.x auto configuration support for testing:
 
 ```xml
 <dependency>
-	<groupId>org.opensearch</groupId>
+	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -218,7 +218,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
@@ -245,7 +245,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:0.1.0"
+  implementation "org.opensearch.client:spring-data-opensearch:0.2.0"
   ...
 }
 ```
