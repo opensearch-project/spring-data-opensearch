@@ -1,2 +1,4 @@
-# This should match the owning team set up in https://github.com/orgs/opensearch-project/teams
-*   @dblock @reta
+# This should match the list of maintainers in MAINTAINERS.md
+* @dblock
+* @reta
+* @dlvenable
