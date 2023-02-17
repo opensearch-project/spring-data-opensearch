@@ -334,7 +334,7 @@ public abstract class QueryKeywordsIntegrationTests {
 		@Field(type = FieldType.Keyword) private String text;
 		@Nullable
 		@Field(type = FieldType.Float) private Float price;
-		@Nullable private boolean available;
+		private boolean available;
 		@Nullable
 		@Field(name = "sort-name", type = FieldType.Keyword) private String sortName;
 

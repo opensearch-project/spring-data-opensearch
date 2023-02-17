@@ -3551,10 +3551,10 @@ public abstract class ElasticsearchIntegrationTests {
 		@Field(type = Text, store = true, fielddata = true) private String type;
 		@Nullable
 		@Field(type = Text, store = true, fielddata = true) private String message;
-		@Nullable private int rate;
+		private int rate;
 		@Nullable
 		@ScriptedField private Double scriptedRate;
-		@Nullable private boolean available;
+		private boolean available;
 		@Nullable private GeoPoint location;
 		@Nullable
 		@Version private Long version;
@@ -3569,7 +3569,7 @@ public abstract class ElasticsearchIntegrationTests {
 			@Nullable private String type;
 			@Nullable private String message;
 			@Nullable private Long version;
-			@Nullable private int rate;
+			private int rate;
 			@Nullable private GeoPoint location;
 
 			public Builder id(String id) {
@@ -3768,10 +3768,10 @@ public abstract class ElasticsearchIntegrationTests {
 		@Nullable private String type;
 		@Nullable
 		@Field(type = FieldType.Text, fielddata = true) private String message;
-		@Nullable private int rate;
+		private int rate;
 		@Nullable
 		@ScriptedField private Long scriptedRate;
-		@Nullable private boolean available;
+		private boolean available;
 		@Nullable private GeoPoint location;
 		@Nullable
 		@Version private Long version;
@@ -4453,7 +4453,7 @@ public abstract class ElasticsearchIntegrationTests {
 	public static final class ImmutableWithScriptedEntity {
 		@Id private final String id;
 		@Field(type = Integer)
-		@Nullable private final int rate;
+		private final int rate;
 		@Nullable
 		@ScriptedField private final Double scriptedRate;
 
@@ -4514,7 +4514,7 @@ public abstract class ElasticsearchIntegrationTests {
 		@Field(type = FieldType.Keyword) private String part2;
 
 		@Id
-		@ReadOnlyProperty
+		@WriteOnlyProperty
 		@AccessType(AccessType.Type.PROPERTY)
 		public String getId() {
 			return part1 + '-' + part2;
