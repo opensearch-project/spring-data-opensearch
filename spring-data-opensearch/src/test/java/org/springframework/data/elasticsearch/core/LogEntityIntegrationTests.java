@@ -134,7 +134,7 @@ public abstract class LogEntityIntegrationTests {
 		@Nullable
 		@Id private String id;
 		@Nullable private String action;
-		@Nullable private long sequenceCode;
+		private long sequenceCode;
 		@Nullable
 		@Field(type = Ip) private String ip;
 		@Nullable

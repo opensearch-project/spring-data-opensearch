@@ -544,10 +544,10 @@ public abstract class UUIDElasticsearchRepositoryIntegrationTests {
 		@Nullable private String type;
 		@Nullable
 		@Field(type = FieldType.Text, fielddata = true) private String message;
-		@Nullable private int rate;
+		private int rate;
 		@Nullable
 		@ScriptedField private Long scriptedRate;
-		@Nullable private boolean available;
+		private boolean available;
 		@Nullable private String highlightedMessage;
 		@Nullable private GeoPoint location;
 		@Nullable

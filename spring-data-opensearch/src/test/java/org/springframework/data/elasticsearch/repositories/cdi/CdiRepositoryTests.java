@@ -179,7 +179,7 @@ public class CdiRepositoryTests {
 		@Nullable
 		@Field(type = FieldType.Float) private Float price;
 		@Nullable private Integer popularity;
-		@Nullable private boolean available;
+		private boolean available;
 		@Nullable private String location;
 		@Nullable private Date lastModified;
 
