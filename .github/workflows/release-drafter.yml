@@ -22,7 +22,7 @@ jobs:
           secret: ${{ github.TOKEN }}
           approvers: ${{ steps.get_data.outputs.approvers }}
           minimum-approvals: 1
-          issue-title: 'Release sprint-data-opensearch ${{ steps.get_data.outputs.version }}'
+          issue-title: 'Release spring-data-opensearch ${{ steps.get_data.outputs.version }}'
           issue-body: "Please approve or deny the release of spring-data-opensearch **TAG**: ${{ github.ref_name }}  **COMMIT**: ${{ github.sha }} **VERSION** : ${{ steps.get_data.outputs.version }} "
           exclude-workflow-initiator-as-approver: true
       - name: Set up JDK 17
