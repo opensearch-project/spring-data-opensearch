@@ -68,6 +68,12 @@ pluginManagement {
   }
 }
 
+dependencyResolutionManagement {
+  repositories {
+    mavenCentral()
+  }
+}
+
 include("spring-data-opensearch")
 include("spring-data-opensearch-starter")
 include("spring-data-opensearch-test-autoconfigure")
