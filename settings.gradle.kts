@@ -14,10 +14,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.0.6")
+      version("spring", "6.0.7")
       version("spring-boot", "3.0.4")
       library("data-commons", "org.springframework.data:spring-data-commons:3.0.3")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.3")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.4")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
@@ -30,7 +30,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.5.0")
+      version("opensearch", "2.6.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
@@ -38,7 +38,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.14.1")
+      version("jackson", "2.14.2")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
