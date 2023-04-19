@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.0.7")
+      version("spring", "6.0.8")
       version("spring-boot", "3.0.5")
       library("data-commons", "org.springframework.data:spring-data-commons:3.0.5")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.0.5")
@@ -44,7 +44,7 @@ dependencyResolutionManagement {
     }
     
     create("pluginLibs") {
-      version("spotless", "6.11.0")
+      version("spotless", "6.18.0")
       version("editorconfig", "0.0.3")
       version("release", "3.0.2")
       plugin("editorconfig", "org.ec4j.editorconfig").versionRef("editorconfig")
