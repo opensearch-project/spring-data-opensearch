@@ -8,7 +8,7 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.9.2")
+      version("jupiter", "5.9.3")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
     }
@@ -30,7 +30,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.6.0")
+      version("opensearch", "2.7.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
@@ -38,7 +38,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.14.2")
+      version("jackson", "2.15.0")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
