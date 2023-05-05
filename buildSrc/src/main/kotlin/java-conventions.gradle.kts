@@ -51,13 +51,13 @@ val catalogs = extensions.getByType<VersionCatalogsExtension>()
 val jupiter = catalogs.named("libs").findVersion("jupiter").get().requiredVersion
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.17.6")
-  testImplementation("org.testcontainers:junit-jupiter:1.17.6")
-  testImplementation("org.mockito:mockito-junit-jupiter:4.10.0")
+  testImplementation("org.testcontainers:testcontainers:1.18.0")
+  testImplementation("org.testcontainers:junit-jupiter:1.18.0")
+  testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
   testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
   testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
-  testImplementation("org.assertj:assertj-core:3.23.1")
-  testImplementation("ch.qos.logback:logback-classic:1.4.4")
+  testImplementation("org.assertj:assertj-core:3.24.2")
+  testImplementation("ch.qos.logback:logback-classic:1.4.7")
 }
 
 java {
