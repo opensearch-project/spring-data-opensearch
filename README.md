@@ -35,7 +35,7 @@ At the moment, Spring Data OpenSearch provides the possibility to use the `RestH
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 </dependency>
 ```
 
@@ -45,7 +45,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 </dependency>
 ```
 
@@ -55,7 +55,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -220,7 +220,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
@@ -247,7 +247,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:1.0.1"
+  implementation "org.opensearch.client:spring-data-opensearch:1.1.0"
   ...
 }
 ```
