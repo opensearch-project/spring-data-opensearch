@@ -152,8 +152,9 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         if (queryObject != null) {
             query.setObject(updateIndexedObject(
                     queryObject,
-                    IndexedObjectInformation.of(
+                    new IndexedObjectInformation(
                             indexResponse.getId(),
+                            indexResponse.getIndex(),
                             indexResponse.getSeqNo(),
                             indexResponse.getPrimaryTerm(),
                             indexResponse.getVersion())));
@@ -218,7 +219,8 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
 
     @Override
     public ByQueryResponse delete(Query query, Class<?> clazz, IndexCoordinates index) {
-        DeleteByQueryRequest deleteByQueryRequest = requestFactory.deleteByQueryRequest(query, clazz, index);
+        DeleteByQueryRequest deleteByQueryRequest =
+                requestFactory.deleteByQueryRequest(query, routingResolver.getRouting(), clazz, index);
         return ResponseConverter.byQueryResponseOf(
                 execute(client -> client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT)));
     }
@@ -334,13 +336,15 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
                 .map(bulkItemResponse -> {
                     DocWriteResponse response = bulkItemResponse.getResponse();
                     if (response != null) {
-                        return IndexedObjectInformation.of(
+                        return new IndexedObjectInformation(
                                 response.getId(),
+                                response.getIndex(),
                                 response.getSeqNo(),
                                 response.getPrimaryTerm(),
                                 response.getVersion());
                     } else {
-                        return IndexedObjectInformation.of(bulkItemResponse.getId(), null, null, null);
+                        return new IndexedObjectInformation(
+                                bulkItemResponse.getId(), bulkItemResponse.getIndex(), null, null, null);
                     }
                 })
                 .collect(Collectors.toList());
@@ -357,7 +361,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
 
         final Boolean trackTotalHits = query.getTrackTotalHits();
         query.setTrackTotalHits(true);
-        SearchRequest searchRequest = requestFactory.searchRequest(query, clazz, index);
+        SearchRequest searchRequest = requestFactory.searchRequest(query, routingResolver.getRouting(), clazz, index);
         query.setTrackTotalHits(trackTotalHits);
 
         searchRequest.source().size(0);
@@ -368,7 +372,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
 
     @Override
     public <T> SearchHits<T> search(Query query, Class<T> clazz, IndexCoordinates index) {
-        SearchRequest searchRequest = requestFactory.searchRequest(query, clazz, index);
+        SearchRequest searchRequest = requestFactory.searchRequest(query, routingResolver.getRouting(), clazz, index);
         SearchResponse response = execute(client -> client.search(searchRequest, RequestOptions.DEFAULT));
 
         ReadDocumentCallback<T> documentCallback = new ReadDocumentCallback<>(elasticsearchConverter, clazz, index);
@@ -394,7 +398,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
 
         Assert.notNull(query.getPageable(), "pageable of query must not be null.");
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, clazz, index);
+        SearchRequest searchRequest = requestFactory.searchRequest(query, routingResolver.getRouting(), clazz, index);
         searchRequest.scroll(TimeValue.timeValueMillis(scrollTimeInMillis));
 
         SearchResponse response = execute(client -> client.search(searchRequest, RequestOptions.DEFAULT));
@@ -440,7 +444,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
     public <T> List<SearchHits<T>> multiSearch(List<? extends Query> queries, Class<T> clazz, IndexCoordinates index) {
         MultiSearchRequest request = new MultiSearchRequest();
         for (Query query : queries) {
-            request.add(requestFactory.searchRequest(query, clazz, index));
+            request.add(requestFactory.searchRequest(query, routingResolver.getRouting(), clazz, index));
         }
 
         MultiSearchResponse.Item[] items = getMultiSearchResult(request);
@@ -467,7 +471,8 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         Iterator<Class<?>> it = classes.iterator();
         for (Query query : queries) {
             Class<?> clazz = it.next();
-            request.add(requestFactory.searchRequest(query, clazz, getIndexCoordinatesFor(clazz)));
+            request.add(requestFactory.searchRequest(
+                    query, routingResolver.getRouting(), clazz, getIndexCoordinatesFor(clazz)));
         }
 
         MultiSearchResponse.Item[] items = getMultiSearchResult(request);
@@ -502,7 +507,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         MultiSearchRequest request = new MultiSearchRequest();
         Iterator<Class<?>> it = classes.iterator();
         for (Query query : queries) {
-            request.add(requestFactory.searchRequest(query, it.next(), index));
+            request.add(requestFactory.searchRequest(query, routingResolver.getRouting(), it.next(), index));
         }
 
         MultiSearchResponse.Item[] items = getMultiSearchResult(request);
@@ -511,6 +516,44 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         Iterator<Class<?>> it1 = classes.iterator();
         for (int i = 0; i < queries.size(); i++) {
             Class entityClass = it1.next();
+
+            ReadDocumentCallback<?> documentCallback =
+                    new ReadDocumentCallback<>(elasticsearchConverter, entityClass, index);
+            SearchDocumentResponseCallback<SearchHits<?>> callback =
+                    new ReadSearchDocumentResponseCallback<>(entityClass, index);
+
+            SearchResponse response = items[i].getResponse();
+            res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+        }
+        return res;
+    }
+
+    @Override
+    public List<SearchHits<?>> multiSearch(
+            List<? extends Query> queries, List<Class<?>> classes, List<IndexCoordinates> indexes) {
+
+        Assert.notNull(queries, "queries must not be null");
+        Assert.notNull(classes, "classes must not be null");
+        Assert.notNull(indexes, "indexes must not be null");
+        Assert.isTrue(
+                queries.size() == classes.size() && queries.size() == indexes.size(),
+                "queries, classes and indexes must have the same size");
+
+        MultiSearchRequest request = new MultiSearchRequest();
+        Iterator<Class<?>> it = classes.iterator();
+        Iterator<IndexCoordinates> indexesIt = indexes.iterator();
+        for (Query query : queries) {
+            request.add(requestFactory.searchRequest(query, routingResolver.getRouting(), it.next(), indexesIt.next()));
+        }
+
+        MultiSearchResponse.Item[] items = getMultiSearchResult(request);
+
+        List<SearchHits<?>> res = new ArrayList<>(queries.size());
+        Iterator<Class<?>> it1 = classes.iterator();
+        Iterator<IndexCoordinates> indexesIt1 = indexes.iterator();
+        for (int i = 0; i < queries.size(); i++) {
+            Class entityClass = it1.next();
+            IndexCoordinates index = indexesIt1.next();
 
             ReadDocumentCallback<?> documentCallback =
                     new ReadDocumentCallback<>(elasticsearchConverter, entityClass, index);

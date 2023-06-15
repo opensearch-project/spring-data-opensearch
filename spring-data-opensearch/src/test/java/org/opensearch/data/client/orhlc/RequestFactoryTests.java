@@ -97,7 +97,7 @@ class RequestFactoryTests {
                 .build();
 
         // when
-        SearchRequest searchRequest = requestFactory.searchRequest(query, null, IndexCoordinates.of("test"));
+        SearchRequest searchRequest = requestFactory.searchRequest(query, null, null, IndexCoordinates.of("test"));
 
         // then
         assertThat(searchRequest.source().from()).isEqualTo(30);
@@ -225,7 +225,7 @@ class RequestFactoryTests {
                 '}';
 
         String searchRequest = requestFactory
-                .searchRequest(query, Person.class, IndexCoordinates.of("persons"))
+                .searchRequest(query, null, Person.class, IndexCoordinates.of("persons"))
                 .source()
                 .toString();
 
@@ -240,7 +240,8 @@ class RequestFactoryTests {
         query.setRoute(route);
         converter.updateQuery(query, Person.class);
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.routing()).isEqualTo(route);
     }
@@ -253,7 +254,8 @@ class RequestFactoryTests {
                 .withPageable(Pageable.unpaged())
                 .build();
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.source().from()).isEqualTo(0);
         assertThat(searchRequest.source().size()).isEqualTo(RequestFactory.INDEX_MAX_RESULT_WINDOW);
@@ -278,7 +280,7 @@ class RequestFactoryTests {
     void shouldNotRequestSeqNoAndPrimaryTermWhenEntityClassDoesNotContainSeqNoPrimaryTermProperty() {
         Query query = new NativeSearchQueryBuilder().build();
 
-        SearchRequest request = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest request = requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(request.source().seqNoAndPrimaryTerm()).isNull();
     }
@@ -289,7 +291,7 @@ class RequestFactoryTests {
         Query query = new NativeSearchQueryBuilder().build();
 
         SearchRequest request = requestFactory.searchRequest(
-                query, EntityWithSeqNoPrimaryTerm.class, IndexCoordinates.of("seqNoPrimaryTerm"));
+                query, null, EntityWithSeqNoPrimaryTerm.class, IndexCoordinates.of("seqNoPrimaryTerm"));
 
         assertThat(request.source().seqNoAndPrimaryTerm()).isTrue();
     }
@@ -299,7 +301,7 @@ class RequestFactoryTests {
     void shouldNotRequestSeqNoAndPrimaryTermWhenEntityClassIsNull() {
         Query query = new NativeSearchQueryBuilder().build();
 
-        SearchRequest request = requestFactory.searchRequest(query, null, IndexCoordinates.of("persons"));
+        SearchRequest request = requestFactory.searchRequest(query, null, null, IndexCoordinates.of("persons"));
 
         assertThat(request.source().seqNoAndPrimaryTerm()).isNull();
     }
@@ -667,7 +669,8 @@ class RequestFactoryTests {
                 .withTimeout(Duration.ofSeconds(1))
                 .build();
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.source().timeout().getMillis())
                 .isEqualTo(Duration.ofSeconds(1).toMillis());
@@ -802,7 +805,7 @@ class RequestFactoryTests {
                 + '}';
 
         String searchRequest = requestFactory
-                .searchRequest(query, Person.class, IndexCoordinates.of("persons"))
+                .searchRequest(query, null, Person.class, IndexCoordinates.of("persons"))
                 .source()
                 .toString();
 
@@ -815,7 +818,8 @@ class RequestFactoryTests {
 
         Query query = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).build();
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.requestCache()).isNull();
     }
@@ -827,7 +831,8 @@ class RequestFactoryTests {
         Query query = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).build();
         query.setRequestCache(true);
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.requestCache()).isTrue();
     }
@@ -839,7 +844,8 @@ class RequestFactoryTests {
         Query query = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).build();
         query.setRequestCache(false);
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.requestCache()).isFalse();
     }
@@ -853,7 +859,8 @@ class RequestFactoryTests {
                 .withStoredFields("lastName", "location")
                 .build();
 
-        SearchRequest searchRequest = requestFactory.searchRequest(query, Person.class, IndexCoordinates.of("persons"));
+        SearchRequest searchRequest =
+                requestFactory.searchRequest(query, null, Person.class, IndexCoordinates.of("persons"));
 
         assertThat(searchRequest.source().storedFields()).isNotNull();
         assertThat(searchRequest.source().storedFields().fieldNames())

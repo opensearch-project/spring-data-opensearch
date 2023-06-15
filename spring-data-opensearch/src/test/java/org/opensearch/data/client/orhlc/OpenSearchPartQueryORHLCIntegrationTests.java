@@ -31,7 +31,7 @@ public class OpenSearchPartQueryORHLCIntegrationTests extends ElasticsearchPartQ
 
     protected String buildQueryString(Query criteriaQuery, Class<?> clazz) {
         SearchSourceBuilder source = new RequestFactory(operations.getElasticsearchConverter())
-                .searchRequest(criteriaQuery, clazz, IndexCoordinates.of("dummy"))
+                .searchRequest(criteriaQuery, null, clazz, IndexCoordinates.of("dummy"))
                 .source();
         // remove defaultboost values
         return source.toString().replaceAll("(\\^\\d+\\.\\d+)", "");
