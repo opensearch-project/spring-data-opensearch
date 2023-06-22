@@ -26,7 +26,6 @@ import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.opensearch.search.sort.SortBuilder;
 import org.opensearch.search.suggest.SuggestBuilder;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.IndicesOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.lang.Nullable;
@@ -190,11 +189,6 @@ public class NativeSearchQueryBuilder extends BaseQueryBuilder<NativeSearchQuery
         return this;
     }
 
-    public NativeSearchQueryBuilder withIndicesOptions(IndicesOptions indicesOptions) {
-        this.indicesOptions = indicesOptions;
-        return this;
-    }
-
     public NativeSearchQueryBuilder withTrackTotalHits(Boolean trackTotalHits) {
         this.trackTotalHits = trackTotalHits;
         return this;
@@ -262,8 +256,8 @@ public class NativeSearchQueryBuilder extends BaseQueryBuilder<NativeSearchQuery
             nativeSearchQuery.setSearchType(Query.SearchType.valueOf(searchType.name()));
         }
 
-        if (indicesOptions != null) {
-            nativeSearchQuery.setIndicesOptions(indicesOptions);
+        if (getIndicesOptions() != null) {
+            nativeSearchQuery.setIndicesOptions(getIndicesOptions());
         }
 
         nativeSearchQuery.setTrackTotalHits(trackTotalHits);

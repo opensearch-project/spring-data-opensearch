@@ -40,6 +40,8 @@ import org.springframework.data.elasticsearch.core.index.AliasData;
 import org.springframework.data.elasticsearch.core.index.Settings;
 import org.springframework.data.elasticsearch.core.index.TemplateData;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.elasticsearch.core.reindex.ReindexResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -64,15 +66,15 @@ public class ResponseConverter {
     }
 
     public static AliasData toAliasData(AliasMetadata aliasMetaData) {
-        Document filter = null;
+        Query filterQuery = null;
         CompressedXContent aliasMetaDataFilter = aliasMetaData.getFilter();
 
         if (aliasMetaDataFilter != null) {
-            filter = Document.parse(aliasMetaDataFilter.string());
+            filterQuery = StringQuery.builder(aliasMetaDataFilter.string()).build();
         }
         return AliasData.of(
                 aliasMetaData.alias(),
-                filter,
+                filterQuery,
                 aliasMetaData.indexRouting(),
                 aliasMetaData.getSearchRouting(),
                 aliasMetaData.writeIndex(),
