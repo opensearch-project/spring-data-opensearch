@@ -3,7 +3,7 @@ name: Publish snapshots to Apache Maven repositories
 on:
   push:
     branches:
-      - main
+      - "version.1.1.0"
 
 jobs:
   build-and-publish-snapshots:
