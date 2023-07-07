@@ -4,6 +4,7 @@ lib = library(identifier: 'jenkins@1.5.3', retriever: modernSCM([
 ]))
 
 standardReleasePipelineWithGenericTrigger(
+    overrideDockerImage: 'opensearchstaging/ci-runner:release-centos7-clients-v4',
     tokenIdCredential: 'jenkins-spring-data-opensearch-generic-webhook-token',
     causeString: 'A tag was cut on opensearch-project/spring-data-opensearch repository causing this workflow to run',
     downloadReleaseAsset: true,
