@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
