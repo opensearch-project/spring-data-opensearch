@@ -52,7 +52,7 @@ dependencies {
   testImplementation(springLibs.test) {
     exclude("ch.qos.logback", "logback-classic")
   }
-  testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0") {
+  testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.1") {
     exclude("commons-logging", "commons-logging")
     exclude("org.ow2.asm", "asm")
   }
