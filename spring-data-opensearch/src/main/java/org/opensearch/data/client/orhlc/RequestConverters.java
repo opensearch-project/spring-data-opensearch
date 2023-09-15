@@ -99,6 +99,7 @@ import org.opensearch.search.fetch.subphase.FetchSourceContext;
 import org.opensearch.tasks.TaskId;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * <p>
@@ -183,13 +184,13 @@ public class RequestConverters {
                 metadata.startObject();
                 {
                     metadata.startObject(opType.getLowercase());
-                    if (Strings.hasLength(action.index())) {
+                    if (StringUtils.hasLength(action.index())) {
                         metadata.field("_index", action.index());
                     }
-                    if (Strings.hasLength(action.id())) {
+                    if (StringUtils.hasLength(action.id())) {
                         metadata.field("_id", action.id());
                     }
-                    if (Strings.hasLength(action.routing())) {
+                    if (StringUtils.hasLength(action.routing())) {
                         metadata.field("routing", action.routing());
                     }
                     if (action.version() != Versions.MATCH_ANY) {
@@ -212,7 +213,7 @@ public class RequestConverters {
 
                     if (opType == DocWriteRequest.OpType.INDEX || opType == DocWriteRequest.OpType.CREATE) {
                         IndexRequest indexRequest = (IndexRequest) action;
-                        if (Strings.hasLength(indexRequest.getPipeline())) {
+                        if (StringUtils.hasLength(indexRequest.getPipeline())) {
                             metadata.field("pipeline", indexRequest.getPipeline());
                         }
                     } else if (opType == DocWriteRequest.OpType.UPDATE) {
@@ -317,7 +318,7 @@ public class RequestConverters {
     }
 
     public static Request index(IndexRequest indexRequest) {
-        String method = Strings.hasLength(indexRequest.id()) ? HttpMethod.PUT.name() : HttpMethod.POST.name();
+        String method = StringUtils.hasLength(indexRequest.id()) ? HttpMethod.PUT.name() : HttpMethod.POST.name();
         boolean isCreate = (indexRequest.opType() == DocWriteRequest.OpType.CREATE);
         String endpoint = endpoint(indexRequest.index(), indexRequest.id(), isCreate ? "_create" : null);
         Request request = new Request(method, endpoint);
@@ -647,7 +648,7 @@ public class RequestConverters {
         Params params = new Params(request);
         params.withTimeout(putStoredScriptRequest.timeout());
         params.withMasterTimeout(putStoredScriptRequest.masterNodeTimeout());
-        if (Strings.hasText(putStoredScriptRequest.context())) {
+        if (StringUtils.hasText(putStoredScriptRequest.context())) {
             params.putParam("context", putStoredScriptRequest.context());
         }
         request.setEntity(createEntity(putStoredScriptRequest, REQUEST_BODY_CONTENT_TYPE));
@@ -986,7 +987,7 @@ public class RequestConverters {
             params.putParam("create", Boolean.TRUE.toString());
         }
 
-        if (Strings.hasText(putIndexTemplateRequest.cause())) {
+        if (StringUtils.hasText(putIndexTemplateRequest.cause())) {
             params.putParam("cause", putIndexTemplateRequest.cause());
         }
 
@@ -1154,7 +1155,7 @@ public class RequestConverters {
         }
 
         Params putParam(String name, String value) {
-            if (Strings.hasLength(value)) {
+            if (StringUtils.hasLength(value)) {
                 request.addParameter(name, value);
             }
             return this;
@@ -1478,7 +1479,7 @@ public class RequestConverters {
 
         EndpointBuilder addPathPart(String... parts) {
             for (String part : parts) {
-                if (Strings.hasLength(part)) {
+                if (StringUtils.hasLength(part)) {
                     joiner.add(encodePart(part));
                 }
             }
@@ -1497,7 +1498,7 @@ public class RequestConverters {
 
         EndpointBuilder addPathPartAsIs(String... parts) {
             for (String part : parts) {
-                if (Strings.hasLength(part)) {
+                if (StringUtils.hasLength(part)) {
                     joiner.add(part);
                 }
             }
