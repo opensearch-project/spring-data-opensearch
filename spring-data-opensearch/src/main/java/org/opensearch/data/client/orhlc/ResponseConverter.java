@@ -28,7 +28,6 @@ import org.opensearch.client.indices.GetIndexTemplatesResponse;
 import org.opensearch.client.indices.IndexTemplateMetadata;
 import org.opensearch.cluster.metadata.AliasMetadata;
 import org.opensearch.cluster.metadata.MappingMetadata;
-import org.opensearch.common.collect.ImmutableOpenMap;
 import org.opensearch.common.compress.CompressedXContent;
 import org.opensearch.index.reindex.BulkByScrollResponse;
 import org.opensearch.index.reindex.ScrollableHitSource;
@@ -203,17 +202,7 @@ public class ResponseConverter {
         boolean responseHasMappings = getIndexResponse.getMappings().containsKey(indexName);
 
         if (responseHasMappings) {
-            Object mappingsObj = getIndexResponse.getMappings().get(indexName);
-            MappingMetadata mappings = null;
-            if (mappingsObj instanceof ImmutableOpenMap) { // OpenSearch 1.x returns mapping types map
-                @SuppressWarnings("unchecked")
-                final ImmutableOpenMap<String, MappingMetadata> mappingsMap =
-                        (ImmutableOpenMap<String, MappingMetadata>) mappingsObj;
-                mappings = mappingsMap.get("_doc");
-            } else if (mappingsObj instanceof MappingMetadata) { // OpenSearch 2.x returns mappings
-                mappings = (MappingMetadata) mappingsObj;
-            }
-
+            final MappingMetadata mappings = getIndexResponse.getMappings().get(indexName);
             if (mappings != null) {
                 document = Document.from(mappings.getSourceAsMap());
             }
@@ -250,8 +239,8 @@ public class ResponseConverter {
 
                 Map<String, AliasData> aliases = new LinkedHashMap<>();
 
-                ImmutableOpenMap<String, AliasMetadata> aliasesResponse = indexTemplateMetadata.aliases();
-                Iterator<String> keysIt = aliasesResponse.keysIt();
+                Map<String, AliasMetadata> aliasesResponse = indexTemplateMetadata.aliases();
+                Iterator<String> keysIt = aliasesResponse.keySet().iterator();
                 while (keysIt.hasNext()) {
                     String key = keysIt.next();
                     aliases.put(key, ResponseConverter.toAliasData(aliasesResponse.get(key)));

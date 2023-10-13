@@ -34,7 +34,7 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchScrollRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.common.bytes.BytesArray;
+import org.opensearch.core.common.bytes.BytesArray;
 import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 
 @ExtendWith(MockitoExtension.class)
