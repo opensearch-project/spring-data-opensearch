@@ -51,9 +51,9 @@ val catalogs = extensions.getByType<VersionCatalogsExtension>()
 val jupiter = catalogs.named("libs").findVersion("jupiter").get().requiredVersion
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.18.0")
-  testImplementation("org.testcontainers:junit-jupiter:1.18.0")
-  testImplementation("org.mockito:mockito-junit-jupiter:5.3.1")
+  testImplementation("org.testcontainers:testcontainers:1.19.1")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
+  testImplementation("org.mockito:mockito-junit-jupiter:5.6.0")
   testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
   testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
   testImplementation("org.assertj:assertj-core:3.24.2")
