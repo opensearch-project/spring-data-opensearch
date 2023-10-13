@@ -72,20 +72,21 @@ import org.opensearch.client.indices.IndexTemplatesExistRequest;
 import org.opensearch.client.indices.PutIndexTemplateRequest;
 import org.opensearch.cluster.health.ClusterHealthStatus;
 import org.opensearch.common.Priority;
-import org.opensearch.common.Strings;
 import org.opensearch.common.SuppressForbidden;
-import org.opensearch.common.bytes.BytesArray;
-import org.opensearch.common.bytes.BytesReference;
 import org.opensearch.common.lucene.uid.Versions;
 import org.opensearch.common.unit.TimeValue;
-import org.opensearch.common.xcontent.XContentHelper;
 import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.core.common.Strings;
+import org.opensearch.core.common.bytes.BytesArray;
+import org.opensearch.core.common.bytes.BytesReference;
+import org.opensearch.core.tasks.TaskId;
 import org.opensearch.core.xcontent.DeprecationHandler;
 import org.opensearch.core.xcontent.MediaType;
 import org.opensearch.core.xcontent.NamedXContentRegistry;
 import org.opensearch.core.xcontent.ToXContent;
 import org.opensearch.core.xcontent.XContent;
 import org.opensearch.core.xcontent.XContentBuilder;
+import org.opensearch.core.xcontent.XContentHelper;
 import org.opensearch.core.xcontent.XContentParser;
 import org.opensearch.index.VersionType;
 import org.opensearch.index.rankeval.RankEvalRequest;
@@ -96,7 +97,6 @@ import org.opensearch.index.reindex.UpdateByQueryRequest;
 import org.opensearch.index.seqno.SequenceNumbers;
 import org.opensearch.script.mustache.SearchTemplateRequest;
 import org.opensearch.search.fetch.subphase.FetchSourceContext;
-import org.opensearch.tasks.TaskId;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -150,37 +150,37 @@ public class RequestConverters {
         // Bulk API only supports newline delimited JSON or Smile. Before executing
         // the bulk, we need to check that all requests have the same content-type
         // and this content-type is supported by the Bulk API.
-        XContentType bulkContentType = null;
+        MediaType bulkMediaType = null;
         for (int i = 0; i < bulkRequest.numberOfActions(); i++) {
             DocWriteRequest<?> action = bulkRequest.requests().get(i);
 
             DocWriteRequest.OpType opType = action.opType();
             if (opType == DocWriteRequest.OpType.INDEX || opType == DocWriteRequest.OpType.CREATE) {
-                bulkContentType = enforceSameContentType((IndexRequest) action, bulkContentType);
+                bulkMediaType = enforceSameContentType((IndexRequest) action, bulkMediaType);
 
             } else if (opType == DocWriteRequest.OpType.UPDATE) {
                 UpdateRequest updateRequest = (UpdateRequest) action;
                 if (updateRequest.doc() != null) {
-                    bulkContentType = enforceSameContentType(updateRequest.doc(), bulkContentType);
+                    bulkMediaType = enforceSameContentType(updateRequest.doc(), bulkMediaType);
                 }
                 if (updateRequest.upsertRequest() != null) {
-                    bulkContentType = enforceSameContentType(updateRequest.upsertRequest(), bulkContentType);
+                    bulkMediaType = enforceSameContentType(updateRequest.upsertRequest(), bulkMediaType);
                 }
             }
         }
 
-        if (bulkContentType == null) {
-            bulkContentType = XContentType.JSON;
+        if (bulkMediaType == null) {
+            bulkMediaType = XContentType.JSON;
         }
 
-        final byte separator = bulkContentType.xContent().streamSeparator();
-        final ContentType requestContentType = createContentType(bulkContentType);
+        final byte separator = bulkMediaType.xContent().streamSeparator();
+        final ContentType requestContentType = createContentType(bulkMediaType);
 
         ByteArrayOutputStream content = new ByteArrayOutputStream();
         for (DocWriteRequest<?> action : bulkRequest.requests()) {
             DocWriteRequest.OpType opType = action.opType();
 
-            try (XContentBuilder metadata = XContentBuilder.builder(bulkContentType.xContent())) {
+            try (XContentBuilder metadata = XContentBuilder.builder(bulkMediaType.xContent())) {
                 metadata.startObject();
                 {
                     metadata.startObject(opType.getLowercase());
@@ -238,9 +238,9 @@ public class RequestConverters {
             if (opType == DocWriteRequest.OpType.INDEX || opType == DocWriteRequest.OpType.CREATE) {
                 IndexRequest indexRequest = (IndexRequest) action;
                 BytesReference indexSource = indexRequest.source();
-                XContentType indexXContentType = indexRequest.getContentType();
+                MediaType indexMediaType = indexRequest.getContentType();
 
-                try (XContentParser parser = XContentHelper.createParser(
+                try (XContentParser parser = org.opensearch.common.xcontent.XContentHelper.createParser(
                         /*
                          * EMPTY and THROW are fine here because we just call
                          * copyCurrentStructure which doesn't touch the
@@ -249,14 +249,14 @@ public class RequestConverters {
                         NamedXContentRegistry.EMPTY,
                         DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
                         indexSource,
-                        indexXContentType)) {
-                    try (XContentBuilder builder = XContentBuilder.builder(bulkContentType.xContent())) {
+                        indexMediaType)) {
+                    try (XContentBuilder builder = XContentBuilder.builder(bulkMediaType.xContent())) {
                         builder.copyCurrentStructure(parser);
                         source = BytesReference.bytes(builder).toBytesRef();
                     }
                 }
             } else if (opType == DocWriteRequest.OpType.UPDATE) {
-                source = XContentHelper.toXContent((UpdateRequest) action, bulkContentType, false)
+                source = XContentHelper.toXContent((UpdateRequest) action, bulkMediaType, false)
                         .toBytesRef();
             }
 
@@ -363,23 +363,23 @@ public class RequestConverters {
         // set for the partial document and the upsert document. This client
         // only accepts update requests that have the same content types set
         // for both doc and upsert.
-        XContentType xContentType = null;
+        MediaType mediaType = null;
         if (updateRequest.doc() != null) {
-            xContentType = updateRequest.doc().getContentType();
+            mediaType = updateRequest.doc().getContentType();
         }
         if (updateRequest.upsertRequest() != null) {
-            XContentType upsertContentType = updateRequest.upsertRequest().getContentType();
-            if ((xContentType != null) && (xContentType != upsertContentType)) {
+            MediaType upsertMediaType = updateRequest.upsertRequest().getContentType();
+            if ((mediaType != null) && (mediaType != upsertMediaType)) {
                 throw new IllegalStateException("Update request cannot have different content types for doc ["
-                        + xContentType + ']' + " and upsert [" + upsertContentType + "] documents");
+                        + mediaType + ']' + " and upsert [" + upsertMediaType + "] documents");
             } else {
-                xContentType = upsertContentType;
+                mediaType = upsertMediaType;
             }
         }
-        if (xContentType == null) {
-            xContentType = Requests.INDEX_CONTENT_TYPE;
+        if (mediaType == null) {
+            mediaType = Requests.INDEX_CONTENT_TYPE;
         }
-        request.setEntity(createEntity(updateRequest, xContentType));
+        request.setEntity(createEntity(updateRequest, mediaType));
         return request;
     }
 
@@ -1075,7 +1075,7 @@ public class RequestConverters {
         return request;
     }
 
-    static HttpEntity createEntity(ToXContent toXContent, XContentType xContentType) {
+    static HttpEntity createEntity(ToXContent toXContent, MediaType xContentType) {
 
         try {
             BytesRef source =
@@ -1454,20 +1454,20 @@ public class RequestConverters {
      *
      * @return the {@link IndexRequest}'s content type
      */
-    static XContentType enforceSameContentType(IndexRequest indexRequest, @Nullable XContentType xContentType) {
-        XContentType requestContentType = indexRequest.getContentType();
-        if (requestContentType != XContentType.JSON && requestContentType != XContentType.SMILE) {
+    static MediaType enforceSameContentType(IndexRequest indexRequest, @Nullable MediaType mediaType) {
+        MediaType requestMediaType = indexRequest.getContentType();
+        if (requestMediaType != XContentType.JSON && requestMediaType != XContentType.SMILE) {
             throw new IllegalArgumentException("Unsupported content-type found for request with content-type ["
-                    + requestContentType + "], only JSON and SMILE are supported");
+                    + requestMediaType + "], only JSON and SMILE are supported");
         }
-        if (xContentType == null) {
-            return requestContentType;
+        if (mediaType == null) {
+            return requestMediaType;
         }
-        if (requestContentType != xContentType) {
+        if (requestMediaType != mediaType) {
             throw new IllegalArgumentException("Mismatching content-type found for request with content-type ["
-                    + requestContentType + "], previous requests have content-type [" + xContentType + ']');
+                    + requestMediaType + "], previous requests have content-type [" + mediaType + ']');
         }
-        return xContentType;
+        return mediaType;
     }
 
     /**
