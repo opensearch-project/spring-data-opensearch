@@ -93,7 +93,7 @@ publishing {
         }
       }
     }
-    maven("${rootProject.layout.buildDirectory}/repository") {
+    maven(rootProject.layout.buildDirectory.dir("repository")) {
       name = "localRepo"
     }
   }
