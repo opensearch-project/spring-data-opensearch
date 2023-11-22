@@ -13,6 +13,8 @@ plugins {
   `version-catalog`
   `maven-publish`
   jacoco
+  eclipse
+  idea
 }
 
 repositories {
