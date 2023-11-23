@@ -9,7 +9,6 @@
 
 package org.opensearch.data.client.orhlc;
 
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -20,23 +19,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.RestHighLevelClient;
-import org.springframework.data.elasticsearch.client.ClientLogger;
 import org.springframework.data.elasticsearch.support.HttpHeaders;
 import org.springframework.util.Assert;
 
@@ -46,12 +39,6 @@ import org.springframework.util.Assert;
  * @since 0.1
  */
 public final class RestClients {
-
-    /**
-     * Name of whose value can be used to correlate log messages for this request.
-     */
-    private static final String LOG_ID_ATTRIBUTE = RestClients.class.getName() + ".LOG_ID";
-
     private RestClients() {}
 
     /**
@@ -82,13 +69,6 @@ public final class RestClients {
             clientConfiguration.getSslContext().ifPresent(clientBuilder::setSSLContext);
             clientConfiguration.getHostNameVerifier().ifPresent(clientBuilder::setSSLHostnameVerifier);
             clientBuilder.addInterceptorLast(new CustomHeaderInjector(clientConfiguration.getHeadersSupplier()));
-
-            if (ClientLogger.isEnabled()) {
-                HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-
-                clientBuilder.addInterceptorLast((HttpRequestInterceptor) interceptor);
-                clientBuilder.addInterceptorLast((HttpResponseInterceptor) interceptor);
-            }
 
             Builder requestConfigBuilder = RequestConfig.custom();
             Duration connectTimeout = clientConfiguration.getConnectTimeout();
@@ -162,57 +142,6 @@ public final class RestClients {
         @Override
         default void close() throws IOException {
             rest().close();
-        }
-    }
-
-    /**
-     * Logging interceptors for OpenSearch client logging.
-     *
-     * @see ClientLogger
-     */
-    private static class HttpLoggingInterceptor implements HttpResponseInterceptor, HttpRequestInterceptor {
-
-        @Override
-        public void process(HttpRequest request, HttpContext context) throws IOException {
-
-            String logId = (String) context.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
-
-            if (logId == null) {
-                logId = ClientLogger.newLogId();
-                context.setAttribute(RestClients.LOG_ID_ATTRIBUTE, logId);
-            }
-
-            if (request instanceof HttpEntityEnclosingRequest
-                    && ((HttpEntityEnclosingRequest) request).getEntity() != null) {
-
-                HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) request;
-                HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                entity.writeTo(buffer);
-
-                if (!entity.isRepeatable()) {
-                    entityRequest.setEntity(new ByteArrayEntity(buffer.toByteArray()));
-                }
-
-                ClientLogger.logRequest(
-                        logId,
-                        request.getRequestLine().getMethod(),
-                        request.getRequestLine().getUri(),
-                        "",
-                        buffer::toString);
-            } else {
-                ClientLogger.logRequest(
-                        logId,
-                        request.getRequestLine().getMethod(),
-                        request.getRequestLine().getUri(),
-                        "");
-            }
-        }
-
-        @Override
-        public void process(HttpResponse response, HttpContext context) {
-            String logId = (String) context.getAttribute(RestClients.LOG_ID_ATTRIBUTE);
-            ClientLogger.logRawResponse(logId, response.getStatusLine().getStatusCode());
         }
     }
 
