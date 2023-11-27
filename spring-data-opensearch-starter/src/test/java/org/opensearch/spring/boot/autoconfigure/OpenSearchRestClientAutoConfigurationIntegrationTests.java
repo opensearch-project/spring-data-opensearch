@@ -30,7 +30,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 class OpenSearchRestClientAutoConfigurationIntegrationTests extends AbstractOpenSearchIntegrationTest {
     @Container
-    static final OpensearchContainer opensearch = new OpensearchContainer(getDockerImageName())
+    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>(getDockerImageName())
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 
