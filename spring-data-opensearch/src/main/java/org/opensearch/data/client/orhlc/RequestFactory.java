@@ -85,7 +85,6 @@ import org.opensearch.search.suggest.SuggestBuilder;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
-import org.springframework.data.elasticsearch.core.ScriptType;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.AliasAction;
@@ -98,8 +97,21 @@ import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.core.query.BulkOptions;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.GeoDistanceOrder;
+import org.springframework.data.elasticsearch.core.query.IndexBoost;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.IndicesOptions;
+import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
+import org.springframework.data.elasticsearch.core.query.Order;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery.ScoreMode;
+import org.springframework.data.elasticsearch.core.query.ScriptType;
+import org.springframework.data.elasticsearch.core.query.SourceFilter;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest.Dest;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest.Slice;
@@ -921,13 +933,17 @@ class RequestFactory {
     private SortBuilder<?> getSortBuilder(Sort.Order order, @Nullable ElasticsearchPersistentEntity<?> entity) {
         SortOrder sortOrder = order.getDirection().isDescending() ? SortOrder.DESC : SortOrder.ASC;
 
-        Order.Mode mode = Order.DEFAULT_MODE;
+        Order.Mode mode = null;
         String unmappedType = null;
 
         if (order instanceof Order) {
             Order o = (Order) order;
             mode = o.getMode();
             unmappedType = o.getUnmappedType();
+        }
+
+        if (mode == null) {
+            mode = Order.Mode.min;
         }
 
         if (ScoreSortBuilder.NAME.equals(order.getProperty())) {

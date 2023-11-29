@@ -42,13 +42,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.core.ElasticsearchIntegrationTests;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
-import org.springframework.data.elasticsearch.core.ScriptType;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilder;
 import org.springframework.data.elasticsearch.core.query.IndicesOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
+import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
@@ -207,6 +207,7 @@ public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
                 .withIfSeqNo(42) //
                 .withIfPrimaryTerm(13) //
                 .withScript("script") //
+                .withScriptType(ScriptType.INLINE)
                 .withLang("lang") //
                 .withRefreshPolicy(RefreshPolicy.WAIT_UNTIL) //
                 .withRetryOnConflict(7) //

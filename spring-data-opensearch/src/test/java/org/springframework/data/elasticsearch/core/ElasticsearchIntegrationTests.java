@@ -55,7 +55,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -1594,7 +1593,7 @@ public abstract class ElasticsearchIntegrationTests {
 		final Query query = operations.matchAllQuery();
 
 		final UpdateQuery updateQuery = UpdateQuery.builder(query)
-				.withScriptType(org.springframework.data.elasticsearch.core.ScriptType.INLINE)
+				.withScriptType(org.springframework.data.elasticsearch.core.query.ScriptType.INLINE)
 				.withScript("ctx._source['message'] = params['newMessage']").withLang("painless")
 				.withParams(Collections.singletonMap("newMessage", messageAfterUpdate)).withAbortOnVersionConflict(true)
 				.build();
@@ -4402,6 +4401,10 @@ public abstract class ElasticsearchIntegrationTests {
 			this.id = id;
 			this.text = text;
 			this.seqNoPrimaryTerm = seqNoPrimaryTerm;
+		}
+
+		public ImmutableEntity withId(@Nullable String id) {
+			return new ImmutableEntity(id, this.text, this.seqNoPrimaryTerm);
 		}
 
 		@Nullable

@@ -14,10 +14,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.0.14")
-      version("spring-boot", "3.1.5")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.1.6")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.1.6")
+      version("spring", "6.1.1")
+      version("spring-boot", "3.2.0")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.2.0")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.2.0")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")

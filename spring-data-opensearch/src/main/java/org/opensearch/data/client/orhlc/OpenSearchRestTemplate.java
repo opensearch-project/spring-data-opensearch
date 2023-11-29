@@ -60,6 +60,7 @@ import org.springframework.data.elasticsearch.core.SearchScrollHits;
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -150,14 +151,16 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         Object queryObject = query.getObject();
 
         if (queryObject != null) {
-            query.setObject(updateIndexedObject(
+            query.setObject(entityOperations.updateIndexedObject(
                     queryObject,
                     new IndexedObjectInformation(
                             indexResponse.getId(),
                             indexResponse.getIndex(),
                             indexResponse.getSeqNo(),
                             indexResponse.getPrimaryTerm(),
-                            indexResponse.getVersion())));
+                            indexResponse.getVersion()),
+                    elasticsearchConverter,
+                    routingResolver));
         }
 
         return indexResponse.getId();
@@ -321,10 +324,15 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
     protected List<IndexedObjectInformation> checkForBulkOperationFailure(BulkResponse bulkResponse) {
 
         if (bulkResponse.hasFailures()) {
-            Map<String, String> failedDocuments = new HashMap<>();
+            Map<String, BulkFailureException.FailureDetails> failedDocuments = new HashMap<>();
             for (BulkItemResponse item : bulkResponse.getItems()) {
 
-                if (item.isFailed()) failedDocuments.put(item.getId(), item.getFailureMessage());
+                if (item.isFailed()) {
+                    failedDocuments.put(
+                            item.getId(),
+                            new BulkFailureException.FailureDetails(
+                                    item.status().getStatus(), item.getFailureMessage()));
+                }
             }
             throw new BulkFailureException(
                     "Bulk operation has failures. Use BulkFailureException.getFailedDocuments() for detailed messages ["
@@ -665,6 +673,11 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
     @Deprecated
     public SearchResponse suggest(SuggestBuilder suggestion, Class<?> clazz) {
         return suggest(suggestion, getIndexCoordinatesFor(clazz));
+    }
+
+    @Override
+    public BaseQueryBuilder queryBuilderWithIds(List<String> ids) {
+        return new NativeSearchQueryBuilder().withIds(ids);
     }
 
     // endregion
