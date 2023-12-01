@@ -47,7 +47,6 @@ spotless {
 
     removeUnusedImports()
     importOrder()
-    palantirJavaFormat()
   }
 }
 

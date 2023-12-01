@@ -59,7 +59,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
   testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
   testImplementation("org.assertj:assertj-core:3.24.2")
-  testImplementation("ch.qos.logback:logback-classic:1.4.7")
+  testImplementation("ch.qos.logback:logback-classic:1.4.12")
 }
 
 java {

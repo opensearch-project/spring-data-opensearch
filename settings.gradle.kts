@@ -44,7 +44,7 @@ dependencyResolutionManagement {
     }
     
     create("pluginLibs") {
-      version("spotless", "6.22.0")
+      version("spotless", "6.23.1")
       version("editorconfig", "0.0.3")
       version("release", "3.0.2")
       plugin("editorconfig", "org.ec4j.editorconfig").versionRef("editorconfig")
