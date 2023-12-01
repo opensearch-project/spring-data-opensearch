@@ -32,6 +32,15 @@ dependencies {
   testImplementation(springLibs.boot.test.autoconfigure)
   testImplementation(opensearchLibs.testcontainers)
   testImplementation(project(":spring-data-opensearch-test-autoconfigure"))
+
+  constraints {
+    implementation("ch.qos.logback:logback-classic") {
+      version {
+        require("1.4.12")
+      }
+      because("Fixes CVE-2023-6378")
+    }
+  }
 }
 
 description = "Spring Data OpenSearch Spring Boot Example Project"
