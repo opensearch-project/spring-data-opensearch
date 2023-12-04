@@ -37,7 +37,7 @@ At the moment, Spring Data OpenSearch provides the possibility to use the `RestH
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>1.2.1</version>
+	<version>1.3.0</version>
 </dependency>
 ```
 
@@ -47,7 +47,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>1.2.1</version>
+	<version>1.3.0</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>1.2.1</version>
+	<version>1.3.0</version>
 	<scope>test</scope>
 </dependency>
 ```
