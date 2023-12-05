@@ -130,7 +130,8 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 
 			DockerImageName dockerImageName = getDockerImageName(testcontainersProperties);
 
-			OpensearchContainer opensearchContainer = new SpringDataOpensearchContainer(dockerImageName)
+			@SuppressWarnings("resource")
+			OpensearchContainer<?> opensearchContainer = new SpringDataOpensearchContainer(dockerImageName)
 					.withEnv(testcontainersProperties);
 			opensearchContainer.start();
 
@@ -203,7 +204,7 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 		}
 	}
 
-	private static class SpringDataOpensearchContainer extends OpensearchContainer {
+	private static class SpringDataOpensearchContainer extends OpensearchContainer<SpringDataOpensearchContainer> {
 
 		public SpringDataOpensearchContainer(DockerImageName dockerImageName) {
 			super(dockerImageName);
