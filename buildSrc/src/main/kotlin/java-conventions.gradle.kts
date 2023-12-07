@@ -48,16 +48,28 @@ if (!buildVersion.equals(tagVersion)) {
 version = buildVersion 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-// See please https://github.com/gradle/gradle/issues/15383
-val catalogs = extensions.getByType<VersionCatalogsExtension>()
-val jupiter = catalogs.named("libs").findVersion("jupiter").get().requiredVersion
+versionCatalogs
+  .named("libs")
+  .findLibrary("jupiter")
+  .ifPresent { jupiter -> 
+    dependencies { 
+      testImplementation(jupiter) 
+    }
+  }
+
+versionCatalogs
+  .named("libs")
+  .findLibrary("jupiter-params")
+  .ifPresent { jupiterParams -> 
+    dependencies { 
+      testImplementation(jupiterParams) 
+    }
+  }
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.19.1")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
+  testImplementation("org.testcontainers:testcontainers:1.19.3")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.3")
   testImplementation("org.mockito:mockito-junit-jupiter:5.6.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:${jupiter}")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiter}")
   testImplementation("org.assertj:assertj-core:3.24.2")
   testImplementation("ch.qos.logback:logback-classic:1.4.12")
 }
