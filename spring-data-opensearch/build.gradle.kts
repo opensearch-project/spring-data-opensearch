@@ -34,7 +34,7 @@ dependencies {
   compileOnly(springLibs.web)
 
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
-  testImplementation("org.slf4j:log4j-over-slf4j:2.0.9")
+  testImplementation("org.slf4j:log4j-over-slf4j:2.0.10")
   testImplementation("org.apache.logging.log4j:log4j-core:2.22.1")
   testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.22.0")
   testImplementation("org.apache.geronimo.specs:geronimo-jcdi_2.0_spec:1.3")
