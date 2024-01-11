@@ -2747,7 +2747,7 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(results.getSearchHits().size()).isEqualTo(2);
 
 		// There may be a better way to do it, but Opensearch by default waits for up-to a minute to clear expired pits
-		Thread.sleep(70000);
+		Thread.sleep(120000);
 		final Query searchAfterQuery = getBuilderWithMatchAllQuery() //
 				.withSort(Sort.by(Sort.Order.desc("message"))) //
 				.withPointInTime(qpit)
