@@ -37,6 +37,7 @@ import org.opensearch.client.opensearch.core.msearch.MultiSearchResponseItem;
 import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.opensearch.core.search.SearchResult;
 import org.opensearch.client.transport.Version;
+import org.opensearch.data.core.OpenSearchOperations;
 import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.client.UnsupportedBackendOperation;
 import org.springframework.data.elasticsearch.core.AbstractElasticsearchTemplate;
@@ -76,7 +77,7 @@ import org.springframework.util.Assert;
  * @author Haibo Liu
  * @since 4.4
  */
-public class OpenSearchTemplate extends AbstractElasticsearchTemplate {
+public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements OpenSearchOperations {
 
     private static final Log LOGGER = LogFactory.getLog(OpenSearchTemplate.class);
 
@@ -633,6 +634,14 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate {
         return !response.pits().isEmpty();
     }
 
+    @Override
+    public List<PitInfo> listPointInTime() {
+        return execute(client -> client.listAllPit()).pits()
+            .stream()
+            .map(pit -> new PitInfo(pit.pitId(), pit.creationTime(), pit.keepAlive() == null ? null : Duration.ofMillis(pit.keepAlive())))
+            .toList();
+    }
+
     // endregion
 
     // region script methods
@@ -737,5 +746,4 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate {
 
     }
     // endregion
-
 }
