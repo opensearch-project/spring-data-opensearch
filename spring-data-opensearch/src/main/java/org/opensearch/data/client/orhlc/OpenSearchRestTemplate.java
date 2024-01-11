@@ -10,6 +10,7 @@
 package org.opensearch.data.client.orhlc;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,6 +33,8 @@ import org.opensearch.action.get.MultiGetResponse;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.index.IndexResponse;
 import org.opensearch.action.search.ClearScrollRequest;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.DeletePitRequest;
 import org.opensearch.action.search.MultiSearchRequest;
 import org.opensearch.action.search.MultiSearchResponse;
 import org.opensearch.action.search.SearchRequest;
@@ -441,6 +444,28 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
         } catch (Exception e) {
             LOGGER.warn(String.format("Could not clear scroll: %s", e.getMessage()));
         }
+    }
+
+    @Override
+    public String openPointInTime(IndexCoordinates index, Duration keepAlive, Boolean ignoreUnavailable) {
+        CreatePitRequest createPitRequest = new CreatePitRequest(TimeValue.timeValueMillis(keepAlive.toMillis()),
+                true,
+                index.getIndexName());
+        return execute(client -> client.createPit(createPitRequest, RequestOptions.DEFAULT)).getId();
+    }
+
+    @Override
+    public Boolean closePointInTime(String pit) {
+        try {
+            DeletePitRequest deletePitRequest = new DeletePitRequest(pit);
+            return execute(client -> client.deletePit(deletePitRequest, RequestOptions.DEFAULT))
+                    .getDeletePitResults()
+                    .get(0)
+                    .isSuccessful();
+        } catch (Exception e) {
+            LOGGER.warn(String.format("Could not clear pit: %s", e.getMessage()));
+        }
+        return false;
     }
 
     public SearchResponse suggest(SuggestBuilder suggestion, IndexCoordinates index) {

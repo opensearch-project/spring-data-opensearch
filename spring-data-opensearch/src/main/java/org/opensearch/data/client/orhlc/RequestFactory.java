@@ -68,6 +68,7 @@ import org.opensearch.index.reindex.DeleteByQueryRequest;
 import org.opensearch.index.reindex.RemoteInfo;
 import org.opensearch.index.reindex.UpdateByQueryRequest;
 import org.opensearch.script.Script;
+import org.opensearch.search.builder.PointInTimeBuilder;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.fetch.subphase.FetchSourceContext;
 import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -775,13 +776,21 @@ class RequestFactory {
 
     private SearchRequest prepareSearchRequest(
             Query query, @Nullable String routing, @Nullable Class<?> clazz, IndexCoordinates indexCoordinates) {
-
-        String[] indexNames = indexCoordinates.getIndexNames();
-        Assert.notNull(indexNames, "No index defined for Query");
-        Assert.notEmpty(indexNames, "No index defined for Query");
-
-        SearchRequest request = new SearchRequest(indexNames);
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        SearchRequest request;
+        // Point in time requests do not allow index definition as PIT id references specific indices
+        if(query.getPointInTime()== null) {
+            String[] indexNames = indexCoordinates.getIndexNames();
+            Assert.notNull(indexNames, "No index defined for Query");
+            Assert.notEmpty(indexNames, "No index defined for Query");
+            request = new SearchRequest(indexNames);
+        } else {
+            request = new SearchRequest();
+            PointInTimeBuilder pointInTimeBuilder = new PointInTimeBuilder(query.getPointInTime().id());
+            pointInTimeBuilder.setKeepAlive(TimeValue.timeValueMillis(query.getPointInTime().keepAlive().toMillis()));
+            sourceBuilder.pointInTimeBuilder(pointInTimeBuilder);
+        }
+
         sourceBuilder.version(true);
         sourceBuilder.trackScores(query.getTrackScores());
         if (hasSeqNoPrimaryTermProperty(clazz)) {
@@ -877,6 +886,7 @@ class RequestFactory {
         request.source(sourceBuilder);
         return request;
     }
+
 
     private void prepareNativeSearch(NativeSearchQuery query, SearchSourceBuilder sourceBuilder) {
 

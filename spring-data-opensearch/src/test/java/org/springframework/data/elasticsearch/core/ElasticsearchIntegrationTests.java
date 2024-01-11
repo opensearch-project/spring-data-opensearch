@@ -29,6 +29,7 @@ import java.lang.Double;
 import java.lang.Integer;
 import java.lang.Long;
 import java.lang.Object;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,10 +45,12 @@ import java.util.stream.IntStream;
 
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -59,6 +62,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -2604,6 +2608,159 @@ public abstract class ElasticsearchIntegrationTests {
 				sampleEntities.stream().map(SearchHit::getContent).map(SampleEntity::getMessage).collect(Collectors.toList()))
 						.containsOnly((String) null);
 	}
+
+	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
+	public void testPointInTimeCreateAndDestroy(){
+		// given
+		// first document
+		String documentId = nextIdAsString();
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("abc").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		// second document
+		String documentId2 = nextIdAsString();
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("xyz").rate(5)
+				.version(System.currentTimeMillis()).build();
+
+		// third document
+		String documentId3 = nextIdAsString();
+		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3).message("xyzg").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		List<IndexQuery> indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
+
+		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
+		String pit = operations.openPointInTime(IndexCoordinates.of(indexNameProvider.indexName()),
+				Duration.ofMinutes(1));
+		Assertions.assertNotNull(pit);
+		Query.PointInTime qpit = new Query.PointInTime(pit,Duration.ofMinutes(1));
+		Query query = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPageable(Pageable.ofSize(2))
+				.withPointInTime(qpit).build();
+		SearchHits<SampleEntity> results = operations.search(query,SampleEntity.class);
+		assertThat(results.getSearchHits().size()).isEqualTo(2);
+		query = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPointInTime(qpit)
+				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
+				.build();
+		SearchHits<SampleEntity> searchAfterResults = operations.search(query,SampleEntity.class);
+		assertThat(searchAfterResults.getSearchHits().size()).isEqualTo(1);
+		assertThat(searchAfterResults.getSearchHits().contains(results.getSearchHit(0))).isFalse();
+		assertThat(searchAfterResults.getSearchHits().contains(results.getSearchHit(1))).isFalse();
+		Boolean pitResult = operations.closePointInTime(pit);
+		Assertions.assertTrue(pitResult);
+	}
+
+	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
+	public void testPointInTimeNewDataUnavailable(){
+		// given
+		// first document
+		String documentId = nextIdAsString();
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("abc").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		// second document
+		String documentId2 = nextIdAsString();
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("xyz").rate(5)
+				.version(System.currentTimeMillis()).build();
+
+		// third document
+		String documentId3 = nextIdAsString();
+		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3).message("xyzg").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		List<IndexQuery> indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
+
+		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
+		String pit = operations.openPointInTime(IndexCoordinates.of(indexNameProvider.indexName()),
+				Duration.ofMinutes(1));
+		Assertions.assertNotNull(pit);
+		Query.PointInTime qpit = new Query.PointInTime(pit,Duration.ofMinutes(1));
+		Query query = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPageable(Pageable.ofSize(2))
+				.withPointInTime(qpit).build();
+		SearchHits<SampleEntity> results = operations.search(query,SampleEntity.class);
+		assertThat(results.getSearchHits().size()).isEqualTo(2);
+
+		// fourth document
+		String documentId4 = nextIdAsString();
+		SampleEntity sampleEntity4 = SampleEntity.builder().id(documentId4).message("abcd").rate(10)
+				.version(System.currentTimeMillis()).build();
+		indexQueries = getIndexQueries(Arrays.asList(sampleEntity4));
+
+		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
+		query = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPointInTime(qpit)
+				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
+				.build();
+		SearchHits<SampleEntity> searchAfterResults = operations.search(query,SampleEntity.class);
+		assertThat(searchAfterResults.getSearchHits().size()).isEqualTo(1);
+		assertThat(searchAfterResults.getSearchHits().contains(results.getSearchHit(0))).isFalse();
+		assertThat(searchAfterResults.getSearchHits().contains(results.getSearchHit(1))).isFalse();
+		Boolean pitResult = operations.closePointInTime(pit);
+		Assertions.assertTrue(pitResult);
+	}
+
+	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
+	public void testPointInTimeKeepAliveExpired() throws InterruptedException {
+		// given
+		// first document
+		String documentId = nextIdAsString();
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("abc").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		// second document
+		String documentId2 = nextIdAsString();
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("xyz").rate(5)
+				.version(System.currentTimeMillis()).build();
+
+		// third document
+		String documentId3 = nextIdAsString();
+		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3).message("xyzg").rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		List<IndexQuery> indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
+
+		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
+		String pit = operations.openPointInTime(IndexCoordinates.of(indexNameProvider.indexName()),
+				Duration.ofMillis(10));
+		Assertions.assertNotNull(pit);
+		Query.PointInTime qpit = new Query.PointInTime(pit,Duration.ofMillis(10));
+		Query query = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPageable(Pageable.ofSize(2))
+				.withPointInTime(qpit).build();
+		SearchHits<SampleEntity> results = operations.search(query,SampleEntity.class);
+		assertThat(results.getSearchHits().size()).isEqualTo(2);
+
+		// There may be a better way to do it, but Opensearch by default waits for up-to a minute to clear expired pits
+		Thread.sleep(120000);
+		final Query searchAfterQuery = getBuilderWithMatchAllQuery() //
+				.withSort(Sort.by(Sort.Order.desc("message"))) //
+				.withPointInTime(qpit)
+				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
+				.build();
+		assertThatExceptionOfType(UncategorizedElasticsearchException.class).isThrownBy(
+				()-> operations.search(searchAfterQuery,SampleEntity.class)
+		);
+		Boolean pitResult = operations.closePointInTime(pit);
+		Assertions.assertTrue(pitResult);
+	}
+
+
 
 	@Test // DATAES-457
 	public void shouldSortResultsGivenSortCriteriaWithScanAndScroll() {
