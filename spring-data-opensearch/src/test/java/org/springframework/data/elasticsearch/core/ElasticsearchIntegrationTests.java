@@ -44,10 +44,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -2607,6 +2610,9 @@ public abstract class ElasticsearchIntegrationTests {
 	}
 
 	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
 	public void testPointInTimeCreateAndDestroy(){
 		// given
 		// first document
@@ -2651,6 +2657,9 @@ public abstract class ElasticsearchIntegrationTests {
 	}
 
 	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
 	public void testPointInTimeNewDataUnavailable(){
 		// given
 		// first document
@@ -2703,6 +2712,9 @@ public abstract class ElasticsearchIntegrationTests {
 	}
 
 	@Test
+	@EnabledIfOpenSearchVersion(
+			onOrAfter = "2.3.0",
+			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
 	public void testPointInTimeKeepAliveExpired() throws InterruptedException {
 		// given
 		// first document
@@ -2735,7 +2747,7 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(results.getSearchHits().size()).isEqualTo(2);
 
 		// There may be a better way to do it, but Opensearch by default waits for up-to a minute to clear expired pits
-		Thread.sleep(60000);
+		Thread.sleep(120000);
 		final Query searchAfterQuery = getBuilderWithMatchAllQuery() //
 				.withSort(Sort.by(Sort.Order.desc("message"))) //
 				.withPointInTime(qpit)
