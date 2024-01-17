@@ -18,6 +18,8 @@ Includes integrated object mapping between documents and POJOs.
 
 ## About OpenSearch versions and clients
 
+The Spring Data OpenSearch follows the release model of the Spring Data Elasticsearch / Spring Boot projects.
+
 ### Compatibility Matrix
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client | Spring Framework | Spring Boot |
