@@ -33,13 +33,18 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 
 ### OpenSearch 2.x / 1.x client libraries
 
-At the moment, Spring Data OpenSearch provides the possibility to use the `RestHighLevelCLient` to connect to OpenSearch clusters. 
+
+At the moment, Spring Data OpenSearch provides the possibility to use either `RestHighLevelCLient` or [OpenSearchClient](https://github.com/opensearch-project/opensearch-java) to connect to OpenSearch clusters. 
+
+#### Using `RestHighLevelCLient` (default)
+
+By default, the `RestHighLevelCLient` is configured as the means to communicate with OpenSearch clusters.
 
 ```xml
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 </dependency>
 ```
 
@@ -49,7 +54,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 </dependency>
 ```
 
@@ -59,8 +64,77 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 	<scope>test</scope>
+</dependency>
+```
+
+#### Using `OpenSearchClient` (preferred)
+
+To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` dependency has to be replaced in favor of `opensearch-java`.
+
+```xml
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>spring-data-opensearch</artifactId>
+	<version>1.4.0</version>
+	<exclusions>
+		<exclusion>
+			<groupId>org.opensearch.client</groupId>
+			<artifactId>opensearch-rest-high-level-client</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>opensearch-java</artifactId>
+	<version>2.10.1</version>
+</dependency>
+```
+
+To use Spring Boot 3.x auto configuration support:
+
+```xml
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>spring-data-opensearch-starter</artifactId>
+	<version>1.4.0</version>
+	<exclusions>
+		<exclusion>
+			<groupId>org.opensearch.client</groupId>
+			<artifactId>opensearch-rest-high-level-client</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>opensearch-java</artifactId>
+	<version>2.10.1</version>
+</dependency>
+```
+
+To use Spring Boot 3.x auto configuration support for testing:
+
+```xml
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
+	<version>1.4.0</version>
+	<scope>test</scope>
+	<exclusions>
+		<exclusion>
+			<groupId>org.opensearch.client</groupId>
+			<artifactId>opensearch-rest-high-level-client</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+
+<dependency>
+	<groupId>org.opensearch.client</groupId>
+	<artifactId>opensearch-java</artifactId>
+	<version>2.10.1</version>
 </dependency>
 ```
 
@@ -224,7 +298,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>1.2.1</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 
@@ -251,7 +325,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:1.2.1"
+  implementation "org.opensearch.client:spring-data-opensearch:1.4.0"
   ...
 }
 ```

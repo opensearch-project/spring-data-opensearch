@@ -31,6 +31,7 @@ dependencyResolutionManagement {
     
     create("opensearchLibs") {
       version("opensearch", "2.14.0")
+      library("java-client", "org.opensearch.client:opensearch-java:2.10.3")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
@@ -41,6 +42,10 @@ dependencyResolutionManagement {
       version("jackson", "2.17.0")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
+    }
+    
+    create("jakarta") {
+      library("json-bind", "jakarta.json.bind:jakarta.json.bind-api:2.0.0")
     }
     
     create("pluginLibs") {
@@ -78,3 +83,4 @@ include("spring-data-opensearch")
 include("spring-data-opensearch-starter")
 include("spring-data-opensearch-test-autoconfigure")
 include("spring-data-opensearch-examples:spring-boot-gradle")
+include("spring-data-opensearch-examples:spring-boot-java-client-gradle")

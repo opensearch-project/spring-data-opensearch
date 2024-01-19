@@ -12,6 +12,7 @@ package org.opensearch.data.client;
 import static org.opensearch.index.query.QueryBuilders.*;
 
 import org.apache.lucene.search.join.ScoreMode;
+import org.jetbrains.annotations.NotNull;
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.elasticsearch.NestedObjectIntegrationTests;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
-import org.springframework.lang.NonNull;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = {NestedObjectORHLCIntegrationTests.Config.class})
@@ -34,7 +34,7 @@ public class NestedObjectORHLCIntegrationTests extends NestedObjectIntegrationTe
         }
     }
 
-    @NonNull
+    @NotNull
     protected Query getNestedQuery1() {
         return new NativeSearchQueryBuilder()
                 .withQuery( //
@@ -47,7 +47,7 @@ public class NestedObjectORHLCIntegrationTests extends NestedObjectIntegrationTe
                 .build();
     }
 
-    @NonNull
+    @NotNull
     protected Query getNestedQuery2() {
         return new NativeSearchQueryBuilder()
                 .withQuery( //
@@ -63,7 +63,7 @@ public class NestedObjectORHLCIntegrationTests extends NestedObjectIntegrationTe
                 .build();
     }
 
-    @NonNull
+    @NotNull
     protected Query getNestedQuery3() {
         return new NativeSearchQueryBuilder()
                 .withQuery( //
@@ -75,7 +75,7 @@ public class NestedObjectORHLCIntegrationTests extends NestedObjectIntegrationTe
                 .build();
     }
 
-    @NonNull
+    @NotNull
     protected Query getNestedQuery4() {
         return new NativeSearchQueryBuilder()
                 .withQuery( //

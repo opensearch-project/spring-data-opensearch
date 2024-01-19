@@ -26,6 +26,8 @@ dependencies {
   implementation(opensearchLibs.sniffer) {
     exclude("commons-logging", "commons-logging")
   }
+  compileOnly(opensearchLibs.java.client)
+  compileOnly(jakarta.json.bind)
   testImplementation(springLibs.test) {
     exclude("ch.qos.logback", "logback-classic")
   }
