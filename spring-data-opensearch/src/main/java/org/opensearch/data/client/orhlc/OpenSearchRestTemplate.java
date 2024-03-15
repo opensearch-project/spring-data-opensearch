@@ -226,7 +226,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
     @Override
     public ByQueryResponse delete(Query query, Class<?> clazz, IndexCoordinates index) {
         DeleteByQueryRequest deleteByQueryRequest =
-                requestFactory.deleteByQueryRequest(query, routingResolver.getRouting(), clazz, index);
+                requestFactory.deleteByQueryRequest(query, routingResolver.getRouting(), clazz, index, this.refreshPolicy);
         return ResponseConverter.byQueryResponseOf(
                 execute(client -> client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT)));
     }
