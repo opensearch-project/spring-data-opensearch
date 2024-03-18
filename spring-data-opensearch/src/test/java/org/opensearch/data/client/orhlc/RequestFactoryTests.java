@@ -38,6 +38,7 @@ import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder.FilterFunctionBuilder;
 import org.opensearch.index.query.functionscore.GaussDecayFunctionBuilder;
+import org.opensearch.index.reindex.DeleteByQueryRequest;
 import org.opensearch.search.fetch.subphase.FetchSourceContext;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.annotation.Id;
@@ -46,6 +47,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.elasticsearch.core.index.AliasAction;
@@ -1063,6 +1065,45 @@ class RequestFactoryTests {
         UpdateRequest updateRequest = requestFactory.updateRequest(updateQuery, IndexCoordinates.of(methodIndexName));
 
         assertThat(updateRequest.index()).isEqualTo(methodIndexName);
+    }
+
+    @Test
+    void shouldSetRefreshTrueIfRefreshPolicyIsImmediateInDeleteByQuery() {
+        String methodIndexName = "method-index-name";
+        Query searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(matchAllQuery())
+            .build();
+
+        DeleteByQueryRequest deleteByQueryRequest = requestFactory.deleteByQueryRequest(searchQuery, null, Person.class,
+                                                                                        IndexCoordinates.of(methodIndexName), RefreshPolicy.IMMEDIATE);
+
+        assertThat(deleteByQueryRequest.isRefresh()).isTrue();
+    }
+
+    @Test
+    void shouldSetRefreshFalseIfRefreshPolicyIsNoneInDeleteByQuery() {
+        String methodIndexName = "method-index-name";
+        Query searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(matchAllQuery())
+            .build();
+
+        DeleteByQueryRequest deleteByQueryRequest = requestFactory.deleteByQueryRequest(searchQuery, null, Person.class,
+                                                                                        IndexCoordinates.of(methodIndexName), RefreshPolicy.NONE);
+
+        assertThat(deleteByQueryRequest.isRefresh()).isFalse();
+    }
+
+    @Test
+    void shouldSetRefreshFalseIfRefreshPolicyIsWaitUntilInDeleteByQuery() {
+        String methodIndexName = "method-index-name";
+        Query searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(matchAllQuery())
+            .build();
+
+        DeleteByQueryRequest deleteByQueryRequest = requestFactory.deleteByQueryRequest(searchQuery, null, Person.class,
+                                                                                        IndexCoordinates.of(methodIndexName), RefreshPolicy.WAIT_UNTIL);
+
+        assertThat(deleteByQueryRequest.isRefresh()).isFalse();
     }
 
     // region entities

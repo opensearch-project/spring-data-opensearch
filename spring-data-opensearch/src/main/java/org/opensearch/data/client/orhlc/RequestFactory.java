@@ -529,12 +529,12 @@ class RequestFactory {
 
     // region delete
     public DeleteByQueryRequest deleteByQueryRequest(
-            Query query, @Nullable String routing, Class<?> clazz, IndexCoordinates index) {
+            Query query, @Nullable String routing, Class<?> clazz, IndexCoordinates index, RefreshPolicy refreshPolicy) {
         SearchRequest searchRequest = searchRequest(query, routing, clazz, index);
         DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(index.getIndexNames()) //
                 .setQuery(searchRequest.source().query()) //
                 .setAbortOnVersionConflict(false) //
-                .setRefresh(true);
+                .setRefresh(deleteByQueryRefresh(refreshPolicy));
 
         if (query.isLimiting()) {
             // noinspection ConstantConditions
@@ -1365,6 +1365,17 @@ class RequestFactory {
         }
 
         return null;
+    }
+
+    static boolean deleteByQueryRefresh(@Nullable RefreshPolicy refreshPolicy) {
+        if (refreshPolicy == null) {
+            return false;
+        } else {
+            return switch (refreshPolicy) {
+                case IMMEDIATE -> true;
+                case WAIT_UNTIL, NONE -> false;
+            };
+        }
     }
 
     // endregion
