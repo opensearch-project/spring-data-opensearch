@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,6 +54,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -129,7 +132,7 @@ public abstract class ElasticsearchIntegrationTests {
 	private static final String MULTI_INDEX_2_NAME = MULTI_INDEX_PREFIX + "-2";
 	private static final String MULTI_INDEX_3_NAME = MULTI_INDEX_PREFIX + "-3";
 
-	@Autowired protected ElasticsearchOperations operations;
+	@Autowired protected OpenSearchOperations operations;
 	private IndexOperations indexOperations;
 
 	@Autowired protected IndexNameProvider indexNameProvider;
@@ -2746,16 +2749,23 @@ public abstract class ElasticsearchIntegrationTests {
 		SearchHits<SampleEntity> results = operations.search(query,SampleEntity.class);
 		assertThat(results.getSearchHits().size()).isEqualTo(2);
 
-		// There may be a better way to do it, but Opensearch by default waits for up-to a minute to clear expired pits
-		Thread.sleep(120000);
 		final Query searchAfterQuery = getBuilderWithMatchAllQuery() //
 				.withSort(Sort.by(Sort.Order.desc("message"))) //
 				.withPointInTime(qpit)
 				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
 				.build();
-		assertThatExceptionOfType(UncategorizedElasticsearchException.class).isThrownBy(
-				()-> operations.search(searchAfterQuery,SampleEntity.class)
-		);
+
+		final long started = System.nanoTime();  
+		while ((System.nanoTime() - started) < TimeUnit.SECONDS.toNanos(120)) {
+		    LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
+			if (operations.listPointInTime().isEmpty()) {
+				break;
+			}
+		}
+
+		assertThatExceptionOfType(UncategorizedElasticsearchException.class)
+			.isThrownBy(()-> operations.search(searchAfterQuery,SampleEntity.class));
+
 		Boolean pitResult = operations.closePointInTime(pit);
 		Assertions.assertTrue(pitResult);
 	}

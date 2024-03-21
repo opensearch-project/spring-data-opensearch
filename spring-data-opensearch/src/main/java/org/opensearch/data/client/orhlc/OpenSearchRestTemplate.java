@@ -35,6 +35,7 @@ import org.opensearch.action.index.IndexResponse;
 import org.opensearch.action.search.ClearScrollRequest;
 import org.opensearch.action.search.CreatePitRequest;
 import org.opensearch.action.search.DeletePitRequest;
+import org.opensearch.action.search.ListPitInfo;
 import org.opensearch.action.search.MultiSearchRequest;
 import org.opensearch.action.search.MultiSearchResponse;
 import org.opensearch.action.search.SearchRequest;
@@ -45,6 +46,7 @@ import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.common.unit.TimeValue;
+import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.MoreLikeThisQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.reindex.BulkByScrollResponse;
@@ -80,7 +82,7 @@ import org.springframework.util.Assert;
  * OpenSearchRestTemplate
  * @since 0.1
  */
-public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
+public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implements OpenSearchOperations {
 
     private static final Log LOGGER = LogFactory.getLog(OpenSearchRestTemplate.class);
 
@@ -466,6 +468,11 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
             LOGGER.warn(String.format("Could not clear pit: %s", e.getMessage()));
         }
         return false;
+    }
+
+    @Override
+    public List<ListPitInfo> listPointInTime() {
+        return execute(client -> client.getAllPits(RequestOptions.DEFAULT)).getPitInfos();
     }
 
     public SearchResponse suggest(SuggestBuilder suggestion, IndexCoordinates index) {
