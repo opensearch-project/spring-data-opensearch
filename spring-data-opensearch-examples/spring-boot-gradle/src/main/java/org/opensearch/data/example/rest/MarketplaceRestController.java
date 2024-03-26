@@ -26,7 +26,6 @@ public class MarketplaceRestController {
     }
 
     @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
     public List<Product> search(
             @RequestParam(value = "name", required = false, defaultValue = "") String name,
             @RequestParam(value = "price", required = false, defaultValue = "0.0") BigDecimal price) {
