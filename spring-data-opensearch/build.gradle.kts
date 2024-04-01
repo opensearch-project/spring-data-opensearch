@@ -45,7 +45,7 @@ dependencies {
   testImplementation("org.apache.openwebbeans:openwebbeans-se:2.0.27:jakarta")
   testImplementation("javax.servlet:javax.servlet-api:4.0.1")
   testImplementation("org.apache.xbean:xbean-asm5-shaded:4.5")
-  testImplementation("io.specto:hoverfly-java-junit5:0.17.0")
+  testImplementation("io.specto:hoverfly-java-junit5:0.17.1")
   testImplementation("org.skyscreamer:jsonassert:1.5.1")
   testImplementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
   testImplementation(springLibs.web)
