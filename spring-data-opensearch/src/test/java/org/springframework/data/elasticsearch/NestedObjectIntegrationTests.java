@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,6 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.junit.jupiter.SpringIntegrationTest;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
@@ -130,7 +130,7 @@ public abstract class NestedObjectIntegrationTests {
 		assertThat(persons).hasSize(1);
 	}
 
-	@NonNull
+	@NotNull
 	abstract protected Query getNestedQuery1();
 
 	@Test
@@ -185,7 +185,7 @@ public abstract class NestedObjectIntegrationTests {
 		assertThat(personIndexed.getSearchHit(0).getContent().getId()).isEqualTo("1");
 	}
 
-	@NonNull
+	@NotNull
 	abstract protected Query getNestedQuery2();
 
 	private List<IndexQuery> createPerson() {
@@ -320,7 +320,7 @@ public abstract class NestedObjectIntegrationTests {
 		assertThat(persons).hasSize(1);
 	}
 
-	@NonNull
+	@NotNull
 	abstract protected Query getNestedQuery3();
 
 	@Test // DATAES-73
@@ -368,7 +368,7 @@ public abstract class NestedObjectIntegrationTests {
 		assertThat(books.getSearchHit(0).getContent().getId()).isEqualTo(book2.getId());
 	}
 
-	@NonNull
+	@NotNull
 	abstract protected Query getNestedQuery4();
 
 	@Document(indexName = "#{@indexNameProvider.indexName()}-book")

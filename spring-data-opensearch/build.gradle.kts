@@ -32,7 +32,9 @@ dependencies {
   implementation(springLibs.context)
   implementation(springLibs.tx)
   compileOnly(springLibs.web)
+  compileOnly(opensearchLibs.java.client)
 
+  testImplementation(opensearchLibs.java.client)
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
   testImplementation("org.slf4j:log4j-over-slf4j:2.0.13")
   testImplementation("org.apache.logging.log4j:log4j-core:2.23.1")
