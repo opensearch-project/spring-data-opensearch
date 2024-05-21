@@ -9,7 +9,10 @@
 
 package org.opensearch.data.client.orhlc;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -31,6 +34,7 @@ import org.opensearch.cluster.metadata.MappingMetadata;
 import org.opensearch.common.compress.CompressedXContent;
 import org.opensearch.index.reindex.BulkByScrollResponse;
 import org.opensearch.index.reindex.ScrollableHitSource;
+import org.springframework.data.elasticsearch.ElasticsearchErrorCause;
 import org.springframework.data.elasticsearch.core.IndexInformation;
 import org.springframework.data.elasticsearch.core.MultiGetItem;
 import org.springframework.data.elasticsearch.core.cluster.ClusterHealth;
@@ -442,4 +446,26 @@ public class ResponseConverter {
     }
 
     // endregion
+
+    @Nullable
+    static ElasticsearchErrorCause toErrorCause(String reason, @Nullable Throwable errorCause) {
+
+        if (errorCause != null) {
+            try (PrintWriter writer = new PrintWriter(new StringWriter())) {
+                errorCause.printStackTrace(writer);
+                writer.flush();
+
+                return new ElasticsearchErrorCause( //
+                    null, //
+                    reason, //
+                    writer.toString(), //
+                    toErrorCause(reason, errorCause.getCause()), //
+                    List.of(), //
+                    Arrays.stream(errorCause.getSuppressed()).map(s -> toErrorCause(reason, s)).collect(Collectors.toList()));
+            }
+        } else {
+            return null;
+        }
+    }
+
 }

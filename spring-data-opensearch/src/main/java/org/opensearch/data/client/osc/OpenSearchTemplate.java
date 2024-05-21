@@ -53,6 +53,7 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
@@ -174,6 +175,23 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate {
         Assert.notNull(index, "index must not be null");
 
         doBulkOperation(queries, bulkOptions, index);
+    }
+
+    @Override
+    public ByQueryResponse delete(DeleteQuery query, Class<?> clazz) {
+        return delete(query, clazz, getIndexCoordinatesFor(clazz));
+    }
+
+    @Override
+    public ByQueryResponse delete(DeleteQuery query, Class<?> clazz, IndexCoordinates index) {
+        Assert.notNull(query, "query must not be null");
+
+        DeleteByQueryRequest request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
+                clazz, index, getRefreshPolicy());
+
+        DeleteByQueryResponse response = execute(client -> client.deleteByQuery(request));
+
+        return responseConverter.byQueryResponse(response);
     }
 
     @Override

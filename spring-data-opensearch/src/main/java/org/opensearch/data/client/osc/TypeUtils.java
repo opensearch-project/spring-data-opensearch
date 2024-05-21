@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.opensearch.client.opensearch._types.*;
 import org.opensearch.client.opensearch._types.mapping.FieldType;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
+import org.opensearch.client.opensearch._types.query_dsl.Operator;
 import org.opensearch.client.opensearch.core.search.BoundaryScanner;
 import org.opensearch.client.opensearch.core.search.BuiltinHighlighterType;
 import org.opensearch.client.opensearch.core.search.HighlighterEncoder;
@@ -42,6 +43,8 @@ import org.springframework.data.elasticsearch.core.query.Order;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
+import org.springframework.data.elasticsearch.core.query.types.ConflictsType;
+import org.springframework.data.elasticsearch.core.query.types.OperatorType;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.lang.Nullable;
 
@@ -476,5 +479,21 @@ final class TypeUtils {
     static IndexSettings indexSettings(@Nullable Map<String, Object> settings) {
         return settings != null ?  JsonpUtils.fromJson(Document.from(settings), IndexSettings._DESERIALIZER)
                 : null;
+    }
+
+    /**
+     * Convert a spring-data-elasticsearch operator to an OpenSearch operator.
+     */
+    @Nullable
+    static Operator operator(@Nullable OperatorType operator) {
+        return operator != null ? Operator.valueOf(operator.name()) : null;
+    }
+
+    /**
+     * Convert a spring-data-elasticsearch {@literal conflicts} to an OpenSearch {@literal conflicts}.
+     */
+    @Nullable
+    static Conflicts conflicts(@Nullable ConflictsType conflicts) {
+        return conflicts != null ? Conflicts.valueOf(conflicts.name()) : null;
     }
 }

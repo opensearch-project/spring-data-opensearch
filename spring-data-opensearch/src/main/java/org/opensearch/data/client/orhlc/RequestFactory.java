@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +45,8 @@ import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchType;
 import org.opensearch.action.support.ActiveShardCount;
+import org.opensearch.action.support.IndicesOptions.Option;
+import org.opensearch.action.support.IndicesOptions.WildcardStates;
 import org.opensearch.action.support.WriteRequest;
 import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.client.Requests;
@@ -100,6 +103,7 @@ import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersiste
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.GeoDistanceOrder;
 import org.springframework.data.elasticsearch.core.query.IndexBoost;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -563,6 +567,46 @@ class RequestFactory {
         }
 
         return deleteRequest;
+    }
+
+    // endregion
+
+    // region delete
+    public DeleteByQueryRequest documentDeleteByQueryRequest(
+            DeleteQuery query, @Nullable String routing, Class<?> clazz, IndexCoordinates index, RefreshPolicy refreshPolicy) {
+        SearchRequest searchRequest = searchRequest(query.getQuery(), routing, clazz, index);
+
+        final Set<Option> options = new HashSet<>();
+        final Set<WildcardStates> wildcardStates = new HashSet<>();
+        if (query.getExpandWildcards() != null) {
+            wildcardStates.addAll(query.getExpandWildcards().stream()
+                    .map(it -> org.opensearch.action.support.IndicesOptions.WildcardStates.valueOf(
+                            it.name().toUpperCase()))
+                    .collect(Collectors.toSet()));
+        }
+
+        if (query.getIgnoreUnavailable() != null && query.getIgnoreUnavailable()) {
+            options.add(Option.IGNORE_UNAVAILABLE);
+        }
+
+        if (query.getAllowNoIndices() != null && query.getAllowNoIndices()) {
+            options.add(Option.ALLOW_NO_INDICES);
+        }
+
+        DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(index.getIndexNames()) //
+                .setQuery(searchRequest.source().query()) //
+                .setAbortOnVersionConflict(false) //
+                .setRefresh(deleteByQueryRefresh(refreshPolicy))
+                .setIndicesOptions(
+                    new org.opensearch.action.support.IndicesOptions(
+                        options.isEmpty()
+                            ? EnumSet.noneOf(org.opensearch.action.support.IndicesOptions.Option.class)
+                            : EnumSet.copyOf(options),
+                        wildcardStates.isEmpty()
+                            ? EnumSet.noneOf(org.opensearch.action.support.IndicesOptions.WildcardStates.class)
+                            : EnumSet.copyOf(wildcardStates)));
+
+        return deleteByQueryRequest;
     }
 
     // endregion

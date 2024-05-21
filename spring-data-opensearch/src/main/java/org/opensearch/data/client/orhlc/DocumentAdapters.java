@@ -185,7 +185,7 @@ public final class DocumentAdapters {
             sourceInnerHits.forEach((name, searchHits) -> innerHits.put(
                     name,
                     SearchDocumentResponseBuilder.from(
-                            searchHits, null, null, null, searchDocument -> CompletableFuture.completedFuture(null))));
+                            searchHits, null, null, null, null, searchDocument -> CompletableFuture.completedFuture(null))));
         }
 
         NestedMetaData nestedMetaData = from(source.getNestedIdentity());
