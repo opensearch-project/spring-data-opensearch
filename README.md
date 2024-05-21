@@ -24,6 +24,7 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client | Spring Framework | Spring Boot |
 |---------------------------|------------------------|---------------------------|-------------------|-------------------|------------------|-------------|
+| 2023.1 (Vaughan)          | 1.4.x                  | 5.2.x                     | 1.x / 2.x         | 2.10.x and above  | 6.1.x            | 3.2.x       |
 | 2023.1 (Vaughan)          | 1.3.x                  | 5.2.x                     | 1.x / 2.x         | 2.7.x and above   | 6.1.x            | 3.2.x       |
 | 2023.0 (Ullman)           | 1.2.x                  | 5.1.x                     | 1.x / 2.x         | 2.7.x and above   | 6.0.x            | 3.1.x       |
 | 2022.0 (Turing)           | 1.1.x                  | 5.0.x                     | 1.x / 2.x         | 2.7.x and above   | 6.0.x            | 3.0.x       |
@@ -34,7 +35,7 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 ### OpenSearch 2.x / 1.x client libraries
 
 
-At the moment, Spring Data OpenSearch provides the possibility to use either `RestHighLevelCLient` or [OpenSearchClient](https://github.com/opensearch-project/opensearch-java) to connect to OpenSearch clusters. 
+Spring Data OpenSearch provides the possibility to use either `RestHighLevelCLient` or [OpenSearchClient](https://github.com/opensearch-project/opensearch-java) to connect to OpenSearch clusters. 
 
 #### Using `RestHighLevelCLient` (default)
 
