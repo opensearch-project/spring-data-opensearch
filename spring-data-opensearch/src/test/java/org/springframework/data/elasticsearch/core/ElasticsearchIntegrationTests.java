@@ -62,7 +62,8 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
+import org.springframework.data.elasticsearch.VersionConflictException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -1945,7 +1946,7 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// reindex with version one below
 		assertThatThrownBy(() -> operations.index(indexQueryBuilder.withVersion(entity.getVersion() - 1).build(), index))
-				.hasMessageContaining("version").hasMessageContaining("conflict");
+			.isInstanceOf(VersionConflictException.class);
 	}
 
 	@Test
@@ -2753,8 +2754,8 @@ public abstract class ElasticsearchIntegrationTests {
 				.withPointInTime(qpit)
 				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
 				.build();
-		assertThatExceptionOfType(UncategorizedElasticsearchException.class).isThrownBy(
-				()-> operations.search(searchAfterQuery,SampleEntity.class)
+		assertThatExceptionOfType(ResourceNotFoundException.class).isThrownBy(
+				()-> operations.search(searchAfterQuery, SampleEntity.class)
 		);
 		Boolean pitResult = operations.closePointInTime(pit);
 		Assertions.assertTrue(pitResult);
@@ -3697,10 +3698,48 @@ public abstract class ElasticsearchIntegrationTests {
 		operations.search(query, SampleEntity.class);
 	}
 
+    @Test // GH-2865
+    public void shouldDeleteDocumentForGivenQueryUsingParameters() {
+        // Given
+        String documentId = nextIdAsString();
+        SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
+                .version(System.currentTimeMillis()).build();
+
+        IndexQuery indexQuery = getIndexQuery(sampleEntity);
+        String indexName = indexNameProvider.indexName();
+
+        operations.index(indexQuery, IndexCoordinates.of(indexName));
+
+        // When
+        final Query query = getTermQuery("id", documentId);
+        final DeleteQuery deleteQuery = DeleteQuery.builder(query).withSlices(2).build();
+        ByQueryResponse result = operations.delete(deleteQuery, SampleEntity.class, IndexCoordinates.of(indexName));
+
+        // Then
+        assertThat(result.getDeleted()).isEqualTo(1);
+        SearchHits<SampleEntity> searchHits = operations.search(query, SampleEntity.class,
+                IndexCoordinates.of(indexName));
+        assertThat(searchHits.getTotalHits()).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldDeleteDocumentForGivenQueryAndUnavailableIndex() {
+        // Given
+        String indexName = UUID.randomUUID().toString();
+
+        // When
+        final Query query = operations.matchAllQuery();
+        final DeleteQuery deleteQuery = DeleteQuery.builder(query).withIgnoreUnavailable(true).withAllowNoIndices(true).build();
+        ByQueryResponse result = operations.delete(deleteQuery, SampleEntity.class, IndexCoordinates.of(indexName));
+
+        // Then
+        assertThat(result.getDeleted()).isEqualTo(0);
+    }
+
 	// region entities
 	@Document(indexName = "#{@indexNameProvider.indexName()}")
 	@Setting(shards = 1, replicas = 0, refreshInterval = "-1")
-	static class SampleEntity {
+	protected static class SampleEntity {
 		@Nullable
 		@Id private String id;
 		@Nullable
@@ -3715,11 +3754,11 @@ public abstract class ElasticsearchIntegrationTests {
 		@Nullable
 		@Version private Long version;
 
-		static Builder builder() {
+		public static Builder builder() {
 			return new Builder();
 		}
 
-		static class Builder {
+		public static class Builder {
 
 			@Nullable private String id;
 			@Nullable private String type;
@@ -4708,12 +4747,12 @@ public abstract class ElasticsearchIntegrationTests {
 		@Nullable
 		@Field(type = Text) private String lastName;
 
-@Field(type = Keyword)
-@WriteOnlyProperty
-@AccessType(AccessType.Type.PROPERTY)
-public String getFullName() {
-	return sanitize(firstName) + sanitize(lastName);
-}
+		@Field(type = Keyword)
+		@WriteOnlyProperty
+		@AccessType(AccessType.Type.PROPERTY)
+		public String getFullName() {
+			return sanitize(firstName) + sanitize(lastName);
+		}
 
 		@Nullable
 		public String getId() {

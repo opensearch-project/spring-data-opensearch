@@ -10,15 +10,18 @@
 package org.opensearch.data.client.orhlc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.search.TotalHits;
 import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.ShardSearchFailure;
 import org.opensearch.core.common.text.Text;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.aggregations.Aggregations;
+import org.springframework.data.elasticsearch.core.SearchShardStatistics;
 import org.springframework.data.elasticsearch.core.document.SearchDocument;
 import org.springframework.data.elasticsearch.core.document.SearchDocumentResponse;
 import org.springframework.data.elasticsearch.core.suggest.response.CompletionSuggestion;
@@ -55,8 +58,9 @@ public class SearchDocumentResponseBuilder {
         String scrollId = searchResponse.getScrollId();
         Aggregations aggregations = searchResponse.getAggregations();
         org.opensearch.search.suggest.Suggest suggest = searchResponse.getSuggest();
+        SearchShardStatistics shardStatistics = shardsFrom(searchResponse);
 
-        return from(searchHits, scrollId, aggregations, suggest, entityCreator);
+        return from(searchHits, shardStatistics, scrollId, aggregations, suggest, entityCreator);
     }
 
     /**
@@ -73,6 +77,7 @@ public class SearchDocumentResponseBuilder {
      */
     public static <T> SearchDocumentResponse from(
             SearchHits searchHits,
+            @Nullable SearchShardStatistics shardStatistics,
             @Nullable String scrollId,
             @Nullable Aggregations aggregations,
             @Nullable org.opensearch.search.suggest.Suggest suggestOS,
@@ -112,7 +117,24 @@ public class SearchDocumentResponseBuilder {
                 null,
                 searchDocuments,
                 aggregationsContainer,
-                suggest);
+                suggest,
+                shardStatistics);
+    }
+
+    private static SearchShardStatistics shardsFrom(SearchResponse response) {
+        ShardSearchFailure[] failures = response.getShardFailures();
+        if (failures == null) {
+            return SearchShardStatistics.of(response.getFailedShards(), response.getSuccessfulShards(), response.getTotalShards(), response.getSkippedShards(), List.of());
+        }
+
+        List<SearchShardStatistics.Failure> searchFailures = Arrays
+            .stream(failures)
+            .map(f -> SearchShardStatistics.Failure
+                .of(f.index(), null, f.status().name(), f.shardId(), null, ResponseConverter.toErrorCause(f.reason(), f.getCause())))
+            .toList();
+
+        return SearchShardStatistics.of(response.getFailedShards(), response.getSuccessfulShards(), response.getTotalShards(), response.getSkippedShards(),
+                searchFailures);
     }
 
     @Nullable

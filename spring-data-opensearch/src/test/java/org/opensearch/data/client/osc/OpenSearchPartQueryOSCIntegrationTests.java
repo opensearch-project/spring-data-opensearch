@@ -28,7 +28,7 @@ import org.springframework.data.elasticsearch.core.query.Query;
  * @author Peter-Josef Meisch
  * @since 4.4
  */
-public class ElasticsearchPartQueryOSCIntegrationTests extends ElasticsearchPartQueryIntegrationTests {
+public class OpenSearchPartQueryOSCIntegrationTests extends ElasticsearchPartQueryIntegrationTests {
 
     @Configuration
     @Import({ OpenSearchTemplateConfiguration.class })

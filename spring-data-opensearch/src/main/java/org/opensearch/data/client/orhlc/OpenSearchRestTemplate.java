@@ -66,6 +66,7 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
@@ -227,6 +228,22 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate {
     public ByQueryResponse delete(Query query, Class<?> clazz, IndexCoordinates index) {
         DeleteByQueryRequest deleteByQueryRequest =
                 requestFactory.deleteByQueryRequest(query, routingResolver.getRouting(), clazz, index, this.refreshPolicy);
+        return ResponseConverter.byQueryResponseOf(
+                execute(client -> client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT)));
+    }
+
+    @Override
+    public ByQueryResponse delete(DeleteQuery query, Class<?> clazz) {
+        return delete(query, clazz, getIndexCoordinatesFor(clazz));
+    }
+
+    @Override
+    public ByQueryResponse delete(DeleteQuery query, Class<?> clazz, IndexCoordinates index) {
+        Assert.notNull(query, "query must not be null");
+
+        DeleteByQueryRequest deleteByQueryRequest = requestFactory.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
+                clazz, index, getRefreshPolicy());
+
         return ResponseConverter.byQueryResponseOf(
                 execute(client -> client.deleteByQuery(deleteByQueryRequest, RequestOptions.DEFAULT)));
     }

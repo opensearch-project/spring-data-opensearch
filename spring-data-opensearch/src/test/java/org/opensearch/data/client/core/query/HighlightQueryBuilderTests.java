@@ -11,6 +11,9 @@ package org.opensearch.data.client.core.query;
 
 import static org.skyscreamer.jsonassert.JSONAssert.*;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,9 +43,7 @@ class HighlightQueryBuilderTests {
         Highlight highlight = getAnnotation("annotatedMethod");
         String expected = ResourceUtil.readFileFromClasspath("/highlights/highlights.json");
 
-        HighlightBuilder highlightBuilder = highlightQueryBuilder.getHighlightBuilder(
-                org.springframework.data.elasticsearch.core.query.highlight.Highlight.of(highlight),
-                HighlightEntity.class);
+        HighlightBuilder highlightBuilder = highlightQueryBuilder.getHighlightBuilder(of(highlight), HighlightEntity.class);
         String actualStr = highlightBuilder.toString();
         assertEquals(expected, actualStr, false);
     }
@@ -52,9 +53,7 @@ class HighlightQueryBuilderTests {
         Highlight highlight = getAnnotation("annotatedMethodWithManyValue");
         String expected = ResourceUtil.readFileFromClasspath("/highlights/highlights-with-parameters.json");
 
-        HighlightBuilder highlightBuilder = highlightQueryBuilder.getHighlightBuilder(
-                org.springframework.data.elasticsearch.core.query.highlight.Highlight.of(highlight),
-                HighlightEntity.class);
+        HighlightBuilder highlightBuilder = highlightQueryBuilder.getHighlightBuilder(of(highlight), HighlightEntity.class);
         String actualStr = highlightBuilder.toString();
 
         assertEquals(expected, actualStr, true);
@@ -67,6 +66,39 @@ class HighlightQueryBuilderTests {
         Assert.notNull(highlight, "no highlight annotation found");
 
         return highlight;
+    }
+
+    private static org.springframework.data.elasticsearch.core.query.highlight.Highlight of(org.springframework.data.elasticsearch.annotations.Highlight highlight) {
+
+        Assert.notNull(highlight, "highlight must not be null");
+
+        org.springframework.data.elasticsearch.annotations.HighlightParameters parameters = highlight.parameters();
+        org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters highlightParameters = org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters
+                .builder() //
+                .withBoundaryChars(parameters.boundaryChars()) //
+                .withBoundaryMaxScan(parameters.boundaryMaxScan()) //
+                .withBoundaryScanner(parameters.boundaryScanner()) //
+                .withBoundaryScannerLocale(parameters.boundaryScannerLocale()) //
+                .withEncoder(parameters.encoder()) //
+                .withForceSource(parameters.forceSource()) //
+                .withFragmenter(parameters.fragmenter()) //
+                .withFragmentSize(parameters.fragmentSize()) //
+                .withNoMatchSize(parameters.noMatchSize()) //
+                .withNumberOfFragments(parameters.numberOfFragments()) //
+                .withOrder(parameters.order()) //
+                .withPhraseLimit(parameters.phraseLimit()) //
+                .withPreTags(parameters.preTags()) //
+                .withPostTags(parameters.postTags()) //
+                .withRequireFieldMatch(parameters.requireFieldMatch()) //
+                .withTagsSchema(parameters.tagsSchema()) //
+                .withType(parameters.type()) //
+                .build();
+
+        List<org.springframework.data.elasticsearch.core.query.highlight.HighlightField> highlightFields = Arrays.stream(highlight.fields()) //
+                .map(org.springframework.data.elasticsearch.core.query.highlight.HighlightField::of) //
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.elasticsearch.core.query.highlight.Highlight(highlightParameters, highlightFields);
     }
 
     /**

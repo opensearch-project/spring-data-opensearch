@@ -23,7 +23,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.elasticsearch.NoSuchIndexException;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
+import org.springframework.data.elasticsearch.VersionConflictException;
 
 /**
  * Simple {@link PersistenceExceptionTranslator} for OpenSearch. Convert the given runtime exception to an
@@ -60,20 +62,34 @@ public class OpenSearchExceptionTranslator implements PersistenceExceptionTransl
         if (ex instanceof OpenSearchStatusException) {
             OpenSearchStatusException statusException = (OpenSearchStatusException) ex;
 
-            if (statusException.status() == RestStatus.NOT_FOUND
-                    && statusException.getMessage().contains("index_not_found_exception")) {
+            if (statusException.status() == RestStatus.NOT_FOUND) {
+                if (statusException.getMessage().contains("index_not_found_exception")) {
+                    Pattern pattern = Pattern.compile(".*no such index \\[(.*)\\]");
+                    String index = "";
+                    Matcher matcher = pattern.matcher(statusException.getMessage());
+                    if (matcher.matches()) {
+                        index = matcher.group(1);
+                    }
 
-                Pattern pattern = Pattern.compile(".*no such index \\[(.*)\\]");
-                String index = "";
-                Matcher matcher = pattern.matcher(statusException.getMessage());
-                if (matcher.matches()) {
-                    index = matcher.group(1);
+                    return new NoSuchIndexException(index);
+                } else {
+                    return new ResourceNotFoundException(statusException.getMessage());
                 }
-                return new NoSuchIndexException(index);
             }
 
             if (statusException.getMessage().contains("validation_exception")) {
                 return new DataIntegrityViolationException(statusException.getMessage());
+            }
+
+            if (statusException.status() != null && statusException.getMessage() != null) {
+                final Integer status = statusException.status().getStatus();
+                final String message = statusException.getMessage();
+
+                if (status == 409 && message.contains("type=version_conflict_engine_exception")) {
+                    if (message.contains("version conflict, current version [")) {
+                        throw new VersionConflictException("Version conflict", statusException);
+                    }
+                }
             }
 
             return new UncategorizedElasticsearchException(
