@@ -45,7 +45,7 @@ dependencyResolutionManagement {
     }
     
     create("jakarta") {
-      library("json-bind", "jakarta.json.bind:jakarta.json.bind-api:2.0.0")
+      library("json-bind", "jakarta.json.bind:jakarta.json.bind-api:3.0.1")
     }
     
     create("pluginLibs") {
