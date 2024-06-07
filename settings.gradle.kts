@@ -31,7 +31,7 @@ dependencyResolutionManagement {
     
     create("opensearchLibs") {
       version("opensearch", "2.14.0")
-      library("java-client", "org.opensearch.client:opensearch-java:2.10.3")
+      library("java-client", "org.opensearch.client:opensearch-java:2.10.4")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
@@ -39,7 +39,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.17.0")
+      version("jackson", "2.17.1")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
