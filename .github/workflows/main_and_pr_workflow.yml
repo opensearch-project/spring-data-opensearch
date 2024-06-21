@@ -1,9 +1,9 @@
 name: Main and pull request checks
 on:
   push:
-    branches: [ main ]
+    branches: [ 'main', 'version.*' ]
   pull_request:
-    branches: [ main ]
+    branches: [ 'main', 'version.*' ]
 jobs:
   assemble:
     strategy:
