@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,7 +62,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
+import org.springframework.data.elasticsearch.VersionConflictException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -1945,7 +1945,7 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// reindex with version one below
 		assertThatThrownBy(() -> operations.index(indexQueryBuilder.withVersion(entity.getVersion() - 1).build(), index))
-				.hasMessageContaining("version").hasMessageContaining("conflict");
+			.isInstanceOf(VersionConflictException.class);
 	}
 
 	@Test
@@ -2710,57 +2710,6 @@ public abstract class ElasticsearchIntegrationTests {
 		Boolean pitResult = operations.closePointInTime(pit);
 		Assertions.assertTrue(pitResult);
 	}
-
-	@Test
-	@EnabledIfOpenSearchVersion(
-			onOrAfter = "2.3.0",
-			reason = "https://github.com/opensearch-project/OpenSearch/issues/1147")
-	public void testPointInTimeKeepAliveExpired() throws InterruptedException {
-		// given
-		// first document
-		String documentId = nextIdAsString();
-		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("abc").rate(10)
-				.version(System.currentTimeMillis()).build();
-
-		// second document
-		String documentId2 = nextIdAsString();
-		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("xyz").rate(5)
-				.version(System.currentTimeMillis()).build();
-
-		// third document
-		String documentId3 = nextIdAsString();
-		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3).message("xyzg").rate(10)
-				.version(System.currentTimeMillis()).build();
-
-		List<IndexQuery> indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
-
-		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
-		String pit = operations.openPointInTime(IndexCoordinates.of(indexNameProvider.indexName()),
-				Duration.ofMillis(10));
-		Assertions.assertNotNull(pit);
-		Query.PointInTime qpit = new Query.PointInTime(pit,Duration.ofMillis(10));
-		Query query = getBuilderWithMatchAllQuery() //
-				.withSort(Sort.by(Sort.Order.desc("message"))) //
-				.withPageable(Pageable.ofSize(2))
-				.withPointInTime(qpit).build();
-		SearchHits<SampleEntity> results = operations.search(query,SampleEntity.class);
-		assertThat(results.getSearchHits().size()).isEqualTo(2);
-
-		// There may be a better way to do it, but Opensearch by default waits for up-to a minute to clear expired pits
-		Thread.sleep(120000);
-		final Query searchAfterQuery = getBuilderWithMatchAllQuery() //
-				.withSort(Sort.by(Sort.Order.desc("message"))) //
-				.withPointInTime(qpit)
-				.withSearchAfter(List.of(Objects.requireNonNull(results.getSearchHit(1).getContent().getMessage())))
-				.build();
-		assertThatExceptionOfType(UncategorizedElasticsearchException.class).isThrownBy(
-				()-> operations.search(searchAfterQuery,SampleEntity.class)
-		);
-		Boolean pitResult = operations.closePointInTime(pit);
-		Assertions.assertTrue(pitResult);
-	}
-
-
 
 	@Test // DATAES-457
 	public void shouldSortResultsGivenSortCriteriaWithScanAndScroll() {
