@@ -91,7 +91,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.10.4</version>
+	<version>2.11.1</version>
 </dependency>
 ```
 
@@ -113,7 +113,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.10.4</version>
+	<version>2.11.1</version>
 </dependency>
 ```
 
@@ -136,7 +136,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.10.4</version>
+	<version>2.11.1</version>
 </dependency>
 ```
 
