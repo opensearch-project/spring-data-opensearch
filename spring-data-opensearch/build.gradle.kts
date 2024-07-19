@@ -23,6 +23,10 @@ dependencies {
     exclude("co.elastic.clients", "*")
     exclude("org.elasticsearch.client", "*")
   }
+  api(opensearchLibs.client) {
+    exclude("commons-logging", "commons-logging")
+    exclude("org.slf4j", "slf4j-api")
+  }
   api(opensearchLibs.high.level.client) {
     exclude("commons-logging", "commons-logging")
   }
