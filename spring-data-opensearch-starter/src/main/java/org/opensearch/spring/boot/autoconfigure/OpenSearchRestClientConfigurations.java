@@ -43,19 +43,22 @@ class OpenSearchRestClientConfigurations {
 
         private final OpenSearchProperties properties;
 
-        RestClientBuilderConfiguration(OpenSearchProperties properties) {
+        private final OpenSearchConnectionDetails connectionDetails;
+
+        RestClientBuilderConfiguration(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails) {
             this.properties = properties;
+            this.connectionDetails = connectionDetails;
         }
 
         @Bean
         RestClientBuilderCustomizer defaultRestClientBuilderCustomizer() {
-            return new DefaultRestClientBuilderCustomizer(this.properties);
+            return new DefaultRestClientBuilderCustomizer(this.properties, this.connectionDetails);
         }
 
         @Bean
         RestClientBuilder opensearchRestClientBuilder(ObjectProvider<RestClientBuilderCustomizer> builderCustomizers) {
             HttpHost[] hosts =
-                    this.properties.getUris().stream().map(this::createHttpHost).toArray(HttpHost[]::new);
+                    this.connectionDetails.getUris().stream().map(this::createHttpHost).toArray(HttpHost[]::new);
             RestClientBuilder builder = RestClient.builder(hosts);
             builder.setHttpClientConfigCallback((httpClientBuilder) -> {
                 builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(httpClientBuilder));
@@ -134,8 +137,11 @@ class OpenSearchRestClientConfigurations {
 
         private final OpenSearchProperties properties;
 
-        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties) {
+        private final OpenSearchConnectionDetails connectionDetails;
+
+        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails) {
             this.properties = properties;
+            this.connectionDetails = connectionDetails;
         }
 
         @Override
@@ -143,7 +149,7 @@ class OpenSearchRestClientConfigurations {
 
         @Override
         public void customize(HttpAsyncClientBuilder builder) {
-            builder.setDefaultCredentialsProvider(new PropertiesCredentialsProvider(this.properties));
+            builder.setDefaultCredentialsProvider(new PropertiesCredentialsProvider(this.connectionDetails));
             map.from(this.properties::isSocketKeepAlive)
                     .to((keepAlive) -> builder.setDefaultIOReactorConfig(
                             IOReactorConfig.custom().setSoKeepAlive(keepAlive).build()));
@@ -164,13 +170,13 @@ class OpenSearchRestClientConfigurations {
 
     private static class PropertiesCredentialsProvider extends BasicCredentialsProvider {
 
-        PropertiesCredentialsProvider(OpenSearchProperties properties) {
-            if (StringUtils.hasText(properties.getUsername())) {
+        PropertiesCredentialsProvider(OpenSearchConnectionDetails connectionDetails) {
+            if (StringUtils.hasText(connectionDetails.getUsername())) {
                 Credentials credentials =
-                        new UsernamePasswordCredentials(properties.getUsername(), properties.getPassword());
+                        new UsernamePasswordCredentials(connectionDetails.getUsername(), connectionDetails.getPassword());
                 setCredentials(AuthScope.ANY, credentials);
             }
-            properties.getUris().stream()
+            connectionDetails.getUris().stream()
                     .map(this::toUri)
                     .filter(this::hasUserInfo)
                     .forEach(this::addUserInfoCredentials);
