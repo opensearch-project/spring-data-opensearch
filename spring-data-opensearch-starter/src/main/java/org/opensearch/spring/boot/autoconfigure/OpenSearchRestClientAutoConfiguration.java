@@ -32,7 +32,7 @@ public class OpenSearchRestClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(OpenSearchConnectionDetails.class)
-    PropertiesOpenSearchConnectionDetails openSearchConnectionDetails(OpenSearchProperties properties) {
+    OpenSearchConnectionDetails openSearchConnectionDetails(OpenSearchProperties properties) {
         return new PropertiesOpenSearchConnectionDetails(properties);
     }
 
