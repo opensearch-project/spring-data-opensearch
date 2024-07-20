@@ -16,4 +16,8 @@ public interface OpenSearchConnectionDetails extends ConnectionDetails {
 
     String getPassword();
 
+    default String getPathPrefix() {
+        return null;
+    }
+
 }

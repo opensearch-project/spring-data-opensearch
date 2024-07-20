@@ -68,8 +68,8 @@ class OpenSearchRestClientConfigurations {
                 builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(requestConfigBuilder));
                 return requestConfigBuilder;
             });
-            if (this.properties.getPathPrefix() != null) {
-                builder.setPathPrefix(this.properties.getPathPrefix());
+            if (this.connectionDetails.getPathPrefix() != null) {
+                builder.setPathPrefix(this.connectionDetails.getPathPrefix());
             }
             builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
             return builder;

@@ -58,6 +58,11 @@ public class OpenSearchRestClientAutoConfiguration {
         public String getPassword() {
             return this.properties.getPassword();
         }
+
+        @Override
+        public String getPathPrefix() {
+            return this.properties.getPathPrefix();
+        }
     }
 
 }
