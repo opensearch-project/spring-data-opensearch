@@ -41,18 +41,15 @@ class OpenSearchRestClientConfigurations {
     @ConditionalOnMissingBean(RestClientBuilder.class)
     static class RestClientBuilderConfiguration {
 
-        private final OpenSearchProperties properties;
-
         private final OpenSearchConnectionDetails connectionDetails;
 
-        RestClientBuilderConfiguration(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails) {
-            this.properties = properties;
+        RestClientBuilderConfiguration(OpenSearchConnectionDetails connectionDetails) {
             this.connectionDetails = connectionDetails;
         }
 
         @Bean
-        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer() {
-            return new DefaultRestClientBuilderCustomizer(this.properties, this.connectionDetails);
+        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties) {
+            return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails);
         }
 
         @Bean
@@ -149,7 +146,7 @@ class OpenSearchRestClientConfigurations {
 
         @Override
         public void customize(HttpAsyncClientBuilder builder) {
-            builder.setDefaultCredentialsProvider(new PropertiesCredentialsProvider(this.connectionDetails));
+            builder.setDefaultCredentialsProvider(new ConnectionsDetailsCredentialsProvider(this.connectionDetails));
             map.from(this.properties::isSocketKeepAlive)
                     .to((keepAlive) -> builder.setDefaultIOReactorConfig(
                             IOReactorConfig.custom().setSoKeepAlive(keepAlive).build()));
@@ -168,9 +165,9 @@ class OpenSearchRestClientConfigurations {
         }
     }
 
-    private static class PropertiesCredentialsProvider extends BasicCredentialsProvider {
+    private static class ConnectionsDetailsCredentialsProvider extends BasicCredentialsProvider {
 
-        PropertiesCredentialsProvider(OpenSearchConnectionDetails connectionDetails) {
+        ConnectionsDetailsCredentialsProvider(OpenSearchConnectionDetails connectionDetails) {
             if (StringUtils.hasText(connectionDetails.getUsername())) {
                 Credentials credentials =
                         new UsernamePasswordCredentials(connectionDetails.getUsername(), connectionDetails.getPassword());
