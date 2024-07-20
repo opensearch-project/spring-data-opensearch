@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.service.connection.ConnectionDetailsFactory=\
+org.opensearch.spring.boot.docker.compose.service.connection.OpenSearchDockerComposeConnectionDetailsFactory

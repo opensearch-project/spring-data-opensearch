@@ -292,7 +292,11 @@ public class MarketplaceRepositoryIntegrationTests {
 }
 ```
 
-There is also support for [Testcontainers Service Connections](https://docs.spring.io/spring-boot/reference/testing/testcontainers.html#testing.testcontainers.service-connections) 
+### Spring Boot Service Connection
+
+#### Testcontainers Service Connections
+
+See https://docs.spring.io/spring-boot/reference/testing/testcontainers.html#testing.testcontainers.service-connections 
 
 ```java
 @Container
@@ -301,6 +305,12 @@ static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opens
 ```
 
 So, the client will take values from the `OpenSearchContainer` configuration.
+
+#### Docker Compose Service Connections
+
+See https://docs.spring.io/spring-boot/reference/features/dev-services.html#features.dev-services.docker-compose.service-connections
+
+Support image `opensearchproject/opensearch`.
 
 ### Apache Maven configuration
 

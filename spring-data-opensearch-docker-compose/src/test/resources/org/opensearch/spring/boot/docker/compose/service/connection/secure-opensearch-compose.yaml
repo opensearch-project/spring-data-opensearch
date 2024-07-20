@@ -1,0 +1,13 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    ports:
+      - '9200'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u admin:D3v3l0p-ment --silent --fail https://localhost:9200/ || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    environment:
+      - 'discovery.type=single-node'
+      - 'OPENSEARCH_INITIAL_ADMIN_PASSWORD=D3v3l0p-ment'
