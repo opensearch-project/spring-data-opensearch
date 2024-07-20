@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.service.connection.ConnectionDetailsFactory=\
+org.opensearch.spring.boot.testcontainers.service.connection.OpenSearchContainerConnectionDetailsFactory

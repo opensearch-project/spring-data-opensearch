@@ -41,21 +41,21 @@ class OpenSearchRestClientConfigurations {
     @ConditionalOnMissingBean(RestClientBuilder.class)
     static class RestClientBuilderConfiguration {
 
-        private final OpenSearchProperties properties;
+        private final OpenSearchConnectionDetails connectionDetails;
 
-        RestClientBuilderConfiguration(OpenSearchProperties properties) {
-            this.properties = properties;
+        RestClientBuilderConfiguration(OpenSearchConnectionDetails connectionDetails) {
+            this.connectionDetails = connectionDetails;
         }
 
         @Bean
-        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer() {
-            return new DefaultRestClientBuilderCustomizer(this.properties);
+        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties) {
+            return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails);
         }
 
         @Bean
         RestClientBuilder opensearchRestClientBuilder(ObjectProvider<RestClientBuilderCustomizer> builderCustomizers) {
             HttpHost[] hosts =
-                    this.properties.getUris().stream().map(this::createHttpHost).toArray(HttpHost[]::new);
+                    this.connectionDetails.getUris().stream().map(this::createHttpHost).toArray(HttpHost[]::new);
             RestClientBuilder builder = RestClient.builder(hosts);
             builder.setHttpClientConfigCallback((httpClientBuilder) -> {
                 builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(httpClientBuilder));
@@ -65,8 +65,8 @@ class OpenSearchRestClientConfigurations {
                 builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(requestConfigBuilder));
                 return requestConfigBuilder;
             });
-            if (this.properties.getPathPrefix() != null) {
-                builder.setPathPrefix(this.properties.getPathPrefix());
+            if (this.connectionDetails.getPathPrefix() != null) {
+                builder.setPathPrefix(this.connectionDetails.getPathPrefix());
             }
             builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
             return builder;
@@ -134,8 +134,11 @@ class OpenSearchRestClientConfigurations {
 
         private final OpenSearchProperties properties;
 
-        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties) {
+        private final OpenSearchConnectionDetails connectionDetails;
+
+        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails) {
             this.properties = properties;
+            this.connectionDetails = connectionDetails;
         }
 
         @Override
@@ -143,7 +146,7 @@ class OpenSearchRestClientConfigurations {
 
         @Override
         public void customize(HttpAsyncClientBuilder builder) {
-            builder.setDefaultCredentialsProvider(new PropertiesCredentialsProvider(this.properties));
+            builder.setDefaultCredentialsProvider(new ConnectionsDetailsCredentialsProvider(this.connectionDetails));
             map.from(this.properties::isSocketKeepAlive)
                     .to((keepAlive) -> builder.setDefaultIOReactorConfig(
                             IOReactorConfig.custom().setSoKeepAlive(keepAlive).build()));
@@ -162,15 +165,15 @@ class OpenSearchRestClientConfigurations {
         }
     }
 
-    private static class PropertiesCredentialsProvider extends BasicCredentialsProvider {
+    private static class ConnectionsDetailsCredentialsProvider extends BasicCredentialsProvider {
 
-        PropertiesCredentialsProvider(OpenSearchProperties properties) {
-            if (StringUtils.hasText(properties.getUsername())) {
+        ConnectionsDetailsCredentialsProvider(OpenSearchConnectionDetails connectionDetails) {
+            if (StringUtils.hasText(connectionDetails.getUsername())) {
                 Credentials credentials =
-                        new UsernamePasswordCredentials(properties.getUsername(), properties.getPassword());
+                        new UsernamePasswordCredentials(connectionDetails.getUsername(), connectionDetails.getPassword());
                 setCredentials(AuthScope.ANY, credentials);
             }
-            properties.getUris().stream()
+            connectionDetails.getUris().stream()
                     .map(this::toUri)
                     .filter(this::hasUserInfo)
                     .forEach(this::addUserInfoCredentials);
