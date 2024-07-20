@@ -40,7 +40,7 @@ public class OpenSearchRestClientAutoConfiguration {
 
         private final OpenSearchProperties properties;
 
-        public PropertiesOpenSearchConnectionDetails(OpenSearchProperties properties) {
+        PropertiesOpenSearchConnectionDetails(OpenSearchProperties properties) {
             this.properties = properties;
         }
 
