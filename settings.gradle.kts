@@ -24,6 +24,7 @@ dependencyResolutionManagement {
       library("test", "org.springframework", "spring-test").versionRef("spring")
       library("boot-web", "org.springframework.boot", "spring-boot-starter-web").versionRef("spring-boot")
       library("boot-autoconfigure", "org.springframework.boot", "spring-boot-autoconfigure").versionRef("spring-boot")
+      library("boot-docker-compose", "org.springframework.boot", "spring-boot-docker-compose").versionRef("spring-boot")
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
@@ -81,6 +82,7 @@ dependencyResolutionManagement {
 }
 
 include("spring-data-opensearch")
+include("spring-data-opensearch-docker-compose")
 include("spring-data-opensearch-starter")
 include("spring-data-opensearch-test-autoconfigure")
 include("spring-data-opensearch-testcontainers")
