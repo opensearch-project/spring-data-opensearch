@@ -18,8 +18,12 @@ buildscript {
 }
 
 dependencies {
-  api(project(":spring-data-opensearch"))
-  api(project(":spring-data-opensearch-starter"))
+  api(project(":spring-data-opensearch")) {
+    exclude("org.opensearch.client", "opensearch-rest-client-sniffer")
+  }
+  api(project(":spring-data-opensearch-starter")) {
+    exclude("org.opensearch.client", "opensearch-rest-client-sniffer")
+  }
   implementation(springLibs.boot.web)
   implementation(jacksonLibs.core)
   implementation(jacksonLibs.databind)
