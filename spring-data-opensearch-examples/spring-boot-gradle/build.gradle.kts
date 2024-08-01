@@ -34,7 +34,9 @@ dependencies {
   testImplementation(springLibs.test)
   testImplementation(springLibs.boot.test)
   testImplementation(springLibs.boot.test.autoconfigure)
+  testImplementation(springLibs.boot.testcontainers)
   testImplementation(opensearchLibs.testcontainers)
+  testImplementation(project(":spring-data-opensearch-testcontainers"))
   testImplementation(project(":spring-data-opensearch-test-autoconfigure"))
 
   constraints {
