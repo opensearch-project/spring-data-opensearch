@@ -40,7 +40,7 @@ dependencies {
 
   testImplementation(opensearchLibs.java.client)
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
-  testImplementation("org.slf4j:log4j-over-slf4j:2.0.13")
+  testImplementation("org.slf4j:log4j-over-slf4j:2.0.16")
   testImplementation("org.apache.logging.log4j:log4j-core:2.23.1")
   testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.23.1")
   testImplementation("org.apache.geronimo.specs:geronimo-jcdi_2.0_spec:1.3")
