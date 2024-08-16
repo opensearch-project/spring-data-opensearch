@@ -8,16 +8,16 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.10.0")
+      version("jupiter", "5.11.0")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
     }
 
     create("springLibs") {
-      version("spring", "6.1.10")
+      version("spring", "6.1.12")
       version("spring-boot", "3.2.7")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.2.7")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.2.7")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.2.9")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.2.9")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
@@ -30,16 +30,16 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.14.0")
+      version("opensearch", "2.16.0")
       library("java-client", "org.opensearch.client:opensearch-java:2.10.3")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
-      library("testcontainers", "org.opensearch:opensearch-testcontainers:2.0.1") 
+      library("testcontainers", "org.opensearch:opensearch-testcontainers:2.1.0") 
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.17.0")
+      version("jackson", "2.17.2")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
