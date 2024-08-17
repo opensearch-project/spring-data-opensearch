@@ -5,11 +5,10 @@
 
 package org.opensearch.spring.boot.autoconfigure;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
+
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -21,11 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.opensearch.client.Node;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
-import org.opensearch.client.sniff.Sniffer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
-import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -206,57 +203,6 @@ class OpenSearchRestClientAutoConfigurationTests {
                     RestClient client = context.getBean(RestClient.class);
                     assertThat(client).extracting("pathPrefix").isEqualTo("/some/prefix");
                 });
-    }
-
-    @Test
-    void configureWithoutSnifferLibraryShouldNotCreateSniffer() {
-        this.contextRunner
-                .withClassLoader(new FilteredClassLoader("org.opensearch.client.sniff"))
-                .run((context) ->
-                        assertThat(context).hasSingleBean(RestClient.class).doesNotHaveBean(Sniffer.class));
-    }
-
-    @Test
-    void configureShouldCreateSnifferUsingRestClient() {
-        this.contextRunner.run((context) -> {
-            assertThat(context).hasSingleBean(Sniffer.class);
-            assertThat(context.getBean(Sniffer.class))
-                    .hasFieldOrPropertyWithValue("restClient", context.getBean(RestClient.class));
-            // Validate shutdown order as the sniffer must be shutdown before the
-            // client
-            assertThat(context.getBeanFactory().getDependentBeans("opensearchRestClient"))
-                    .contains("opensearchSniffer");
-        });
-    }
-
-    @Test
-    void configureWithCustomSnifferSettings() {
-        this.contextRunner
-                .withPropertyValues(
-                        "opensearch.restclient.sniffer.interval=180s",
-                        "opensearch.restclient.sniffer.delay-after-failure=30s")
-                .run((context) -> {
-                    assertThat(context).hasSingleBean(Sniffer.class);
-                    Sniffer sniffer = context.getBean(Sniffer.class);
-                    assertThat(sniffer)
-                            .hasFieldOrPropertyWithValue(
-                                    "sniffIntervalMillis", Duration.ofMinutes(3).toMillis());
-                    assertThat(sniffer)
-                            .hasFieldOrPropertyWithValue(
-                                    "sniffAfterFailureDelayMillis",
-                                    Duration.ofSeconds(30).toMillis());
-                });
-    }
-
-    @Test
-    void configureWhenCustomSnifferShouldBackOff() {
-        Sniffer customSniffer = mock(Sniffer.class);
-        this.contextRunner.withBean(Sniffer.class, () -> customSniffer).run((context) -> {
-            assertThat(context).hasSingleBean(Sniffer.class);
-            Sniffer sniffer = context.getBean(Sniffer.class);
-            assertThat(sniffer).isSameAs(customSniffer);
-            then(customSniffer).shouldHaveNoInteractions();
-        });
     }
 
     @Configuration(proxyBeanMethods = false)

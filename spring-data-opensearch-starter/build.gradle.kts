@@ -23,9 +23,6 @@ dependencies {
     exclude("commons-logging", "commons-logging")
     exclude("org.slf4j", "slf4j-api")
   }
-  implementation(opensearchLibs.sniffer) {
-    exclude("commons-logging", "commons-logging")
-  }
   compileOnly(opensearchLibs.java.client)
   compileOnly(jakarta.json.bind)
   testImplementation(springLibs.test) {

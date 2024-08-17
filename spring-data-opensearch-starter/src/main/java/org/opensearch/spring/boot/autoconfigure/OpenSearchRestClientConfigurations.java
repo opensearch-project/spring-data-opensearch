@@ -8,6 +8,7 @@ package org.opensearch.spring.boot.autoconfigure;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -18,12 +19,8 @@ import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
-import org.opensearch.client.sniff.Sniffer;
-import org.opensearch.client.sniff.SnifferBuilder;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -107,24 +104,6 @@ class OpenSearchRestClientConfigurations {
         @Bean
         RestClient opensearchRestClient(RestClientBuilder restClientBuilder) {
             return restClientBuilder.build();
-        }
-    }
-
-    @Configuration(proxyBeanMethods = false)
-    @ConditionalOnClass(Sniffer.class)
-    @ConditionalOnSingleCandidate(RestClient.class)
-    static class RestClientSnifferConfiguration {
-
-        @Bean
-        @ConditionalOnMissingBean
-        Sniffer opensearchSniffer(RestClient client, OpenSearchProperties properties) {
-            SnifferBuilder builder = Sniffer.builder(client);
-            PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
-            Duration interval = properties.getRestclient().getSniffer().getInterval();
-            map.from(interval).asInt(Duration::toMillis).to(builder::setSniffIntervalMillis);
-            Duration delayAfterFailure = properties.getRestclient().getSniffer().getDelayAfterFailure();
-            map.from(delayAfterFailure).asInt(Duration::toMillis).to(builder::setSniffAfterFailureDelayMillis);
-            return builder.build();
         }
     }
 
