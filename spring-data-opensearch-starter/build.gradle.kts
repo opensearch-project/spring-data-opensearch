@@ -23,7 +23,7 @@ dependencies {
     exclude("commons-logging", "commons-logging")
     exclude("org.slf4j", "slf4j-api")
   }
-  implementation(opensearchLibs.sniffer) {
+  compileOnly(opensearchLibs.sniffer) {
     exclude("commons-logging", "commons-logging")
   }
   compileOnly(opensearchLibs.java.client)
@@ -35,6 +35,9 @@ dependencies {
   testImplementation(opensearchLibs.testcontainers)
   testImplementation(jacksonLibs.core)
   testImplementation(jacksonLibs.databind)
+  testImplementation(opensearchLibs.sniffer) {
+    exclude("commons-logging", "commons-logging")
+  }
 }
 
 description = "Spring Data OpenSearch Spring Boot Starter"
