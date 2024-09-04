@@ -28,6 +28,9 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.DocValueField;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.lang.Nullable;
@@ -67,6 +70,19 @@ class RequestConverterTest {
         assertThat(fieldAndFormats.get(0).format()).isNull();
         assertThat(fieldAndFormats.get(1).field()).isEqualTo("field2");
         assertThat(fieldAndFormats.get(1).format()).isEqualTo("format2");
+    }
+
+    @Test // #335
+    @DisplayName("should set refresh based on deleteRequest")
+    void refreshSetByDeleteRequest() {
+        var query = new CriteriaQuery(new Criteria("text").contains("test"));
+        var deleteQuery = DeleteQuery.builder(query).withRefresh(true).build();
+
+        var deleteByQueryRequest = requestConverter.documentDeleteByQueryRequest(deleteQuery, null, SampleEntity.class,
+            IndexCoordinates.of("foo"),
+            null);
+
+        assertThat(deleteByQueryRequest.refresh()).isTrue();
     }
 
     @Document(indexName = "does-not-matter")
