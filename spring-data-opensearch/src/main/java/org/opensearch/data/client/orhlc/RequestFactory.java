@@ -596,7 +596,7 @@ class RequestFactory {
         DeleteByQueryRequest deleteByQueryRequest = new DeleteByQueryRequest(index.getIndexNames()) //
                 .setQuery(searchRequest.source().query()) //
                 .setAbortOnVersionConflict(false) //
-                .setRefresh(deleteByQueryRefresh(refreshPolicy))
+                .setRefresh(query.getRefresh() != null ? query.getRefresh() : deleteByQueryRefresh(refreshPolicy))
                 .setIndicesOptions(
                     new org.opensearch.action.support.IndicesOptions(
                         options.isEmpty()

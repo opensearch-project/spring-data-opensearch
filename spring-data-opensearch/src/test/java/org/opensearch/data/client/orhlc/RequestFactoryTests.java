@@ -1106,6 +1106,19 @@ class RequestFactoryTests {
         assertThat(deleteByQueryRequest.isRefresh()).isFalse();
     }
 
+    @Test // #335
+    @DisplayName("should set refresh based on deleteRequest")
+    void refreshSetByDeleteRequest() {
+        var methodIndexName = "method-index-name";
+        var query = new CriteriaQuery(new Criteria("lastName").contains("test"));
+        var deleteQuery = DeleteQuery.builder(query).withRefresh(true).build();
+
+        var deleteByQueryRequest = requestFactory.documentDeleteByQueryRequest(deleteQuery, null, Person.class,
+            IndexCoordinates.of(methodIndexName), null);
+
+        assertThat(deleteByQueryRequest.isRefresh()).isTrue();
+    }
+
     // region entities
     static class Person {
         @Nullable
