@@ -71,10 +71,12 @@ import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.SqlQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.ReindexResponse;
+import org.springframework.data.elasticsearch.core.sql.SqlResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -629,6 +631,11 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
         MultiSearchResponse.Item[] items = response.getResponses();
         Assert.isTrue(items.length == request.requests().size(), "Response should has same length with queries");
         return items;
+    }
+
+    @Override
+    public SqlResponse search(SqlQuery query) {
+        throw new UnsupportedOperationException("The operation search(SqlQuery query) is not supported");
     }
 
     // endregion
