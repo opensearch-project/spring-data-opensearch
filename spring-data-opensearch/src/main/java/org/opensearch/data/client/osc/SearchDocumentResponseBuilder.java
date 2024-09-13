@@ -15,6 +15,7 @@
  */
 package org.opensearch.data.client.osc;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,8 +80,9 @@ class SearchDocumentResponseBuilder {
         Map<String, List<org.opensearch.client.opensearch.core.search.Suggest<EntityAsMap>>> suggest = responseBody.suggest();
         var pointInTimeId = responseBody.pitId();
         var shards = responseBody.shards();
+        var executionDurationInMillis = responseBody.took();
 
-        return from(hitsMetadata, shards, scrollId, pointInTimeId, aggregations, suggest, entityCreator, jsonpMapper);
+        return from(hitsMetadata, shards, scrollId, pointInTimeId, executionDurationInMillis, aggregations, suggest, entityCreator, jsonpMapper);
     }
 
     /**
@@ -105,8 +107,9 @@ class SearchDocumentResponseBuilder {
         var suggest = response.suggest();
         var pointInTimeId = response.pitId();
         var shards = response.shards();
+        var executionDurationInMillis = response.took();
 
-        return from(hitsMetadata, shards, scrollId, pointInTimeId, aggregations, suggest, entityCreator, jsonpMapper);
+        return from(hitsMetadata, shards, scrollId, pointInTimeId, executionDurationInMillis, aggregations, suggest, entityCreator, jsonpMapper);
     }
 
     /**
@@ -123,7 +126,7 @@ class SearchDocumentResponseBuilder {
      * @return the {@link SearchDocumentResponse}
      */
     public static <T> SearchDocumentResponse from(HitsMetadata<?> hitsMetadata, @Nullable ShardStatistics shards,
-            @Nullable String scrollId, @Nullable String pointInTimeId, @Nullable Map<String, Aggregate> aggregations,
+            @Nullable String scrollId, @Nullable String pointInTimeId, long executionDurationInMillis, @Nullable Map<String, Aggregate> aggregations,
             Map<String, List<org.opensearch.client.opensearch.core.search.Suggest<EntityAsMap>>> suggestES, SearchDocumentResponse.EntityCreator<T> entityCreator,
             JsonpMapper jsonpMapper) {
 
@@ -146,6 +149,7 @@ class SearchDocumentResponseBuilder {
         }
 
         float maxScore = hitsMetadata.maxScore() != null ? hitsMetadata.maxScore().floatValue() : Float.NaN;
+        final Duration executionDuration = Duration.ofMillis(executionDurationInMillis);
 
         List<SearchDocument> searchDocuments = new ArrayList<>();
         for (Hit<?> hit : hitsMetadata.hits()) {
@@ -159,8 +163,8 @@ class SearchDocumentResponseBuilder {
 
         SearchShardStatistics shardStatistics = shards != null ? shardsFrom(shards) : null;
 
-        return new SearchDocumentResponse(totalHits, totalHitsRelation, maxScore, scrollId, pointInTimeId, searchDocuments,
-                aggregationsContainer, suggest, shardStatistics);
+        return new SearchDocumentResponse(totalHits, totalHitsRelation, maxScore, executionDuration,
+                scrollId, pointInTimeId, searchDocuments, aggregationsContainer, suggest, shardStatistics);
     }
 
     private static SearchShardStatistics shardsFrom(ShardStatistics shards) {

@@ -59,11 +59,13 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.SearchTemplateQuery;
+import org.springframework.data.elasticsearch.core.query.SqlQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.ReindexResponse;
 import org.springframework.data.elasticsearch.core.script.Script;
+import org.springframework.data.elasticsearch.core.sql.SqlResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -640,6 +642,11 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
             .stream()
             .map(pit -> new PitInfo(pit.pitId(), pit.creationTime(), pit.keepAlive() == null ? null : Duration.ofMillis(pit.keepAlive())))
             .toList();
+    }
+
+    @Override
+    public SqlResponse search(SqlQuery query) {
+        throw new UnsupportedOperationException("The operation search(SqlQuery query) is not supported");
     }
 
     // endregion

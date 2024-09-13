@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -91,6 +92,13 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 	@Order(java.lang.Integer.MAX_VALUE)
 	void cleanup() {
 		operations.indexOps(IndexCoordinates.of(indexNameProvider.getPrefix() + "*")).delete();
+	}
+	
+	@Test
+	@EnabledIfOpenSearchVersion(onOrAfter = "2.15.0", reason = "https://github.com/opensearch-project/OpenSearch/issues/5639")
+	public void shouldSupportAllTypes() {
+		IndexOperations indexOperations = operations.indexOps(EntityWithAllTypes.class);
+		indexOperations.createWithMapping();
 	}
 
 	@Test
@@ -853,7 +861,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Nullable
 		@Field(type = FieldType.Percolator) String percolatorField;
 		@Nullable
-		@Field(type = FieldType.Flattened) String flattenedField;
+		@Field(type = FieldType.Flattened, mappedTypeName = "flat_object") String flattenedField;
 		@Nullable
 		@Field(type = FieldType.Search_As_You_Type) String searchAsYouTypeField;
 		@Nullable
@@ -862,8 +870,6 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Field(type = FieldType.Rank_Features) String rankFeaturesField;
 		@Nullable
 		@Field(type = FieldType.Wildcard) String wildcardField;
-		@Nullable
-		@Field(type = FieldType.Dense_Vector, dims = 1) String denseVectorField;
 	}
 	// endregion
 }

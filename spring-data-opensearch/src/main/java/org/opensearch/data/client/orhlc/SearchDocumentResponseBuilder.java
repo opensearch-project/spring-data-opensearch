@@ -9,6 +9,7 @@
 
 package org.opensearch.data.client.orhlc;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,8 +60,10 @@ public class SearchDocumentResponseBuilder {
         Aggregations aggregations = searchResponse.getAggregations();
         org.opensearch.search.suggest.Suggest suggest = searchResponse.getSuggest();
         SearchShardStatistics shardStatistics = shardsFrom(searchResponse);
+        var executionDurationInMillis = searchResponse.getTook().millis();
 
-        return from(searchHits, shardStatistics, scrollId, aggregations, suggest, entityCreator);
+        return from(searchHits, shardStatistics, scrollId, executionDurationInMillis,
+            aggregations, suggest, entityCreator);
     }
 
     /**
@@ -79,6 +82,7 @@ public class SearchDocumentResponseBuilder {
             SearchHits searchHits,
             @Nullable SearchShardStatistics shardStatistics,
             @Nullable String scrollId,
+            long executionDurationInMillis,
             @Nullable Aggregations aggregations,
             @Nullable org.opensearch.search.suggest.Suggest suggestOS,
             SearchDocumentResponse.EntityCreator<T> entityCreator) {
@@ -97,6 +101,7 @@ public class SearchDocumentResponseBuilder {
         }
 
         float maxScore = searchHits.getMaxScore();
+        final Duration executionDuration = Duration.ofMillis(executionDurationInMillis);
 
         List<SearchDocument> searchDocuments = new ArrayList<>();
         for (SearchHit searchHit : searchHits) {
@@ -113,6 +118,7 @@ public class SearchDocumentResponseBuilder {
                 totalHits,
                 totalHitsRelation,
                 maxScore,
+                executionDuration,
                 scrollId,
                 null,
                 searchDocuments,
