@@ -1,4 +1,4 @@
-name: Publish snapshots to Apache Maven repositories
+name: Publish snapshots to maven
 
 on:
   push:
