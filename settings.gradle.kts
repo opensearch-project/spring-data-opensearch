@@ -33,7 +33,7 @@ dependencyResolutionManagement {
     
     create("opensearchLibs") {
       version("opensearch", "2.17.1")
-      library("java-client", "org.opensearch.client:opensearch-java:2.15.0")
+      library("java-client", "org.opensearch.client:opensearch-java:2.16.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
