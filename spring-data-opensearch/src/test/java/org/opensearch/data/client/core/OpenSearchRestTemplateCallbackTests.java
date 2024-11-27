@@ -34,6 +34,7 @@ import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchScrollRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
+import org.opensearch.common.unit.TimeValue;
 import org.opensearch.core.common.bytes.BytesArray;
 import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
 
@@ -101,6 +102,7 @@ class OpenSearchRestTemplateCallbackTests extends OpenSearchTemplateCallbackTest
         doReturn(searchResponse).when(client).search(any(SearchRequest.class), any(RequestOptions.class));
         doReturn(nSearchHits(2)).when(searchResponse).getHits();
         doReturn("scroll-id").when(searchResponse).getScrollId();
+        doReturn(TimeValue.timeValueMillis(100)).when(searchResponse).getTook();
         doReturn(new BytesArray(new byte[8])).when(searchHit).getSourceRef();
         doReturn(new HashMap<String, Object>() {
                     {

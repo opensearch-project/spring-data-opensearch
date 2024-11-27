@@ -78,7 +78,7 @@ class SearchDocumentResponseBuilderUnitTests {
                 .build();
 
         // act
-        final var actual = SearchDocumentResponseBuilder.from(hitsMetadata, null, null, null, null, sortProperties, null,
+        final var actual = SearchDocumentResponseBuilder.from(hitsMetadata, null, null, null, 0, null, sortProperties, null,
                 jsonpMapper);
 
         // assert
@@ -151,7 +151,7 @@ class SearchDocumentResponseBuilderUnitTests {
 
         // act
         SearchDocumentResponse response = SearchDocumentResponseBuilder.from(hitsMetadata, shards, null, null,
-                null, null, null, jsonpMapper);
+                0, null, null, null, jsonpMapper);
 
         // assert
         SearchShardStatistics shardStatistics = response.getSearchShardStatistics();
