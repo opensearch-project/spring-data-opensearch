@@ -3669,6 +3669,36 @@ public abstract class ElasticsearchIntegrationTests {
                 IndexCoordinates.of(indexName));
         assertThat(searchHits.getTotalHits()).isEqualTo(0);
     }
+    
+    @Test // OS-GH-387
+    public void shouldUpdateDocumentForGivenQueryUsingParameters() {
+        // Given
+        String documentId = nextIdAsString();
+        SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
+                .version(System.currentTimeMillis()).build();
+
+        IndexQuery indexQuery = getIndexQuery(sampleEntity);
+        String indexName = indexNameProvider.indexName();
+
+        operations.index(indexQuery, IndexCoordinates.of(indexName));
+
+        // When
+        final Query query = getTermQuery("id", documentId);
+        org.springframework.data.elasticsearch.core.document.Document document = org.springframework.data.elasticsearch.core.document.Document
+                .create();
+        document.put("message", "another message");
+
+        final UpdateQuery updateQuery = UpdateQuery.builder(query).withSlices(2).withDocument(document).build();
+        ByQueryResponse result = operations.updateByQuery(updateQuery, IndexCoordinates.of(indexName));
+
+        // Then
+        assertThat(result.getDeleted()).isEqualTo(0);
+        assertThat(result.getUpdated()).isEqualTo(1);
+        SearchHits<SampleEntity> searchHits = operations.search(query, SampleEntity.class,
+                IndexCoordinates.of(indexName));
+        assertThat(searchHits.getTotalHits()).isEqualTo(1);
+    }
+
 
     @Test
     public void shouldDeleteDocumentForGivenQueryAndUnavailableIndex() {
