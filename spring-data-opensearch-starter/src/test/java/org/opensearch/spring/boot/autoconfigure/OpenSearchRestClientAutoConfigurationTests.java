@@ -15,7 +15,9 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.Node;
@@ -25,10 +27,12 @@ import org.opensearch.client.sniff.Sniffer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Tests for {@link OpenSearchRestClientAutoConfiguration}.
@@ -257,6 +261,34 @@ class OpenSearchRestClientAutoConfigurationTests {
             assertThat(sniffer).isSameAs(customSniffer);
             then(customSniffer).shouldHaveNoInteractions();
         });
+    }
+
+    @Test
+    void configureWithSslBundle() {
+        this.contextRunner
+                .withConfiguration(AutoConfigurations.of(SslAutoConfiguration.class))
+                .withPropertyValues(
+                        "opensearch.restclient.ssl.bundle=opensearch-ca",
+                        "spring.ssl.bundle.pem.opensearch-ca.truststore.certificate=classpath:opensearch-demo-ca.pem",
+                        "spring.ssl.bundle.pem.opensearch-ca.options.ciphers=DESede",
+                        "spring.ssl.bundle.pem.opensearch-ca.options.enabled-protocols=TLSv1.3"
+                )
+                .run((context) -> {
+                    assertThat(context).hasSingleBean(RestClient.class);
+                    RestClient restClient = context.getBean(RestClient.class);
+                    Object client = ReflectionTestUtils.getField(restClient, "client");
+                    Object connmgr = ReflectionTestUtils.getField(client, "connmgr");
+                    Registry<SchemeIOSessionStrategy> registry = (Registry<SchemeIOSessionStrategy>) ReflectionTestUtils.getField(connmgr, "ioSessionFactoryRegistry");
+                    SchemeIOSessionStrategy strategy = registry.lookup("https");
+                    assertThat(strategy).extracting("sslContext").isNotNull();
+                    assertThat(strategy).extracting("supportedCipherSuites")
+                            .asInstanceOf(InstanceOfAssertFactories.ARRAY)
+                            .containsExactly("DESede");
+                    assertThat(strategy).extracting("supportedProtocols")
+                            .asInstanceOf(InstanceOfAssertFactories.ARRAY)
+                            .containsExactly("TLSv1.3");
+
+                });
     }
 
     @Configuration(proxyBeanMethods = false)

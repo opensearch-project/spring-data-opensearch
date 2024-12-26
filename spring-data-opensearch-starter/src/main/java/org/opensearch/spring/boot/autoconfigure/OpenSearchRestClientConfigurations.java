@@ -16,6 +16,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.sniff.Sniffer;
@@ -25,9 +26,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.ssl.SslOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 
 /**
  * OpenSearch REST client configurations.
@@ -48,8 +55,8 @@ class OpenSearchRestClientConfigurations {
         }
 
         @Bean
-        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties) {
-            return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails);
+        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties, ObjectProvider<SslBundles> sslBundles) {
+            return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails, sslBundles);
         }
 
         @Bean
@@ -136,9 +143,12 @@ class OpenSearchRestClientConfigurations {
 
         private final OpenSearchConnectionDetails connectionDetails;
 
-        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails) {
+        private final ObjectProvider<SslBundles> sslBundles;
+
+        DefaultRestClientBuilderCustomizer(OpenSearchProperties properties, OpenSearchConnectionDetails connectionDetails, ObjectProvider<SslBundles> sslBundles) {
             this.properties = properties;
             this.connectionDetails = connectionDetails;
+            this.sslBundles = sslBundles;
         }
 
         @Override
@@ -150,6 +160,11 @@ class OpenSearchRestClientConfigurations {
             map.from(this.properties::isSocketKeepAlive)
                     .to((keepAlive) -> builder.setDefaultIOReactorConfig(
                             IOReactorConfig.custom().setSoKeepAlive(keepAlive).build()));
+
+            String sslBundleName = properties.getRestclient().getSsl().getBundle();
+            if (StringUtils.hasText(sslBundleName)) {
+                this.configureSsl(builder, sslBundles.getObject().getBundle(sslBundleName));
+            }
         }
 
         @Override
@@ -162,6 +177,14 @@ class OpenSearchRestClientConfigurations {
                     .whenNonNull()
                     .asInt(Duration::toMillis)
                     .to(builder::setSocketTimeout);
+        }
+
+        private void configureSsl(HttpAsyncClientBuilder builder, SslBundle sslBundle) {
+            SSLContext sslcontext = sslBundle.createSslContext();
+            SslOptions sslOptions = sslBundle.getOptions();
+
+            builder.setSSLContext(sslcontext);
+            builder.setSSLStrategy(new SSLIOSessionStrategy(sslcontext, sslOptions.getEnabledProtocols(), sslOptions.getCiphers(), (HostnameVerifier) null));
         }
     }
 
