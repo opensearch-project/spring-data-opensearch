@@ -17,6 +17,7 @@ import org.opensearch.client.Response;
 import org.opensearch.client.RestClient;
 import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -31,6 +32,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class OpenSearchRestClientAutoConfigurationIntegrationTests extends AbstractOpenSearchIntegrationTest {
     @Container
     static final OpensearchContainer<?> opensearch = new OpensearchContainer<>(getDockerImageName())
+            .withStartupAttempts(5)
+            .withStartupTimeout(Duration.ofMinutes(10));
+
+    @Container
+    static final OpensearchContainer<?> secureOpensearch = new OpensearchContainer<>(getDockerImageName())
+            .withSecurityEnabled()
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 
@@ -74,6 +81,29 @@ class OpenSearchRestClientAutoConfigurationIntegrationTests extends AbstractOpen
                         JsonNode result = new ObjectMapper().readTree(input);
                         assertThat(result.path("found").asBoolean()).isTrue();
                     }
+                });
+    }
+
+    @Test
+    void restClientWithSslCanConnectToOpensearch() {
+        this.contextRunner
+                .withConfiguration(AutoConfigurations.of(SslAutoConfiguration.class))
+                .withPropertyValues(
+                        "opensearch.uris=" + secureOpensearch.getHttpHostAddress(),
+                        "opensearch.connection-timeout=120s",
+                        "opensearch.socket-timeout=120s",
+                        "opensearch.username=" + secureOpensearch.getUsername(),
+                        "opensearch.password=" + secureOpensearch.getPassword(),
+                        "opensearch.restclient.ssl.bundle=opensearch-demo-ca",
+                        "spring.ssl.bundle.pem.opensearch-demo-ca.truststore.certificate=classpath:opensearch-demo-ca.pem"
+                )
+                .run((context) -> {
+                    final RestClient client = context.getBean(RestClient.class);
+                    final Request request = new Request("GET", "/");
+
+                    final Response response = client.performRequest(request);
+
+                    assertThat(response.getStatusLine().getStatusCode()).isEqualTo(200);
                 });
     }
 }
