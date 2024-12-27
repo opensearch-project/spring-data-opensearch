@@ -8,6 +8,8 @@ package org.opensearch.spring.boot.autoconfigure;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -32,9 +34,6 @@ import org.springframework.boot.ssl.SslOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 
 /**
  * OpenSearch REST client configurations.
@@ -183,7 +182,6 @@ class OpenSearchRestClientConfigurations {
             SSLContext sslcontext = sslBundle.createSslContext();
             SslOptions sslOptions = sslBundle.getOptions();
 
-            builder.setSSLContext(sslcontext);
             builder.setSSLStrategy(new SSLIOSessionStrategy(sslcontext, sslOptions.getEnabledProtocols(), sslOptions.getCiphers(), (HostnameVerifier) null));
         }
     }
