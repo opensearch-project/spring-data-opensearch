@@ -16,7 +16,7 @@ dependencyResolutionManagement {
     create("springLibs") {
       version("spring", "6.2.0")
       version("spring-boot", "3.4.0")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.4.1")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.4.2")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.4.1")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
