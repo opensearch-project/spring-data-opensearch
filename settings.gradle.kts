@@ -8,14 +8,14 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.11.3")
+      version("jupiter", "5.11.4")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
     }
 
     create("springLibs") {
-      version("spring", "6.2.0")
-      version("spring-boot", "3.4.0")
+      version("spring", "6.2.2")
+      version("spring-boot", "3.4.2")
       library("data-commons", "org.springframework.data:spring-data-commons:3.4.2")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.4.2")
       library("web", "org.springframework", "spring-web").versionRef("spring")
@@ -41,7 +41,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.17.2")
+      version("jackson", "2.18.2")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
@@ -51,7 +51,7 @@ dependencyResolutionManagement {
     }
     
     create("pluginLibs") {
-      version("spotless", "6.23.1")
+      version("spotless", "6.25.0")
       version("editorconfig", "0.0.3")
       version("release", "3.0.2")
       plugin("editorconfig", "org.ec4j.editorconfig").versionRef("editorconfig")

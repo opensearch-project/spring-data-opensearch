@@ -67,11 +67,11 @@ versionCatalogs
   }
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.20.2")
-  testImplementation("org.testcontainers:junit-jupiter:1.20.2")
-  testImplementation("org.mockito:mockito-junit-jupiter:5.14.1")
-  testImplementation("org.assertj:assertj-core:3.26.3")
-  testImplementation("ch.qos.logback:logback-classic:1.5.8")
+  testImplementation("org.testcontainers:testcontainers:1.20.4")
+  testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+  testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
+  testImplementation("org.assertj:assertj-core:3.27.3")
+  testImplementation("ch.qos.logback:logback-classic:1.5.16")
 }
 
 java {
@@ -114,9 +114,10 @@ publishing {
   }
 }
 
+val properties = project.properties
 tasks.withType<ProcessResources> {
   filesMatching("**/testcontainers-opensearch.properties") {
-    expand(project.properties)
+    expand(properties)
   }
 }
 
