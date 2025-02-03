@@ -190,7 +190,7 @@ public final class DocumentAdapters {
 
         NestedMetaData nestedMetaData = from(source.getNestedIdentity());
         Explanation explanation = from(source.getExplanation());
-        List<String> matchedQueries = from(source.getMatchedQueries());
+        Map<String, Double> matchedQueries = from(source.getMatchedQueriesAndScores());
 
         BytesReference sourceRef = source.getSourceRef();
         Map<String, DocumentField> sourceFields = source.getFields();
@@ -263,8 +263,11 @@ public final class DocumentAdapters {
     }
 
     @Nullable
-    private static List<String> from(@Nullable String[] matchedQueries) {
-        return matchedQueries == null ? null : Arrays.asList(matchedQueries);
+    private static Map<String, Double> from(@Nullable Map<String, Float> matchedQueries) {
+        return matchedQueries == null ? null : matchedQueries
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().doubleValue()));
     }
 
     /**
@@ -539,7 +542,7 @@ public final class DocumentAdapters {
         private final Explanation explanation;
 
         @Nullable
-        private final List<String> matchedQueries;
+        private final Map<String, Double> matchedQueries;
 
         SearchDocumentAdapter(
                 Document delegate,
@@ -550,7 +553,7 @@ public final class DocumentAdapters {
                 Map<String, SearchDocumentResponse> innerHits,
                 @Nullable NestedMetaData nestedMetaData,
                 @Nullable Explanation explanation,
-                @Nullable List<String> matchedQueries) {
+                @Nullable Map<String, Double> matchedQueries) {
 
             this.delegate = delegate;
             this.score = score;
@@ -751,7 +754,7 @@ public final class DocumentAdapters {
 
         @Override
         @Nullable
-        public List<String> getMatchedQueries() {
+        public Map<String, Double> getMatchedQueries() {
             return matchedQueries;
         }
 
