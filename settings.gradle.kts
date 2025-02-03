@@ -16,10 +16,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.2.12")
-      version("spring-boot", "3.5.5")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.5.5")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.5")
+      version("spring", "7.0.0-RC2")
+      version("spring-boot", "4.0.0-RC1")
+      library("data-commons", "org.springframework.data:spring-data-commons:4.0.0-RC1")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.0-RC1")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
@@ -29,10 +29,13 @@ dependencyResolutionManagement {
       library("boot-webflux", "org.springframework.boot", "spring-boot-starter-webflux").versionRef("spring-boot")
       library("boot-autoconfigure", "org.springframework.boot", "spring-boot-autoconfigure").versionRef("spring-boot")
       library("boot-docker-compose", "org.springframework.boot", "spring-boot-docker-compose").versionRef("spring-boot")
+      library("boot-elasticsearch", "org.springframework.boot", "spring-boot-elasticsearch").versionRef("spring-boot")
+      library("boot-data-elasticsearch", "org.springframework.boot", "spring-boot-data-elasticsearch").versionRef("spring-boot")
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
+      library("boot-test-cache", "org.springframework.boot", "spring-boot-cache-test").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
-      library("projectreactor", "io.projectreactor:reactor-test:3.7.12")
+      library("projectreactor", "io.projectreactor:reactor-test:3.8.0-RC1")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
@@ -77,12 +80,18 @@ pluginManagement {
     maven {
       url = uri("https://repo.spring.io/release/")
     }
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
 dependencyResolutionManagement {
   repositories {
     mavenCentral()
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
