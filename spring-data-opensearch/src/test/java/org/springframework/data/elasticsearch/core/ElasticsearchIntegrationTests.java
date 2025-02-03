@@ -1606,7 +1606,6 @@ public abstract class ElasticsearchIntegrationTests {
 		final Query query = operations.matchAllQuery();
 
 		final UpdateQuery updateQuery = UpdateQuery.builder(query)
-				.withScriptType(org.springframework.data.elasticsearch.core.query.ScriptType.INLINE)
 				.withScript("ctx._source['message'] = params['newMessage']").withLang("painless")
 				.withParams(Collections.singletonMap("newMessage", messageAfterUpdate)).withAbortOnVersionConflict(true)
 				.build();

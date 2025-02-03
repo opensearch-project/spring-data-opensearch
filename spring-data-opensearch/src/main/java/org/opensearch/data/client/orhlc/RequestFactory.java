@@ -115,7 +115,6 @@ import org.springframework.data.elasticsearch.core.query.Order;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery.ScoreMode;
-import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.SourceFilter;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -1143,7 +1142,7 @@ class RequestFactory {
                 params = new HashMap<>();
             }
             Script script =
-                    new Script(getScriptType(query.getScriptType()), query.getLang(), query.getScript(), params);
+                    new Script(getScriptType(query.getScript()), query.getLang(), query.getScript(), params);
             updateRequest.script(script);
         }
 
@@ -1438,9 +1437,8 @@ class RequestFactory {
         return entity.hasSeqNoPrimaryTermProperty();
     }
 
-    private org.opensearch.script.ScriptType getScriptType(@Nullable ScriptType scriptType) {
-
-        if (scriptType == null || ScriptType.INLINE.equals(scriptType)) {
+    private org.opensearch.script.ScriptType getScriptType(@Nullable String script) {
+        if (script != null) {
             return org.opensearch.script.ScriptType.INLINE;
         } else {
             return org.opensearch.script.ScriptType.STORED;
@@ -1449,16 +1447,14 @@ class RequestFactory {
 
     @Nullable
     private Script getScript(UpdateQuery query) {
-        if (ScriptType.STORED.equals(query.getScriptType()) && query.getScriptName() != null) {
+        if (query.getScriptName() != null) { /* stored */
             final Map<String, Object> params =
                     Optional.ofNullable(query.getParams()).orElse(new HashMap<>());
-            return new Script(getScriptType(ScriptType.STORED), null, query.getScriptName(), params);
-        }
-
-        if (ScriptType.INLINE.equals(query.getScriptType()) && query.getScript() != null) {
+            return new Script(getScriptType(query.getScript()), null, query.getScriptName(), params);
+        } else if (query.getScript() != null) { /* inline */
             final Map<String, Object> params =
                     Optional.ofNullable(query.getParams()).orElse(new HashMap<>());
-            return new Script(getScriptType(ScriptType.INLINE), query.getLang(), query.getScript(), params);
+            return new Script(getScriptType(query.getScript()), query.getLang(), query.getScript(), params);
         }
 
         return null;

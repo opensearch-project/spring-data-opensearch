@@ -8,6 +8,7 @@ package org.opensearch.spring.boot.autoconfigure;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.util.Objects;
 import javax.net.ssl.SSLContext;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -56,7 +57,7 @@ class OpenSearchRestClientConfigurations {
         }
 
         @Bean
-        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties, ObjectProvider<SslBundles> sslBundles) {
+        RestClientBuilderCustomizer defaultOpensearchRestClientBuilderCustomizer(OpenSearchProperties properties, ObjectProvider<SslBundles> sslBundles) {
             return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails, sslBundles);
         }
 
@@ -132,7 +133,7 @@ class OpenSearchRestClientConfigurations {
         @ConditionalOnMissingBean
         Sniffer opensearchSniffer(RestClient client, OpenSearchProperties properties) {
             SnifferBuilder builder = Sniffer.builder(client);
-            PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+            PropertyMapper map = PropertyMapper.get();
             Duration interval = properties.getRestclient().getSniffer().getInterval();
             map.from(interval).asInt(Duration::toMillis).to(builder::setSniffIntervalMillis);
             Duration delayAfterFailure = properties.getRestclient().getSniffer().getDelayAfterFailure();
@@ -176,12 +177,12 @@ class OpenSearchRestClientConfigurations {
         @Override
         public void customize(RequestConfig.Builder builder) {
             map.from(this.properties::getConnectionTimeout)
-                    .whenNonNull()
+                    .whenNot(Objects::isNull)
                     .asInt(Duration::toMillis)
                     .as(Timeout::ofMilliseconds)
                     .to(builder::setConnectTimeout);
             map.from(this.properties::getConnectionTimeout)
-                    .whenNonNull()
+                    .whenNot(Objects::isNull)
                     .asInt(Duration::toMillis)
                     .as(Timeout::ofMilliseconds)
                     .to(builder::setConnectionRequestTimeout);

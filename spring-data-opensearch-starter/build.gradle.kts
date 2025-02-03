@@ -19,6 +19,8 @@ buildscript {
 dependencies {
   api(springLibs.boot.autoconfigure)
   api(project(":spring-data-opensearch"))
+  api(springLibs.boot.data.elasticsearch)
+  api(springLibs.boot.elasticsearch)
   implementation(opensearchLibs.client) {
     exclude("commons-logging", "commons-logging")
     exclude("org.slf4j", "slf4j-api")

@@ -44,7 +44,6 @@ import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.ScriptData;
-import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.ScriptedField;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
@@ -186,7 +185,7 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
 
         return nativeQueryBuilder.withScriptedField(new ScriptedField( //
                 fieldName, //
-                new ScriptData(ScriptType.INLINE, "expression", script, null, params))) //
+                new ScriptData("expression", script, null, params))) //
                 .build();
     }
 

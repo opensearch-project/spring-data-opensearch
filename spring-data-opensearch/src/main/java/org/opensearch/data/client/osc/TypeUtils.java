@@ -405,7 +405,6 @@ final class TypeUtils {
                 case INTERNAL -> VersionType.Internal;
                 case EXTERNAL -> VersionType.External;
                 case EXTERNAL_GTE -> VersionType.ExternalGte;
-                case FORCE -> VersionType.Force;
             };
         }
 

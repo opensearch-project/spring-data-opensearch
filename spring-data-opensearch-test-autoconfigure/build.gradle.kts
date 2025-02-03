@@ -20,6 +20,7 @@ dependencies {
   implementation(project(":spring-data-opensearch-starter"))
   implementation(libs.jupiter)
   implementation(springLibs.boot.test.autoconfigure)
+  implementation(springLibs.boot.test.cache)
   implementation(springLibs.test)
 }
 
