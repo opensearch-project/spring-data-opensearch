@@ -50,7 +50,6 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilde
 import org.springframework.data.elasticsearch.core.query.IndicesOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
-import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
@@ -214,7 +213,6 @@ public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
                 .withIfSeqNo(42) //
                 .withIfPrimaryTerm(13) //
                 .withScript("script") //
-                .withScriptType(ScriptType.INLINE)
                 .withLang("lang") //
                 .withRefreshPolicy(RefreshPolicy.WAIT_UNTIL) //
                 .withRetryOnConflict(7) //
@@ -259,7 +257,6 @@ public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
                 .withRequestsPerSecond(5F) //
                 .withShouldStoreResult(false) //
                 .withSlices(4) //
-                .withScriptType(ScriptType.INLINE) //
                 .withScript("script") //
                 .withLang("painless") //
                 .build(); //

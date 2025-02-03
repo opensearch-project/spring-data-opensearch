@@ -15,9 +15,9 @@
  */
 package org.opensearch.data.client.osc;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.DisplayName;
@@ -154,10 +154,10 @@ class DocumentAdaptersUnitTests {
 
         SoftAssertions softly = new SoftAssertions();
 
-        List<String> matchedQueries = searchDocument.getMatchedQueries();
+        Map<String, Double> matchedQueries = searchDocument.getMatchedQueries();
         softly.assertThat(matchedQueries).isNotNull();
         softly.assertThat(matchedQueries).hasSize(2);
-        softly.assertThat(matchedQueries).isEqualTo(Arrays.asList("query1", "query2"));
+        softly.assertThat(matchedQueries).isEqualTo(Map.of("query1", Double.NaN, "query2", Double.NaN));
         softly.assertAll();
     }
 }
