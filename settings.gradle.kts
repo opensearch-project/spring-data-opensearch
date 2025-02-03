@@ -16,10 +16,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.2.8")
+      version("spring", "7.0.0-M6")
       version("spring-boot", "3.5.3")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.5.1")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.1")
+      library("data-commons", "org.springframework.data:spring-data-commons:4.0.0-M3")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.0-M3")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
@@ -32,7 +32,7 @@ dependencyResolutionManagement {
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
-      library("projectreactor", "io.projectreactor:reactor-test:3.7.7")
+      library("projectreactor", "io.projectreactor:reactor-test:3.8.0-M4")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
@@ -77,12 +77,18 @@ pluginManagement {
     maven {
       url = uri("https://repo.spring.io/release/")
     }
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
 dependencyResolutionManagement {
   repositories {
     mavenCentral()
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
