@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Import;
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for OpenSearch REST clients.
  *
- * Adaptation of the {@link org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration} to
+ * Adaptation of the {@link org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration} to
  * the needs of OpenSearch.
  */
 @AutoConfiguration
