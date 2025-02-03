@@ -138,7 +138,9 @@ final class DocumentAdapters {
 
         float score = hit.score() != null ? hit.score().floatValue() : Float.NaN;
         return new SearchDocumentAdapter(document, score, hit.sort().stream().toArray(),
-                documentFields, highlightFields, innerHits, nestedMetaData, explanation, matchedQueries, hit.routing());
+                documentFields, highlightFields, innerHits, nestedMetaData, explanation,
+                    matchedQueries.stream().collect(Collectors.toMap(k -> k, v -> Double.NaN /* no scores */)),
+                        hit.routing());
     }
 
     public static SearchDocument from(CompletionSuggestOption<EntityAsMap> completionSuggestOption) {
