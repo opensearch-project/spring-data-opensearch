@@ -12,7 +12,6 @@ package org.opensearch.data.client.core.indices;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +80,7 @@ public class IndexTemplateOperationsOSCIntegrationTests {
         List<TemplateResponse> templateResponses = indexOperations.getIndexTemplate(indexTemplateName);
         assertThat(templateResponses).hasSize(1);
 
-        TemplateResponse templateResponse = templateResponses.getFirst();
+        TemplateResponse templateResponse = templateResponses.get(0);
 
         SoftAssertions softly = new SoftAssertions();
         softly.assertThat(templateResponse).isNotNull();
