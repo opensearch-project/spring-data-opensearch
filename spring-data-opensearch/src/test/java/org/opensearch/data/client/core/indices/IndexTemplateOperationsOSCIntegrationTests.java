@@ -42,7 +42,7 @@ public class IndexTemplateOperationsOSCIntegrationTests {
     static class Config {
         @Bean
         IndexNameProvider indexNameProvider() {
-            return new IndexNameProvider("indextemplateoperations-es7");
+            return new IndexNameProvider("indextemplateoperations-os");
         }
     }
 
