@@ -468,11 +468,7 @@ final class TypeUtils {
 
     @Nullable
     static Document typeMapping(@Nullable TypeMapping typeMapping) {
-        return (typeMapping != null) ? Document.parse(removePrefixFromJson(typeMapping.toString())) : null;
-    }
-
-    public static String removePrefixFromJson(String jsonWithPrefix) {
-        return jsonWithPrefix.substring(jsonWithPrefix.indexOf("{"));
+        return (typeMapping != null) ? Document.parse(typeMapping.toJsonString()) : null;
     }
 
     @Nullable

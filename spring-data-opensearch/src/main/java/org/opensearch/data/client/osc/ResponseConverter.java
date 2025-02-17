@@ -16,7 +16,6 @@
 package org.opensearch.data.client.osc;
 
 import static org.opensearch.data.client.osc.JsonUtils.toJson;
-import static org.opensearch.data.client.osc.TypeUtils.removePrefixFromJson;
 import static org.opensearch.data.client.osc.TypeUtils.typeMapping;
 
 import java.util.*;
@@ -126,7 +125,7 @@ class ResponseConverter {
         var mapping = typeMapping(componentTemplateSummary.mappings());
         var settings = new Settings();
         componentTemplateSummary.settings().forEach((key, indexSettings) -> {
-            settings.put(key, Settings.parse(removePrefixFromJson(indexSettings.toString())));
+            settings.put(key, Settings.parse(indexSettings.toJsonString()));
         });
 
         Function<? super Map.Entry<String, AliasDefinition>, String> keyMapper = Map.Entry::getKey;
