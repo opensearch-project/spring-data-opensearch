@@ -4,8 +4,13 @@ This document contains a list of maintainers in this repo. See [opensearch-proje
 
 ## Current Maintainers
 
-| Maintainer         | GitHub ID                                 | Affiliation |
-| ------------------ | ----------------------------------------- | ----------- |
-| Andriy Redko       | [reta](https://github.com/reta)           | Aiven       |
-| Daniel Doubrovkine | [dblock](https://github.com/dblock)       | Amazon      |
-| David Venable      | [dlvenable](https://github.com/dlvenable) | Amazon      |
+| Maintainer    | GitHub ID                                 | Affiliation |
+| ------------- | ----------------------------------------- | ----------- |
+| Andriy Redko  | [reta](https://github.com/reta)           | Independent |
+| David Venable | [dlvenable](https://github.com/dlvenable) | Amazon      |
+
+## Emeritus
+
+| Maintainer         | GitHub ID                           | Affiliation |
+| ------------------ | ----------------------------------- | ----------- |
+| Daniel Doubrovkine | [dblock](https://github.com/dblock) | Independent |
