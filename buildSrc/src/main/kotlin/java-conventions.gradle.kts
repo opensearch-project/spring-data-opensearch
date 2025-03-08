@@ -47,13 +47,22 @@ if (!buildVersion.equals(tagVersion)) {
 
 version = buildVersion 
 java.sourceCompatibility = JavaVersion.VERSION_17
-
+ 
 versionCatalogs
   .named("libs")
   .findLibrary("jupiter")
   .ifPresent { jupiter -> 
     dependencies { 
       testImplementation(jupiter) 
+    }
+  }
+  
+versionCatalogs
+  .named("libs")
+  .findLibrary("junit-platform-launcher")
+  .ifPresent { junitPlatformLauncher -> 
+    dependencies { 
+      testRuntimeOnly(junitPlatformLauncher)
     }
   }
 
@@ -71,7 +80,7 @@ dependencies {
   testImplementation("org.testcontainers:junit-jupiter:1.20.5")
   testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
   testImplementation("org.assertj:assertj-core:3.27.3")
-  testImplementation("ch.qos.logback:logback-classic:1.5.16")
+  testImplementation("ch.qos.logback:logback-classic:1.5.17")
 }
 
 java {
