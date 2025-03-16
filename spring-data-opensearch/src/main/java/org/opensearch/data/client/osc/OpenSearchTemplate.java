@@ -198,19 +198,6 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public ByQueryResponse delete(Query query, Class<?> clazz, IndexCoordinates index) {
-
-        Assert.notNull(query, "query must not be null");
-
-        DeleteByQueryRequest request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
-                clazz, index, getRefreshPolicy());
-
-        DeleteByQueryResponse response = execute(client -> client.deleteByQuery(request));
-
-        return responseConverter.byQueryResponse(response);
-    }
-
-    @Override
     public UpdateResponse update(UpdateQuery updateQuery, IndexCoordinates index) {
 
         UpdateRequest<Document, ?> request = requestConverter.documentUpdateRequest(updateQuery, index, getRefreshPolicy(),
