@@ -43,7 +43,7 @@ class SecureOpenSearchContainerConnectionDetailsFactoryIntegrationTests {
 
     @Container
     @ServiceConnection
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.15.0")
+    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
             .withSecurityEnabled()
             .withEnv("OPENSEARCH_INITIAL_ADMIN_PASSWORD", "D3v3l0p-ment");
 
@@ -57,7 +57,7 @@ class SecureOpenSearchContainerConnectionDetailsFactoryIntegrationTests {
         try (InputStream input = response.getEntity().getContent()) {
             JsonNode result = new ObjectMapper().readTree(input);
             assertThat(result.path("version").path("number").asText())
-                    .isEqualTo("2.15.0");
+                    .isEqualTo("2.19.1");
         }
     }
 

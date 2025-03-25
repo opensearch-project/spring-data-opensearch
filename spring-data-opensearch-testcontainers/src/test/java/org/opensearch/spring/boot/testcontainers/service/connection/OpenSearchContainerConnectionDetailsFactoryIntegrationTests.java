@@ -34,7 +34,7 @@ class OpenSearchContainerConnectionDetailsFactoryIntegrationTests {
 
     @Container
     @ServiceConnection
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.15.0")
+    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 
@@ -48,7 +48,7 @@ class OpenSearchContainerConnectionDetailsFactoryIntegrationTests {
         try (InputStream input = response.getEntity().getContent()) {
             JsonNode result = new ObjectMapper().readTree(input);
             assertThat(result.path("version").path("number").asText())
-                    .isEqualTo("2.15.0");
+                    .isEqualTo("2.19.1");
         }
     }
 

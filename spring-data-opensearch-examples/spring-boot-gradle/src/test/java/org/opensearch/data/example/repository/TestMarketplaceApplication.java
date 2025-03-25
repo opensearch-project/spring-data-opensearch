@@ -21,7 +21,7 @@ public class TestMarketplaceApplication {
         @Bean
         @ServiceConnection
         OpensearchContainer<?> opensearchContainer() {
-            return new OpensearchContainer<>("opensearchproject/opensearch:2.15.0");
+            return new OpensearchContainer<>("opensearchproject/opensearch:2.19.1");
         }
 
     }
