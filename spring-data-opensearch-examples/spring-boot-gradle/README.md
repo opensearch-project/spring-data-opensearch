@@ -2,6 +2,7 @@ Spring Data OpenSearch Spring Boot Example Project
 === 
 
 This sample project demonstrates the usage of the [Spring Data OpenSearch](https://github.com/opensearch-project/spring-data-opensearch/) in the typical Spring Boot web application. The application assumes that there is an [OpenSearch](https://opensearch.org) service up and running on the local machine.
+This example uses the [`RestHighLevelClient`](https://opensearch.org/docs/latest/clients/java-rest-high-level/).
 
 ## Pre-requisites
 

@@ -28,7 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Tag("integration-test")
 public class MarketplaceRepositoryIntegrationTests {
     @Container
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.11.1")
+    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(2));
 

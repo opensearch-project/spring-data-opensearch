@@ -302,7 +302,7 @@ See https://docs.spring.io/spring-boot/reference/testing/testcontainers.html#tes
 ```java
 @Container
 @ServiceConnection
-static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:2.15.0");
+static final OpenSearchContainer<?> container = new OpenSearchContainer<>("opensearchproject/opensearch:2.19.1");
 ```
 
 So, the client will take values from the `OpenSearchContainer` configuration.
