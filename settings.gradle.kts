@@ -8,16 +8,16 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.12.0")
-      version("launcher", "1.12.0")
+      version("jupiter", "5.12.2")
+      version("launcher", "1.12.2")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
       library("junit-platform-launcher", "org.junit.platform", "junit-platform-launcher").versionRef("launcher")
     }
 
     create("springLibs") {
-      version("spring", "6.2.3")
-      version("spring-boot", "3.4.3")
+      version("spring", "6.2.5")
+      version("spring-boot", "3.4.4")
       library("data-commons", "org.springframework.data:spring-data-commons:3.4.4")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.4.4")
       library("web", "org.springframework", "spring-web").versionRef("spring")
