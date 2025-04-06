@@ -3,7 +3,7 @@
     {
       "with_custom_analyzer": {
         "mapping": {
-          "type": "string",
+          "type": "text",
           "analyzer": "standard_lowercase_asciifolding"
         },
         "path_match": "names.*"
