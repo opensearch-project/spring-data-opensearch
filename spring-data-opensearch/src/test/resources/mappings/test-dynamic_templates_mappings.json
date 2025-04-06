@@ -3,8 +3,8 @@
     {
       "with_custom_analyzer": {
         "mapping": {
-          "type": "string",
-          "analyzer": "standard_lowercase_asciifolding"
+          "type": "text",
+          "analyzer": "standard"
         },
         "path_match": "names.*"
       }

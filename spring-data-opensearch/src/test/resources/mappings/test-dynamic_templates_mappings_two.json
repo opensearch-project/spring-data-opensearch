@@ -1,21 +1,17 @@
 {
   "dynamic_templates": [
     {
-      "with_custom_analyzer": {
+      "keywords_without_doc_values": {
+        "match_mapping_type": "string",
         "mapping": {
-          "type": "string",
-          "analyzer": "standard_lowercase_asciifolding"
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "doc_values": false
+            }
+          }
         },
-        "path_match": "names.*"
-      }
-    },
-    {
-      "participantA1_with_custom_analyzer": {
-        "mapping": {
-          "type": "string",
-          "analyzer": "standard_lowercase_asciifolding"
-        },
-        "path_match": "participantA1.*"
+        "path_match": "test.*"
       }
     }
   ]
