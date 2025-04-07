@@ -4,7 +4,7 @@
       "with_custom_analyzer": {
         "mapping": {
           "type": "text",
-          "analyzer": "standard_lowercase_asciifolding"
+          "analyzer": "standard"
         },
         "path_match": "names.*"
       }
