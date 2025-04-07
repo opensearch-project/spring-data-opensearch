@@ -10,6 +10,8 @@
 package org.opensearch.data.client.core.index;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -24,6 +26,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.junit.jupiter.SpringIntegrationTest;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
@@ -46,14 +49,20 @@ public abstract class DynamicTemplatesContextBaseTests {
     @Test
     void shouldCreateDynamicTemplateOne() {
         IndexOperations indexOperations = operations.indexOps(SampleDynamicTemplatesEntity.class);
-        indexOperations.createWithMapping();
+        assertThat(indexOperations.createWithMapping()).isTrue();
+
+        operations.save(new SampleDynamicTemplatesEntity(Map.of("John", "Smith")));
+        assertThat(operations.search(Query.findAll(), SampleDynamicTemplatesEntity.class).get().count()).isEqualTo(1L);
     }
 
 
     @Test
     void shouldCreateDynamicTemplateTwo() {
         IndexOperations indexOperations = operations.indexOps(SampleDynamicTemplatesEntityTwo.class);
-        indexOperations.createWithMapping();
+        assertThat(indexOperations.createWithMapping()).isTrue();
+
+        operations.save(new SampleDynamicTemplatesEntityTwo("Other string"));
+        assertThat(operations.search(Query.findAll(), SampleDynamicTemplatesEntityTwo.class).get().count()).isEqualTo(1L);
     }
 
     /**
@@ -67,7 +76,15 @@ public abstract class DynamicTemplatesContextBaseTests {
         @Id private String id;
 
         @Nullable
-        @Field(type = FieldType.Object) private final Map<String, String> names = new HashMap<>();
+        @Field(type = FieldType.Object) private final Map<String, String> names;
+
+        public SampleDynamicTemplatesEntity() {
+            this(new HashMap<>());
+        }
+
+        public SampleDynamicTemplatesEntity(final Map<String, String> names) {
+            this.names = names;
+        }
     }
 
     /**
@@ -81,6 +98,13 @@ public abstract class DynamicTemplatesContextBaseTests {
         @Id private String id;
 
         @Nullable
-        @Field(type = FieldType.Object) private final Map<String, String> names = new HashMap<>();
+        @Field(type = FieldType.Text) private String others;
+
+        public SampleDynamicTemplatesEntityTwo() {
+        }
+
+        public SampleDynamicTemplatesEntityTwo(final String others) {
+            this.others = others;
+        }
     }
 }
