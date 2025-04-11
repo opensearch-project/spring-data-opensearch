@@ -54,7 +54,7 @@ public class AggregationOSCIntegrationTests extends AggregationIntegrationTests 
         List<OpenSearchAggregation> aggregations = ((OpenSearchAggregations) aggregationsContainer).aggregations();
         List<String> aggNames = aggregations.stream() //
                 .map(OpenSearchAggregation::aggregation) //
-                .map(org.opensearch.data.client.osc.Aggregation::getName) //
+                .map(org.opensearch.data.client.osc.Aggregation::name) //
                 .collect(Collectors.toList());
         assertThat(aggNames).contains(aggsName);
 
@@ -77,8 +77,8 @@ public class AggregationOSCIntegrationTests extends AggregationIntegrationTests 
             AggregationsContainer<?> aggregationsContainer, String aggsName, String pipelineAggsName) {
         Map<String, Aggregate> aggregates = ((OpenSearchAggregations) aggregationsContainer).aggregations().stream() //
                 .map(OpenSearchAggregation::aggregation) //
-                .collect(Collectors.toMap(org.opensearch.data.client.osc.Aggregation::getName,
-                        org.opensearch.data.client.osc.Aggregation::getAggregate));
+                .collect(Collectors.toMap(org.opensearch.data.client.osc.Aggregation::name,
+                        org.opensearch.data.client.osc.Aggregation::aggregate));
 
         assertThat(aggregates).containsKey(aggsName);
         Aggregate aggregate = aggregates.get(pipelineAggsName);

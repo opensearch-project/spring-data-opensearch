@@ -18,27 +18,26 @@ package org.opensearch.data.client.osc;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 
 /**
- * Class to combine an OpenSearch {@link org.opensearch.client.opensearch._types.aggregations.Aggregate} with its
- * name. Necessary as the OpenSearch Aggregate does not know its name.
+ * Class to combine an OpenSearch {@link Aggregate} with its name. Necessary as the OpenSearch Aggregate does not know its name.
  *
  * @author Peter-Josef Meisch
  * @since 4.4
  */
-public class Aggregation {
+public record Aggregation(String name, Aggregate aggregate) {
 
-    private final String name;
-    private final Aggregate aggregate;
-
-    public Aggregation(String name, Aggregate aggregate) {
-        this.name = name;
-        this.aggregate = aggregate;
-    }
-
+    /**
+     * @deprecated Use {@link #name()} instead
+     */
+    @Deprecated
     public String getName() {
-        return name;
+        return name();
     }
 
+    /**
+     * @deprecated Use {@link #aggregate()} instead
+     */
+    @Deprecated
     public Aggregate getAggregate() {
-        return aggregate;
+        return aggregate();
     }
 }

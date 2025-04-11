@@ -13,23 +13,9 @@ import org.opensearch.script.Script;
 
 /**
  * Scripted field
+ *
  * @since 0.1
  */
-public class ScriptField {
+public record ScriptField(String fieldName, Script script) {
 
-    private final String fieldName;
-    private final Script script;
-
-    public ScriptField(String fieldName, Script script) {
-        this.fieldName = fieldName;
-        this.script = script;
-    }
-
-    public String fieldName() {
-        return fieldName;
-    }
-
-    public Script script() {
-        return script;
-    }
 }
