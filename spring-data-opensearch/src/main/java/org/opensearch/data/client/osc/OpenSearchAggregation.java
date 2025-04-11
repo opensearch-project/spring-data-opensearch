@@ -18,20 +18,11 @@ package org.opensearch.data.client.osc;
 import org.springframework.data.elasticsearch.core.AggregationContainer;
 
 /**
- * {@link AggregationContainer} for a {@link Aggregation} that holds OpenEearch data.
+ * {@link AggregationContainer} for a {@link Aggregation} that holds OpenSearch data.
+ *
  * @author Peter-Josef Meisch
  * @since 4.4
  */
-public class OpenSearchAggregation implements AggregationContainer<Aggregation> {
+public record OpenSearchAggregation(Aggregation aggregation) implements AggregationContainer<Aggregation> {
 
-    private final Aggregation aggregation;
-
-    public OpenSearchAggregation(Aggregation aggregation) {
-        this.aggregation = aggregation;
-    }
-
-    @Override
-    public Aggregation aggregation() {
-        return aggregation;
-    }
 }
