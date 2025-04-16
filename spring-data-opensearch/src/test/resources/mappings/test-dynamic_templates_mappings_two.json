@@ -11,7 +11,7 @@
             }
           }
         },
-        "path_match": "others.*"
+        "path_match": "names.*"
       }
     }
   ]
