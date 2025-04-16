@@ -55,13 +55,12 @@ public abstract class DynamicTemplatesContextBaseTests {
         assertThat(operations.search(Query.findAll(), SampleDynamicTemplatesEntity.class).get().count()).isEqualTo(1L);
     }
 
-
     @Test
     void shouldCreateDynamicTemplateTwo() {
         IndexOperations indexOperations = operations.indexOps(SampleDynamicTemplatesEntityTwo.class);
         assertThat(indexOperations.createWithMapping()).isTrue();
 
-        operations.save(new SampleDynamicTemplatesEntityTwo("Other string"));
+        operations.save(new SampleDynamicTemplatesEntityTwo(Map.of("first.last", "Smith")));
         assertThat(operations.search(Query.findAll(), SampleDynamicTemplatesEntityTwo.class).get().count()).isEqualTo(1L);
     }
 
@@ -98,13 +97,14 @@ public abstract class DynamicTemplatesContextBaseTests {
         @Id private String id;
 
         @Nullable
-        @Field(type = FieldType.Text) private String others;
+        @Field(type = FieldType.Object) private final Map<String, String> names;
 
         public SampleDynamicTemplatesEntityTwo() {
+            this(new HashMap<>());
         }
 
-        public SampleDynamicTemplatesEntityTwo(final String others) {
-            this.others = others;
+        public SampleDynamicTemplatesEntityTwo(final Map<String, String> names) {
+            this.names = names;
         }
     }
 }
