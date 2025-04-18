@@ -1,4 +1,6 @@
 org.opensearch.spring.boot.autoconfigure.OpenSearchClientAutoConfiguration
 org.opensearch.spring.boot.autoconfigure.OpenSearchRestClientAutoConfiguration
 org.opensearch.spring.boot.autoconfigure.OpenSearchRestHighLevelClientAutoConfiguration
+org.opensearch.spring.boot.autoconfigure.ReactiveOpenSearchClientAutoConfiguration
 org.opensearch.spring.boot.autoconfigure.data.OpenSearchDataAutoConfiguration
+org.opensearch.spring.boot.autoconfigure.data.ReactiveOpenSearchRepositoriesAutoConfiguration

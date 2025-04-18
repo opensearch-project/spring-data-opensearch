@@ -51,7 +51,7 @@ dependencies {
   }
 }
 
-description = "Spring Data OpenSearch Spring Boot Example Project"
+description = "Spring Data OpenSearch Java Client Spring Boot Example Project"
 
 spotless {
   java {

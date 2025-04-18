@@ -38,6 +38,7 @@ dependencies {
   testImplementation(opensearchLibs.sniffer) {
     exclude("commons-logging", "commons-logging")
   }
+  testImplementation(opensearchLibs.java.client)
 }
 
 description = "Spring Data OpenSearch Spring Boot Starter"
