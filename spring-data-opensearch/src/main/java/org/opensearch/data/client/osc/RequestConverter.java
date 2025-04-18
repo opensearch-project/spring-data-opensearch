@@ -75,10 +75,19 @@ import org.opensearch.client.opensearch.core.search.Highlight;
 import org.opensearch.client.opensearch.core.search.Pit;
 import org.opensearch.client.opensearch.core.search.Rescore;
 import org.opensearch.client.opensearch.core.search.SourceConfig;
-import org.opensearch.client.opensearch.indices.*;
+import org.opensearch.client.opensearch.indices.Alias;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.opensearch.indices.ExistsIndexTemplateRequest;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
+import org.opensearch.client.opensearch.indices.GetAliasRequest;
+import org.opensearch.client.opensearch.indices.GetIndexRequest;
+import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
+import org.opensearch.client.opensearch.indices.GetMappingRequest;
+import org.opensearch.client.opensearch.indices.PutMappingRequest;
 import org.opensearch.client.opensearch.indices.PutMappingRequest.Builder;
+import org.opensearch.client.opensearch.indices.RefreshRequest;
+import org.opensearch.client.opensearch.indices.UpdateAliasesRequest;
 import org.opensearch.client.opensearch.indices.update_aliases.Action;
 import org.opensearch.client.util.ObjectBuilder;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -94,6 +103,7 @@ import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest
 import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.mapping.CreateIndexSettings;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -254,6 +264,28 @@ class RequestConverter {
                 .index(indexCoordinates.getIndexName()) //
                 .settings(indexSettings(settings)) //
                 .mappings(typeMapping(mapping)) //
+                .build();
+    }
+
+    public CreateIndexRequest indicesCreateRequest(CreateIndexSettings indexSettings) {
+        Map<String, org.opensearch.client.opensearch.indices.Alias> aliases = new HashMap<>();
+        for (org.springframework.data.elasticsearch.core.mapping.Alias alias : indexSettings.getAliases()) {
+            org.opensearch.client.opensearch.indices.Alias esAlias = org.opensearch.client.opensearch.indices.Alias
+                    .of(ab -> ab.filter(getQuery(alias.getFilter(), null))
+                            .routing(alias.getRouting())
+                            .indexRouting(alias.getIndexRouting())
+                            .searchRouting(alias.getSearchRouting())
+                            .isHidden(alias.getHidden())
+                            .isWriteIndex(alias.getWriteIndex()));
+            aliases.put(alias.getAlias(), esAlias);
+        }
+
+        // note: the new client does not support the index.storeType anymore
+        return new CreateIndexRequest.Builder() //
+                .index(indexSettings.getIndexCoordinates().getIndexName()) //
+                .aliases(aliases)
+                .settings(indexSettings(indexSettings.getSettings())) //
+                .mappings(typeMapping(indexSettings.getMapping())) //
                 .build();
     }
 
