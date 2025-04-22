@@ -8,6 +8,7 @@ This document contains a list of maintainers in this repo. See [opensearch-proje
 | ------------- | ----------------------------------------- | ----------- |
 | Andriy Redko  | [reta](https://github.com/reta)           | Independent |
 | David Venable | [dlvenable](https://github.com/dlvenable) | Amazon      |
+| Andrew Ross   | [andrross](https://github.com/andrross)   | Amazon      |
 
 ## Emeritus
 
