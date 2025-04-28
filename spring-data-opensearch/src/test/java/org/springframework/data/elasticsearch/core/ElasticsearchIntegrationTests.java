@@ -576,7 +576,8 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// when
 		Query query = getTermQuery("id", documentId);
-		operations.delete(query, SampleEntity.class, IndexCoordinates.of(indexNameProvider.indexName()));
+		operations.delete(DeleteQuery.builder(query).build(), SampleEntity.class,
+		        IndexCoordinates.of(indexNameProvider.indexName()));
 
 		// then
 		Query searchQuery = getTermQuery("id", documentId);
@@ -607,7 +608,8 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// when
 		Query query = getTermQuery("message", "foo");
-		operations.delete(query, SampleEntity.class, IndexCoordinates.of(MULTI_INDEX_ALL));
+		operations.delete(getDeleteQuery(query), SampleEntity.class,
+		        IndexCoordinates.of(MULTI_INDEX_ALL));
 
 		// then
 		assertThat(operations.count(query, IndexCoordinates.of(MULTI_INDEX_1_NAME, MULTI_INDEX_2_NAME))).isEqualTo(0);
@@ -615,6 +617,8 @@ public abstract class ElasticsearchIntegrationTests {
 	}
 
 	protected abstract Query getTermQuery(String field, String value);
+
+	protected abstract DeleteQuery getDeleteQuery(Query query);
 
 	@Test // DATAES-547
 	public void shouldDeleteAcrossIndexWhenNoMatchingDataPresent() {
@@ -638,7 +642,8 @@ public abstract class ElasticsearchIntegrationTests {
 		// when
 		Query query = getTermQuery("message", "negative");
 
-		operations.delete(query, SampleEntity.class, IndexCoordinates.of("test-index-*"));
+		operations.delete(getDeleteQuery(query), SampleEntity.class,
+		        IndexCoordinates.of("test-index-*"));
 
 		operations.indexOps(IndexCoordinates.of(MULTI_INDEX_1_NAME)).refresh();
 		operations.indexOps(IndexCoordinates.of(MULTI_INDEX_2_NAME)).refresh();
@@ -1001,7 +1006,8 @@ public abstract class ElasticsearchIntegrationTests {
 		CriteriaQuery criteriaQuery = new CriteriaQuery(new Criteria("message").contains("test"));
 
 		// when
-		operations.delete(criteriaQuery, SampleEntity.class, IndexCoordinates.of(indexNameProvider.indexName()));
+		operations.delete(getDeleteQuery(criteriaQuery), SampleEntity.class,
+		        IndexCoordinates.of(indexNameProvider.indexName()));
 
 		// then
 		StringQuery stringQuery = new StringQuery(matchAllQuery().toString());
@@ -2433,7 +2439,8 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// when
 		Query query = operations.idsQuery(Arrays.asList(documentIdToDelete));
-		operations.delete(query, SampleEntity.class, IndexCoordinates.of(indexNameProvider.indexName()));
+		operations.delete(getDeleteQuery(query), SampleEntity.class,
+		        IndexCoordinates.of(indexNameProvider.indexName()));
 
 		// then
 		// document with id "remainingDocumentId" should still be indexed
@@ -2463,7 +2470,8 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// when
 		CriteriaQuery criteriaQuery = new CriteriaQuery(new Criteria("id").is(documentIdToDelete));
-		operations.delete(criteriaQuery, SampleEntity.class, IndexCoordinates.of(indexNameProvider.indexName()));
+		operations.delete(DeleteQuery.builder(criteriaQuery).build(), SampleEntity.class, 
+		        IndexCoordinates.of(indexNameProvider.indexName()));
 
 		// then
 		// document with id "remainingDocumentId" should still be indexed
@@ -3374,7 +3382,7 @@ public abstract class ElasticsearchIntegrationTests {
 
 	private void shouldDeleteEntityWithJoinFields(String qId2, String aId2) throws Exception {
 
-		operations.delete(getQueryForParentId("answer", qId2, qId2), SampleJoinEntity.class,
+		operations.delete(DeleteQuery.builder(getQueryForParentId("answer", qId2, qId2)).build(), SampleJoinEntity.class,
 				IndexCoordinates.of(indexNameProvider.indexName()));
 
 		SearchHits<SampleJoinEntity> deletedHits = operations.search(getQueryForParentId("answer", qId2, null),
