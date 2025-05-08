@@ -370,6 +370,86 @@ repositories {
 }
 ```
 
+## AWS OpenSearch Serverless support
+
+For applications and services that use AWS OpenSearch Serverless offerings, the default clients will not work out of the box.
+
+### Connecting AWS OpenSearch Serverless with OpenSearch RestClient
+
+When using OpenSearch RestClient, the instance of `AwsRequestSigningApacheV5Interceptor` (see please [aws-request-signing-apache-interceptor](ttps://github.com/acm19/aws-request-signing-apache-interceptor) should be configured and injected into request interceptors chain. The sample configuration is provided below:
+
+```
+@Configuration
+public class OpenSearchAwsClientConfiguration {
+    @Value("${aws.os.region}")
+    private String region = "";
+      
+    @Bean
+    RestClientBuilderCustomizer customizer() {
+        return new RestClientBuilderCustomizer() {
+            @Override
+            public void customize(HttpAsyncClientBuilder builder) {
+                return  builder.addInterceptorLast(new AwsRequestSigningApacheV5Interceptor(
+                    "service",
+                    AwsV4HttpSigner.create(),
+                    DefaultCredentialsProvider.create(),
+                    Region.of(region)
+                ));
+            }
+
+            @Override
+            public void customize(RestClientBuilder builder) {
+                // No additional customizations needed
+            }
+        };
+    }
+}
+```
+
+### Connecting AWS OpenSearch Serverless with OpenSearch Java Client
+
+When using OpenSearch Java Client, the instance of the `AwsSdk2Transport` should be configured instead of the default one. The sample configuration is provided below:
+
+```
+@Configuration
+public class OpenSearchAwsClientConfiguration extends OpenSearchConfiguration {
+    @Value("${aws.os.endpoint}")
+    private String endpoint = "";
+      
+    @Value("${aws.os.region}")
+    private String region = "";
+      
+    @Value("${aws.os.username}")
+    private String username = "";
+      
+    @Value("${aws.os.password}")
+    private String password = "";
+
+    @NonNull
+    @Override
+    public ClientConfiguration clientConfiguration() {
+        return  ClientConfiguration.builder()
+            .connectedTo(endpoint)
+            .usingSsl()
+            .withBasicAuth(username,password)
+            .withConnectTimeout(Duration.ofSeconds(10))
+            .withSocketTimeout(Duration.ofSeconds(5))
+            .build();
+    }
+
+    @Override
+    public OpenSearchTransport opensearchTransport(RestClient restClient, JsonpMapper jsonpMapper) {    
+        final SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        return new AwsSdk2Transport(
+            httpClient,
+            endpoint,
+            "es" // signing service name, use "aoss" for OpenSearch Serverless
+            region,
+            AwsSdk2TransportOptions.builder().build());
+    }
+}
+```
+
 ## Reporting Issues
 
 Spring Data OpenSearch uses GitHub as issue tracking system to record bugs and feature requests.
