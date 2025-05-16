@@ -38,6 +38,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchIntegrationTests
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilder;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.Query;
@@ -102,6 +103,11 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
     @Override
     protected BaseQueryBuilder<?, ?> getBuilderWithMatchAllQuery() {
         return Queries.getBuilderWithMatchAllQuery();
+    }
+
+    @Override
+    protected DeleteQuery getDeleteQuery(Query query) {
+        return DeleteQuery.builder(query).build();
     }
 
     @Override
