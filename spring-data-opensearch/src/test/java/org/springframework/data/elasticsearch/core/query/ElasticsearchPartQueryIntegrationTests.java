@@ -34,9 +34,10 @@ import org.springframework.data.elasticsearch.junit.jupiter.SpringIntegrationTes
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.data.elasticsearch.repository.query.ElasticsearchPartQuery;
 import org.springframework.data.elasticsearch.repository.query.ElasticsearchQueryMethod;
+import org.springframework.data.elasticsearch.repository.query.RepositoryPartQuery;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.lang.Nullable;
 
 /**
@@ -648,7 +649,7 @@ public abstract class ElasticsearchPartQueryIntegrationTests {
 		ElasticsearchQueryMethod queryMethod = new ElasticsearchQueryMethod(method,
 				new DefaultRepositoryMetadata(SampleRepository.class), new SpelAwareProxyProjectionFactory(),
 				operations.getElasticsearchConverter().getMappingContext());
-		ElasticsearchPartQuery partQuery = new ElasticsearchPartQuery(queryMethod, operations, QueryMethodEvaluationContextProvider.DEFAULT);
+		RepositoryPartQuery partQuery = new RepositoryPartQuery(queryMethod, operations, ValueExpressionDelegate.create());
 		Query query = partQuery.createQuery(parameters);
 		return buildQueryString(query, Book.class);
 	}
