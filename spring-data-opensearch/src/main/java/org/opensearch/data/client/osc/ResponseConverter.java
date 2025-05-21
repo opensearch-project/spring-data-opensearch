@@ -388,7 +388,6 @@ class ResponseConverter {
     private ReindexResponse.Failure reindexResponseFailureOf(BulkIndexByScrollFailure failure) {
         return ReindexResponse.Failure.builder() //
                 .withIndex(failure.index()) //
-                .withType(failure.type()) //
                 .withId(failure.id()) //
                 .withStatus(failure.status())//
                 .withErrorCause(toErrorCause(failure.cause())) //
@@ -399,7 +398,6 @@ class ResponseConverter {
     private ByQueryResponse.Failure byQueryResponseFailureOf(BulkIndexByScrollFailure failure) {
         return ByQueryResponse.Failure.builder() //
                 .withIndex(failure.index()) //
-                .withType(failure.type()) //
                 .withId(failure.id()) //
                 .withStatus(failure.status())//
                 .withErrorCause(toErrorCause(failure.cause())).build();

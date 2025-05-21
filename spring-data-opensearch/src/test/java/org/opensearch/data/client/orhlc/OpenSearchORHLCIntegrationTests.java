@@ -15,6 +15,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.*;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONException;
@@ -44,6 +45,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchIntegrationTests
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilder;
 import org.springframework.data.elasticsearch.core.query.IndicesOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
@@ -75,6 +77,11 @@ public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
     @Override
     protected Query getTermQuery(String field, String value) {
         return new NativeSearchQueryBuilder().withQuery(termQuery(field, value)).build();
+    }
+
+    @Override
+    protected DeleteQuery getDeleteQuery(Query query) {
+        return DeleteQuery.builder(query).setExpandWildcards(EnumSet.of(IndicesOptions.WildcardStates.OPEN)).build();
     }
 
     @Override
