@@ -16,10 +16,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "6.2.7")
-      version("spring-boot", "3.4.5")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.5.0")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.0")
+      version("spring", "7.0.0-M5")
+      version("spring-boot", "3.5.0")
+      library("data-commons", "org.springframework.data:spring-data-commons:4.0.0-M3")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.0-M3")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
@@ -74,12 +74,18 @@ pluginManagement {
     maven {
       url = uri("https://repo.spring.io/release/")
     }
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
 dependencyResolutionManagement {
   repositories {
     mavenCentral()
+    maven {
+      url = uri("https://repo.spring.io/milestone/")
+    }
   }
 }
 
