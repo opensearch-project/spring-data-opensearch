@@ -22,5 +22,6 @@ import org.springframework.context.annotation.Import;
  */
 @AutoConfiguration(after = {OpenSearchClientAutoConfiguration.class, OpenSearchRestClientAutoConfiguration.class})
 @ConditionalOnClass({OpenSearchRestTemplate.class, OpenSearchTemplate.class})
-@Import({OpenSearchDataConfiguration.BaseConfiguration.class, OpenSearchDataConfiguration.JavaClientConfiguration.class})
+@Import({OpenSearchDataConfiguration.BaseConfiguration.class, OpenSearchDataConfiguration.JavaClientConfiguration.class,
+    OpenSearchDataConfiguration.ReactiveRestClientConfiguration.class})
 public class OpenSearchDataAutoConfiguration {}

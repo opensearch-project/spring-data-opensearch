@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.function.Function;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
@@ -40,6 +41,7 @@ import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
 import org.opensearch.client.opensearch.indices.GetIndicesSettingsResponse;
 import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
+import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.TransportOptions;
 import org.opensearch.client.transport.rest_client.RestClientOptions;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
@@ -47,6 +49,7 @@ import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchC
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 import org.springframework.data.elasticsearch.support.HttpHeaders;
 import org.springframework.lang.Nullable;
+import reactor.core.publisher.Mono;
 
 /**
  * Not really tests, but a class to check the first implementations of the new OpenSearch client. Needs OpenSearch
@@ -65,6 +68,9 @@ public class DevTests {
     private final TransportOptions transportOptions = new RestClientOptions(RequestOptions.DEFAULT).toBuilder()
             .addHeader("X-SpringDataElasticsearch-AlwaysThere", "true").setParameter("pretty", "true").build();
 
+    private final ReactiveOpenSearchClient reactiveOpenSearchClient = OpenSearchClients
+            .createReactive(clientConfiguration(), transportOptions);
+
     private final OpenSearchClient imperativeOpensearchClient = OpenSearchClients
             .createImperative(OpenSearchClients.getRestClient(clientConfiguration()), transportOptions);
 
@@ -80,6 +86,17 @@ public class DevTests {
                 .getSettings(GetIndicesSettingsRequest.of(b -> b.index("testindex").includeDefaults(true)));
     }
 
+    static class ReactiveClient {
+        private final OpenSearchTransport transport;
+
+        ReactiveClient(OpenSearchTransport transport) {
+            this.transport = transport;
+        }
+
+        public <T> Mono<IndexResponse> index(IndexRequest<T> request) {
+            return Mono.fromFuture(transport.performRequestAsync(request, IndexRequest._ENDPOINT, null));
+        }
+    }
     static class Product {
         @Nullable String id;
         @Nullable Double price;
@@ -192,10 +209,20 @@ public class DevTests {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        try {
+            HealthResponse healthResponse = clusterHealthReactive(healthRequest);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private HealthResponse clusterHealthImperative(HealthRequest healthRequest) throws IOException {
         return imperativeOpensearchClient.cluster().health(healthRequest);
+    }
+
+    private HealthResponse clusterHealthReactive(HealthRequest healthRequest) throws IOException {
+        return Objects.requireNonNull(reactiveOpenSearchClient.cluster().health(healthRequest).block());
     }
     // endregion
 
@@ -266,10 +293,19 @@ public class DevTests {
             e.printStackTrace();
         }
 
+        try {
+            indexReactive(indexRequestBuilder.apply(2));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private IndexResponse indexImperative(IndexRequest<AppData> indexRequest) throws IOException {
         return imperativeOpensearchClient.index(indexRequest);
+    }
+
+    private IndexResponse indexReactive(IndexRequest<AppData> indexRequest) throws IOException {
+        return Objects.requireNonNull(reactiveOpenSearchClient.index(indexRequest).block());
     }
 
     // endregion
@@ -296,6 +332,8 @@ public class DevTests {
     }
 
     // endregion
+
+
 
     private ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder() //
