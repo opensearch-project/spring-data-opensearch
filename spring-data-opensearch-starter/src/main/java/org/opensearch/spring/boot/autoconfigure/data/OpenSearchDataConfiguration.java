@@ -8,6 +8,8 @@ package org.opensearch.spring.boot.autoconfigure.data;
 import java.util.Collections;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.data.client.osc.OpenSearchTemplate;
+import org.opensearch.data.client.osc.ReactiveOpenSearchClient;
+import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.ReactiveElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchCustomConversions;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
@@ -75,4 +78,19 @@ abstract class OpenSearchDataConfiguration {
             return new OpenSearchTemplate(client, converter);
         }
     }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(OpenSearchClient.class)
+    static class ReactiveRestClientConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean(value = ReactiveElasticsearchOperations.class, name = { "reactiveElasticsearchTemplate", "reactiveOpensearchTemplate" })
+        @ConditionalOnBean(ReactiveOpenSearchClient.class)
+        ReactiveOpenSearchTemplate reactiveElasticsearchTemplate(ReactiveOpenSearchClient client,
+                ElasticsearchConverter converter) {
+            return new ReactiveOpenSearchTemplate(client, converter);
+        }
+
+    }
+
 }
