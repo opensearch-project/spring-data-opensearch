@@ -42,6 +42,8 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.AliasData;
 import org.springframework.data.elasticsearch.core.index.Settings;
 import org.springframework.data.elasticsearch.core.index.TemplateData;
+import org.springframework.data.elasticsearch.core.index.TemplateResponse;
+import org.springframework.data.elasticsearch.core.index.TemplateResponseData;
 import org.springframework.data.elasticsearch.core.query.ByQueryResponse;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
@@ -263,6 +265,49 @@ public class ResponseConverter {
         }
         return null;
     }
+
+    @Nullable
+    public static TemplateResponse getTemplateResponse(GetIndexTemplatesResponse getIndexTemplatesResponse, String templateName) {
+        for (IndexTemplateMetadata indexTemplateMetadata : getIndexTemplatesResponse.getIndexTemplates()) {
+
+            if (indexTemplateMetadata.name().equals(templateName)) {
+
+                Settings settings = extracSettingsFromMetaData(indexTemplateMetadata);
+                Map<String, AliasData> aliases = extractAliasesFromMetaData(indexTemplateMetadata);
+
+                return TemplateResponse.builder()
+                        .withName(indexTemplateMetadata.name())
+                        .withTemplateData(TemplateResponseData.builder()
+                                .withAliases(aliases)
+                                .withSettings(settings)
+                                .withMapping(Document.from(indexTemplateMetadata.mappings().getSourceAsMap()))
+                                .build())
+                        .build();
+            }
+        }
+        return null;
+    }
+
+    private static Settings extracSettingsFromMetaData(IndexTemplateMetadata indexTemplateMetadata) {
+        Settings esSettings = new Settings();
+        org.opensearch.common.settings.Settings osSettings = indexTemplateMetadata.settings();
+        osSettings.keySet().forEach(key -> esSettings.put(key, osSettings.get(key)));
+        return esSettings;
+    }
+
+    private static Map<String, AliasData> extractAliasesFromMetaData(IndexTemplateMetadata indexTemplateMetadata) {
+        Map<String, AliasData> aliases = new LinkedHashMap<>();
+
+        Map<String, AliasMetadata> aliasesResponse = indexTemplateMetadata.aliases();
+        Iterator<String> keysIt = aliasesResponse.keySet().iterator();
+        while (keysIt.hasNext()) {
+            String key = keysIt.next();
+            aliases.put(key, ResponseConverter.toAliasData(aliasesResponse.get(key)));
+        }
+
+        return aliases;
+    }
+
     // endregion
 
     // region settings
