@@ -15,9 +15,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
@@ -75,7 +78,17 @@ class SecureOpenSearchDockerComposeConnectionDetailsFactoryTest {
                     } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
                         throw new RuntimeException(e);
                     }
-                    builder.setSSLContext(sslcontext);
+
+
+                    final ClientTlsStrategyBuilder tlsStrategy = ClientTlsStrategyBuilder.create()
+                            .setSslContext(sslcontext);
+
+                    final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder
+                            .create()
+                            .setTlsStrategy(tlsStrategy.build())
+                            .build();
+
+                    builder.setConnectionManager(connectionManager);
                 }
             };
         }

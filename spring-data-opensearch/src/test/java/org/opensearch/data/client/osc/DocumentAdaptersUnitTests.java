@@ -117,7 +117,12 @@ class DocumentAdaptersUnitTests {
                 .explanation(eb -> eb //
                         .value(3.14f) //
                         .description("explanation 3.14") //
-                        .details(edb -> edb.description("explanation noMatch").value(0f)))
+                        .details(org.opensearch.client.opensearch.core.explain.Explanation
+                                .builder()
+                                .description("explanation noMatch")
+                                .value(0f)
+                                .details(Collections.emptyList())
+                                .build()))
                 .build();
 
         SearchDocument searchDocument = DocumentAdapters.from(searchHit, jsonpMapper);
@@ -131,7 +136,7 @@ class DocumentAdaptersUnitTests {
         softly.assertThat(explanation.getDescription()).isEqualTo("explanation 3.14");
         List<Explanation> details = explanation.getDetails();
         softly.assertThat(details)
-                .containsExactly(new Explanation(null, 0.0, "explanation noMatch", Collections.emptyList()));
+                .containsExactly(new Explanation(true, 0.0, "explanation noMatch", Collections.emptyList()));
         softly.assertAll();
     }
 

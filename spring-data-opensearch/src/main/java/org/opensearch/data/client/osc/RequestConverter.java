@@ -39,10 +39,11 @@ import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.json.ObjectDeserializer;
 import org.opensearch.client.opensearch._types.Conflicts;
 import org.opensearch.client.opensearch._types.ExpandWildcard;
-import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.InlineScript;
 import org.opensearch.client.opensearch._types.NestedSortValue;
 import org.opensearch.client.opensearch._types.OpType;
+import org.opensearch.client.opensearch._types.Refresh;
+import org.opensearch.client.opensearch._types.ScriptLanguage;
 import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.VersionType;
@@ -62,6 +63,8 @@ import org.opensearch.client.opensearch.cluster.GetComponentTemplateRequest;
 import org.opensearch.client.opensearch.cluster.HealthRequest;
 import org.opensearch.client.opensearch.cluster.PutComponentTemplateRequest;
 import org.opensearch.client.opensearch.core.*;
+import org.opensearch.client.opensearch.core.CreatePitRequest;
+import org.opensearch.client.opensearch.core.DeletePitRequest;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.opensearch.client.opensearch.core.bulk.CreateOperation;
 import org.opensearch.client.opensearch.core.bulk.IndexOperation;
@@ -69,8 +72,6 @@ import org.opensearch.client.opensearch.core.bulk.UpdateOperation;
 import org.opensearch.client.opensearch.core.mget.MultiGetOperation;
 import org.opensearch.client.opensearch.core.msearch.MultisearchBody;
 import org.opensearch.client.opensearch.core.msearch.MultisearchHeader;
-import org.opensearch.client.opensearch.core.pit.CreatePitRequest;
-import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.opensearch.core.search.Highlight;
 import org.opensearch.client.opensearch.core.search.Pit;
 import org.opensearch.client.opensearch.core.search.Rescore;
@@ -744,7 +745,7 @@ class RequestConverter {
         return org.opensearch.client.opensearch._types.Script.of(sb -> {
             if (scriptData.type() == ScriptType.INLINE) {
                 sb.inline(is -> is //
-                        .lang(scriptData.language()) //
+                        .lang(fn -> fn.custom(scriptData.language())) //
                         .source(scriptData.script()) //
                         .params(params)); //
             } else if (scriptData.type() == ScriptType.STORED) {
@@ -923,7 +924,8 @@ class RequestConverter {
 
         ReindexRequest.Script script = reindexRequest.getScript();
         if (script != null) {
-            builder.script(s -> s.inline(InlineScript.of(i -> i.lang(script.getLang()).source(script.getSource()))));
+            builder.script(s -> s.inline(InlineScript.of(i -> i.lang(fn -> fn.custom(script.getLang()))
+                    .source(script.getSource()))));
         }
 
         builder.timeout(time(reindexRequest.getTimeout())) //
@@ -935,11 +937,18 @@ class RequestConverter {
         }
 
         builder //
-                .maxDocs(reindexRequest.getMaxDocs()).waitForCompletion(waitForCompletion) //
-                .refresh(reindexRequest.getRefresh()) //
+                .maxDocs(toInt(reindexRequest.getMaxDocs()))
+                .waitForCompletion(waitForCompletion) //
                 .requireAlias(reindexRequest.getRequireAlias()) //
-                .requestsPerSecond(reindexRequest.getRequestsPerSecond()) //
-                .slices(reindexRequest.getSlices());
+                .requestsPerSecond(toFloat(reindexRequest.getRequestsPerSecond()));
+
+        if (reindexRequest.getSlices() != null) {
+            builder.slices(fn -> fn.count(reindexRequest.getSlices().intValue()));
+        }
+
+        if (reindexRequest.getRefresh() != null) {
+            builder.refresh(reindexRequest.getRefresh() ? Refresh.True : Refresh.False);
+        }
 
         return builder.build();
     }
@@ -970,10 +979,10 @@ class RequestConverter {
             dqb.index(Arrays.asList(index.getIndexNames())) //
                     .query(getQuery(query.getQuery(), clazz))//
                     .refresh(deleteByQueryRefresh(refreshPolicy))
-                    .requestsPerSecond(toLong(query.getRequestsPerSecond()))
-                    .maxDocs(query.getMaxDocs())
+                    .requestsPerSecond(query.getRequestsPerSecond())
+                    .maxDocs(toInt(query.getMaxDocs()))
                     .scroll(time(query.getScroll()))
-                    .scrollSize(query.getScrollSize());
+                    .scrollSize(toInt(query.getScrollSize()));
 
             if (query.getRouting() != null) {
                 dqb.routing(query.getRouting());
@@ -997,7 +1006,7 @@ class RequestConverter {
                 dqb.stats(query.getStats());
             }
             if (query.getSlices() != null) {
-                dqb.slices(query.getSlices().longValue());
+                dqb.slices(fn -> fn.count(query.getSlices()));
             }
             if (query.getSort() != null) {
                 ElasticsearchPersistentEntity<?> persistentEntity = getPersistentEntity(clazz);
@@ -1019,7 +1028,7 @@ class RequestConverter {
                 }
             }
             if (query.getRefresh() != null) {
-                dqb.refresh(query.getRefresh());
+                dqb.refresh(query.getRefresh() ? Refresh.True : Refresh.False);
             }
             dqb.allowNoIndices(query.getAllowNoIndices())
                     .conflicts(conflicts(query.getConflicts()))
@@ -1028,7 +1037,7 @@ class RequestConverter {
                     .requestCache(query.getRequestCache())
                     .searchType(searchType(query.getSearchType()))
                     .searchTimeout(time(query.getSearchTimeout()))
-                    .terminateAfter(query.getTerminateAfter())
+                    .terminateAfter(toInt(query.getTerminateAfter()))
                     .timeout(time(query.getTimeout()))
                     .version(query.getVersion());
 
@@ -1049,7 +1058,7 @@ class RequestConverter {
 
             if (query.isLimiting()) {
                 // noinspection ConstantConditions
-                b.maxDocs(Long.valueOf(query.getMaxResults()));
+                b.maxDocs(query.getMaxResults());
             }
 
             b.scroll(time(query.getScrollTime()));
@@ -1081,7 +1090,7 @@ class RequestConverter {
                 uqb.script(sb -> {
                     if (query.getScriptType() == ScriptType.INLINE) {
                         sb.inline(is -> is //
-                                .lang(query.getLang()) //
+                                .lang(fn -> fn.custom(query.getLang())) //
                                 .source(query.getScript()) //
                                 .params(params)); //
                     } else if (query.getScriptType() == ScriptType.STORED) {
@@ -1150,13 +1159,16 @@ class RequestConverter {
         return UpdateByQueryRequest.of(ub -> {
             ub //
                     .index(Arrays.asList(index.getIndexNames())) //
-                    .refresh(refreshPolicy == RefreshPolicy.IMMEDIATE) //
+                    .refresh(refreshPolicy == RefreshPolicy.IMMEDIATE ? Refresh.True : Refresh.False) //
                     .routing(updateQuery.getRouting()) //
                     .script(getScript(updateQuery.getScriptData())) //
-                    .maxDocs(updateQuery.getMaxDocs() != null ? Long.valueOf(updateQuery.getMaxDocs()) : null) //
+                    .maxDocs(updateQuery.getMaxDocs()) //
                     .pipeline(updateQuery.getPipeline()) //
-                    .requestsPerSecond(toLong(updateQuery.getRequestsPerSecond())) //
-                    .slices(updateQuery.getSlices() != null ? Long.valueOf(updateQuery.getSlices()) : null);
+                    .requestsPerSecond(updateQuery.getRequestsPerSecond());
+
+            if (updateQuery.getSlices() != null) {
+                 ub.slices(fn -> fn.count(updateQuery.getSlices()));
+            }
 
             if (updateQuery.getAbortOnVersionConflict() != null) {
                 ub.conflicts(updateQuery.getAbortOnVersionConflict() ? Conflicts.Abort : Conflicts.Proceed);
@@ -1180,7 +1192,7 @@ class RequestConverter {
             // no shouldStoreResult
 
             if (updateQuery.getRefreshPolicy() != null) {
-                ub.refresh(updateQuery.getRefreshPolicy() == RefreshPolicy.IMMEDIATE);
+                ub.refresh(updateQuery.getRefreshPolicy() == RefreshPolicy.IMMEDIATE ? Refresh.True : Refresh.False);
             }
 
             if (updateQuery.getTimeout() != null) {
@@ -1338,7 +1350,6 @@ class RequestConverter {
                                 bb.searchAfter(query.getSearchAfter()
                                     .stream()
                                     .map(TypeUtils::toFieldValue)
-                                    .map(FieldValue::_toJsonString)
                                     .toList());
                             }
 
@@ -1509,7 +1520,6 @@ class RequestConverter {
             builder.searchAfter(query.getSearchAfter()
                 .stream()
                 .map(TypeUtils::toFieldValue)
-                .map(FieldValue::_toJsonString)
                 .toList());
         }
 
@@ -1572,12 +1582,12 @@ class RequestConverter {
 
         return Rescore.of(r -> r //
                 .query(rq -> rq //
-                        .query(getQuery(rescorerQuery.getQuery(), null)) //
+                        .rescoreQuery(getQuery(rescorerQuery.getQuery(), null)) //
                         .scoreMode(scoreMode(rescorerQuery.getScoreMode())) //
-                        .queryWeight(rescorerQuery.getQueryWeight() != null ? Double.valueOf(rescorerQuery.getQueryWeight()) : 1.0) //
+                        .queryWeight(rescorerQuery.getQueryWeight() != null ? rescorerQuery.getQueryWeight() : 1.0f) //
                         .rescoreQueryWeight(
-                                rescorerQuery.getRescoreQueryWeight() != null ? Double.valueOf(rescorerQuery.getRescoreQueryWeight())
-                                        : 1.0) //
+                                rescorerQuery.getRescoreQueryWeight() != null ? rescorerQuery.getRescoreQueryWeight()
+                                        : 1.0f) //
 
                 ) //
                 .windowSize(rescorerQuery.getWindowSize()));
@@ -1825,7 +1835,7 @@ class RequestConverter {
                     }
 
                     if (query.getBoostTerms() != null) {
-                        q.boostTerms(Double.valueOf(query.getBoostTerms()));
+                        q.boostTerms(Float.valueOf(query.getBoostTerms()));
                     }
 
                     return q;
@@ -1840,7 +1850,7 @@ class RequestConverter {
         Assert.notNull(allowPartialPitCreation, "allowPartialPitCreation must not be null");
 
         return CreatePitRequest.of(opit -> opit //
-                .targetIndexes(Arrays.asList(index.getIndexNames())) //
+                .index(Arrays.asList(index.getIndexNames())) //
                 .allowPartialPitCreation(allowPartialPitCreation) //
                 .keepAlive(time(keepAlive)) //
         );
@@ -1910,7 +1920,7 @@ class RequestConverter {
         return PutScriptRequest.of(b -> b //
                 .id(script.id()) //
                 .script(sb -> sb //
-                        .lang(script.language()) //
+                        .lang(ScriptLanguage.of(fn -> fn.custom(script.language()))) //
                         .source(script.source())));
     }
 
@@ -2023,16 +2033,16 @@ class RequestConverter {
     }
 
     @Nullable
-    static Boolean deleteByQueryRefresh(@Nullable RefreshPolicy refreshPolicy) {
+    static Refresh deleteByQueryRefresh(@Nullable RefreshPolicy refreshPolicy) {
 
         if (refreshPolicy == null) {
             return null;
         }
 
         return switch (refreshPolicy) {
-            case IMMEDIATE -> true;
-            case WAIT_UNTIL -> null;
-            case NONE -> false;
+            case IMMEDIATE -> Refresh.True;
+            case WAIT_UNTIL -> Refresh.WaitFor;
+            case NONE -> Refresh.False;
         };
     }
 
