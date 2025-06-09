@@ -20,7 +20,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch._types.GeoDistanceType;
 import org.opensearch.client.opensearch._types.GeoShapeRelation;
@@ -156,7 +159,7 @@ class CriteriaFilterProcessor {
             }
         }
 
-        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build()._toQuery() : null);
+        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build().toQuery() : null);
     }
 
     private static ObjectBuilder<GeoDistanceQuery> withinQuery(String fieldName, Object... values) {
@@ -301,7 +304,12 @@ class CriteriaFilterProcessor {
             String relation) {
         return QueryBuilders.geoShape().field(fieldName) //
                 .shape(gsf -> gsf //
-                        .shape(JsonData.of(GeoConverters.GeoJsonToMapConverter.INSTANCE.convert(geoJson))) //
+                        .shape(fn -> fn
+                                .type(geoJson.getType())
+                                .coordinates(StreamSupport
+                                        .stream(geoJson.getCoordinates().spliterator(), false)
+                                        .map(JsonData::of)
+                                        .toList())) //
                         .relation(toRelation(relation))); //
     }
 

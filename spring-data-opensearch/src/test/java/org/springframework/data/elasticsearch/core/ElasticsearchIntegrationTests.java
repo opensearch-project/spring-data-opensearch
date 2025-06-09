@@ -964,8 +964,12 @@ public abstract class ElasticsearchIntegrationTests {
 		Settings setting = indexOperations.getSettings().flatten();
 
 		// then
-		assertThat(setting.get("index.number_of_shards")).isEqualTo("1");
-		assertThat(setting.get("index.number_of_replicas")).isEqualTo("0");
+		assertThat(setting.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
+		assertThat(setting.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
 	}
 
 	@Test
@@ -2296,8 +2300,12 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(storedSettings.containsKey("index.number_of_replicas")).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_shards")).isTrue();
 		assertThat(storedSettings.get("index.refresh_interval")).isEqualTo("-1");
-		assertThat(storedSettings.get("index.number_of_replicas")).isEqualTo("0");
-		assertThat(storedSettings.get("index.number_of_shards")).isEqualTo("1");
+		assertThat(storedSettings.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+		assertThat(storedSettings.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
 	}
 
 	@Test // DATAES-88
@@ -2327,8 +2335,12 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(operations.indexOps(IndexCoordinates.of(indexNameProvider.indexName())).exists()).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_replicas")).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_shards")).isTrue();
-		assertThat((String) storedSettings.get("index.number_of_replicas")).isEqualTo("0");
-		assertThat((String) storedSettings.get("index.number_of_shards")).isEqualTo("1");
+		assertThat(storedSettings.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+		assertThat(storedSettings.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
 	}
 
 	@Test
@@ -2401,8 +2413,12 @@ public abstract class ElasticsearchIntegrationTests {
 
 		assertThat(created).isTrue();
 		Settings setting = indexOps.getSettings();
-		assertThat(setting.get("index.number_of_shards")).isEqualTo("1");
-		assertThat(setting.get("index.number_of_replicas")).isEqualTo("1");
+		assertThat(setting.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
+		assertThat(setting.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("1"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(1)); // OSC
 	}
 
 	@Test // DATAES-531
