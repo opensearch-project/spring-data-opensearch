@@ -93,8 +93,8 @@ public class SearchDocumentResponseBuilder {
         String totalHitsRelation;
 
         if (responseTotalHits != null) {
-            totalHits = responseTotalHits.value;
-            totalHitsRelation = responseTotalHits.relation.name();
+            totalHits = responseTotalHits.value();
+            totalHitsRelation = responseTotalHits.relation().name();
         } else {
             totalHits = searchHits.getHits().length;
             totalHitsRelation = "OFF";

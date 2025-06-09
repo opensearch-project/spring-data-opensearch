@@ -19,8 +19,12 @@ import org.opensearch.client.opensearch.core.ClearScrollRequest;
 import org.opensearch.client.opensearch.core.ClearScrollResponse;
 import org.opensearch.client.opensearch.core.CountRequest;
 import org.opensearch.client.opensearch.core.CountResponse;
+import org.opensearch.client.opensearch.core.CreatePitRequest;
+import org.opensearch.client.opensearch.core.CreatePitResponse;
 import org.opensearch.client.opensearch.core.DeleteByQueryRequest;
 import org.opensearch.client.opensearch.core.DeleteByQueryResponse;
+import org.opensearch.client.opensearch.core.DeletePitRequest;
+import org.opensearch.client.opensearch.core.DeletePitResponse;
 import org.opensearch.client.opensearch.core.DeleteRequest;
 import org.opensearch.client.opensearch.core.DeleteResponse;
 import org.opensearch.client.opensearch.core.DeleteScriptRequest;
@@ -49,10 +53,6 @@ import org.opensearch.client.opensearch.core.SearchTemplateRequest;
 import org.opensearch.client.opensearch.core.SearchTemplateResponse;
 import org.opensearch.client.opensearch.core.UpdateRequest;
 import org.opensearch.client.opensearch.core.UpdateResponse;
-import org.opensearch.client.opensearch.core.pit.CreatePitRequest;
-import org.opensearch.client.opensearch.core.pit.CreatePitResponse;
-import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
-import org.opensearch.client.opensearch.core.pit.DeletePitResponse;
 import org.opensearch.client.transport.JsonEndpoint;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.TransportOptions;
@@ -101,12 +101,12 @@ public class ReactiveOpenSearchClient extends ApiClient<OpenSearchTransport, Rea
 
     public Mono<InfoResponse> info() {
         return Mono
-                .fromFuture(transport.performRequestAsync(InfoRequest._INSTANCE, InfoRequest._ENDPOINT, transportOptions));
+                .fromFuture(transport.performRequestAsync(InfoRequest.builder().build(), InfoRequest._ENDPOINT, transportOptions));
     }
 
     public Mono<BooleanResponse> ping() {
         return Mono
-                .fromFuture(transport.performRequestAsync(PingRequest._INSTANCE, PingRequest._ENDPOINT, transportOptions));
+                .fromFuture(transport.performRequestAsync(PingRequest.builder().build(), PingRequest._ENDPOINT, transportOptions));
     }
 
     // endregion
