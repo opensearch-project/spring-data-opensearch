@@ -1,0 +1,14 @@
+#
+# Copyright OpenSearch Contributors.
+# SPDX-License-Identifier: Apache-2.0
+#
+ 
+opensearch:
+  uris: https://localhost:9200
+  username: admin
+  password: admin
+
+spring:
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
