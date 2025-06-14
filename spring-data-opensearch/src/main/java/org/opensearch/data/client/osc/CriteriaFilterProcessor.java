@@ -156,7 +156,7 @@ class CriteriaFilterProcessor {
             }
         }
 
-        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build()._toQuery() : null);
+        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build().toQuery() : null);
     }
 
     private static ObjectBuilder<GeoDistanceQuery> withinQuery(String fieldName, Object... values) {
@@ -301,7 +301,9 @@ class CriteriaFilterProcessor {
             String relation) {
         return QueryBuilders.geoShape().field(fieldName) //
                 .shape(gsf -> gsf //
-                        .shape(JsonData.of(GeoConverters.GeoJsonToMapConverter.INSTANCE.convert(geoJson))) //
+                        .shape(fn -> fn
+                                .type(geoJson.getType())
+                                .coordinates(JsonData.of(GeoConverters.GeoJsonToMapConverter.INSTANCE.convert(geoJson)))) //
                         .relation(toRelation(relation))); //
     }
 
