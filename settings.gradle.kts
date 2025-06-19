@@ -8,8 +8,8 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.13.0")
-      version("launcher", "1.13.0")
+      version("jupiter", "5.13.1")
+      version("launcher", "1.13.1")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
       library("junit-platform-launcher", "org.junit.platform", "junit-platform-launcher").versionRef("launcher")
@@ -17,7 +17,7 @@ dependencyResolutionManagement {
 
     create("springLibs") {
       version("spring", "6.2.8")
-      version("spring-boot", "3.5.0")
+      version("spring-boot", "3.5.1")
       library("data-commons", "org.springframework.data:spring-data-commons:3.5.1")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.1")
       library("web", "org.springframework", "spring-web").versionRef("spring")
@@ -37,8 +37,8 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.19.0")
-      library("java-client", "org.opensearch.client:opensearch-java:2.23.0")
+      version("opensearch", "2.19.2")
+      library("java-client", "org.opensearch.client:opensearch-java:2.25.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
@@ -46,7 +46,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.19.0")
+      version("jackson", "2.19.1")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
