@@ -49,7 +49,7 @@ By default, the `RestHighLevelCLient` is configured as the means to communicate 
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 </dependency>
 ```
 
@@ -59,7 +59,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 </dependency>
 ```
 
@@ -69,7 +69,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -82,7 +82,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -94,7 +94,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.11.1</version>
+	<version>2.25.0</version>
 </dependency>
 ```
 
@@ -104,7 +104,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -116,7 +116,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.11.1</version>
+	<version>2.25.0</version>
 </dependency>
 ```
 
@@ -126,7 +126,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<scope>test</scope>
 	<exclusions>
 		<exclusion>
@@ -139,7 +139,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.11.1</version>
+	<version>2.25.0</version>
 </dependency>
 ```
 
@@ -344,7 +344,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>1.7.0</version>
+  <version>1.8.0</version>
 </dependency>
 ```
 
@@ -371,7 +371,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:1.7.0"
+  implementation "org.opensearch.client:spring-data-opensearch:1.8.0"
   ...
 }
 ```
