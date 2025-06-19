@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
 @SuppressWarnings("unused")
 public final class OpenSearchClients {
     public static final String IMPERATIVE_CLIENT = "imperative";
+    public static final String REACTIVE_CLIENT = "reactive";
 
     /**
      * Name of whose value can be used to correlate log messages for this request.
@@ -281,6 +282,93 @@ public final class OpenSearchClients {
         return new RestClientTransport(restClient, jsonpMapper, restClientOptionsBuilder.build());
     }
     // endregion
+
+    // region reactive client
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient}
+     *
+     * @param clientConfiguration configuration options, must not be {@literal null}.
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(ClientConfiguration clientConfiguration) {
+
+        Assert.notNull(clientConfiguration, "clientConfiguration must not be null");
+
+        return createReactive(getRestClient(clientConfiguration), null, DEFAULT_JSONP_MAPPER);
+    }
+
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient}
+     *
+     * @param clientConfiguration configuration options, must not be {@literal null}.
+     * @param transportOptions options to be added to each request.
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(ClientConfiguration clientConfiguration,
+            @Nullable TransportOptions transportOptions) {
+
+        Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
+
+        return createReactive(getRestClient(clientConfiguration), transportOptions, DEFAULT_JSONP_MAPPER);
+    }
+
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient}
+     *
+     * @param clientConfiguration configuration options, must not be {@literal null}.
+     * @param transportOptions options to be added to each request.
+     * @param jsonpMapper the JsonpMapper to use
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(ClientConfiguration clientConfiguration,
+            @Nullable TransportOptions transportOptions, JsonpMapper jsonpMapper) {
+
+        Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
+        Assert.notNull(jsonpMapper, "jsonpMapper must not be null");
+
+        return createReactive(getRestClient(clientConfiguration), transportOptions, jsonpMapper);
+    }
+
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient}.
+     *
+     * @param restClient the underlying {@link RestClient}
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(RestClient restClient) {
+        return createReactive(restClient, null, DEFAULT_JSONP_MAPPER);
+    }
+
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient}.
+     *
+     * @param restClient the underlying {@link RestClient}
+     * @param transportOptions options to be added to each request.
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(RestClient restClient,
+            @Nullable TransportOptions transportOptions, JsonpMapper jsonpMapper) {
+
+        Assert.notNull(restClient, "restClient must not be null");
+
+        var transport = getOpenSearchTransport(restClient, REACTIVE_CLIENT, transportOptions, jsonpMapper);
+        return createReactive(transport);
+    }
+
+    /**
+     * Creates a new {@link ReactiveOpenSearchClient} that uses the given {@link OpenSearchTransport}.
+     *
+     * @param transport the transport to use
+     * @return the {@link ReactiveOpenSearchClient}
+     */
+    public static ReactiveOpenSearchClient createReactive(OpenSearchTransport transport) {
+
+        Assert.notNull(transport, "transport must not be null");
+
+        return new ReactiveOpenSearchClient(transport);
+    }
+    // endregion
+
 
     private static List<String> formattedHosts(List<InetSocketAddress> hosts, boolean useSsl) {
         return hosts.stream().map(it -> (useSsl ? "https" : "http") + "://" + it.getHostString() + ':' + it.getPort())

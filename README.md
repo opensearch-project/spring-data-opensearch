@@ -180,6 +180,17 @@ public class MyService {
 }
 ```
 
+Or, using the reactive Spring Data Repositories:
+
+```java
+public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
+
+  Flux<Person> findByLastname(String lastname);
+
+  Flux<Person> findByFirstnameLike(String firstname);
+}
+```
+
 ### Using the OpenSearch RestClient
 
 Spring Data OpenSearch operates upon an OpenSearch client that is connected to a single OpenSearch node or a cluster. Although the OpenSearch Client can be used directly to work with the cluster, applications using Spring Data Elasticsearch normally use the higher level abstractions of `ElasticsearchOperations` and repositories (please consult [official Spring Data Elasticsearch documentation](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)). Use the builder to provide cluster addresses, set default `HttpHeaders` or enable SSL.
@@ -289,6 +300,16 @@ For testing purposes, there is a new `@DataOpenSearchTest` annotation that is pr
 ```java
 @DataOpenSearchTest
 @EnableElasticsearchRepositories
+public class MarketplaceRepositoryIntegrationTests {
+   ...
+}
+```
+
+Or, using the reactive Spring Data Repositories:
+
+```java
+@DataOpenSearchTest
+@EnableReactiveElasticsearchRepositories
 public class MarketplaceRepositoryIntegrationTests {
    ...
 }

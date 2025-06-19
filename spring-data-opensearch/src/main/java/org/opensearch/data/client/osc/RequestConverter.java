@@ -39,6 +39,7 @@ import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.json.ObjectDeserializer;
 import org.opensearch.client.opensearch._types.Conflicts;
 import org.opensearch.client.opensearch._types.ExpandWildcard;
+import org.opensearch.client.opensearch._types.FieldSort;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.InlineScript;
 import org.opensearch.client.opensearch._types.NestedSortValue;
@@ -75,10 +76,19 @@ import org.opensearch.client.opensearch.core.search.Highlight;
 import org.opensearch.client.opensearch.core.search.Pit;
 import org.opensearch.client.opensearch.core.search.Rescore;
 import org.opensearch.client.opensearch.core.search.SourceConfig;
-import org.opensearch.client.opensearch.indices.*;
+import org.opensearch.client.opensearch.indices.Alias;
+import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.opensearch.indices.ExistsIndexTemplateRequest;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
+import org.opensearch.client.opensearch.indices.GetAliasRequest;
+import org.opensearch.client.opensearch.indices.GetIndexRequest;
+import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
+import org.opensearch.client.opensearch.indices.GetMappingRequest;
+import org.opensearch.client.opensearch.indices.PutMappingRequest;
 import org.opensearch.client.opensearch.indices.PutMappingRequest.Builder;
+import org.opensearch.client.opensearch.indices.RefreshRequest;
+import org.opensearch.client.opensearch.indices.UpdateAliasesRequest;
 import org.opensearch.client.opensearch.indices.update_aliases.Action;
 import org.opensearch.client.util.ObjectBuilder;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -94,6 +104,7 @@ import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest
 import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
+import org.springframework.data.elasticsearch.core.mapping.CreateIndexSettings;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -254,6 +265,28 @@ class RequestConverter {
                 .index(indexCoordinates.getIndexName()) //
                 .settings(indexSettings(settings)) //
                 .mappings(typeMapping(mapping)) //
+                .build();
+    }
+
+    public CreateIndexRequest indicesCreateRequest(CreateIndexSettings indexSettings) {
+        Map<String, org.opensearch.client.opensearch.indices.Alias> aliases = new HashMap<>();
+        for (org.springframework.data.elasticsearch.core.mapping.Alias alias : indexSettings.getAliases()) {
+            org.opensearch.client.opensearch.indices.Alias esAlias = org.opensearch.client.opensearch.indices.Alias
+                    .of(ab -> ab.filter(getQuery(alias.getFilter(), null))
+                            .routing(alias.getRouting())
+                            .indexRouting(alias.getIndexRouting())
+                            .searchRouting(alias.getSearchRouting())
+                            .isHidden(alias.getHidden())
+                            .isWriteIndex(alias.getWriteIndex()));
+            aliases.put(alias.getAlias(), esAlias);
+        }
+
+        // note: the new client does not support the index.storeType anymore
+        return new CreateIndexRequest.Builder() //
+                .index(indexSettings.getIndexCoordinates().getIndexName()) //
+                .aliases(aliases)
+                .settings(indexSettings(indexSettings.getSettings())) //
+                .mappings(typeMapping(indexSettings.getMapping())) //
                 .build();
     }
 
@@ -1489,7 +1522,19 @@ class RequestConverter {
             List<SortOptions> sortOptions = getSortOptions(query.getSort(), persistentEntity);
 
             if (!sortOptions.isEmpty()) {
-                builder.sort(sortOptions);
+                // ReactiveElasticsearchTemplate adds "_shard_doc" field to sort
+                // options which OpenSearch does not support.
+                builder.sort(sortOptions.stream()
+                    .map(o -> {
+                        if (o.isField() && o.field().field().equals("_shard_doc")) {
+                            return new SortOptions(FieldSort.of(fn -> fn
+                                .field("_doc")
+                                .order(o.field().order())));
+                        } else {
+                            return o;
+                        }
+                    })
+                    .toList());
             }
         }
 
@@ -1586,7 +1631,7 @@ class RequestConverter {
     private void addHighlight(Query query, SearchRequest.Builder builder) {
 
         Highlight highlight = query.getHighlightQuery()
-                .map(highlightQuery -> new HighlightQueryBuilder(elasticsearchConverter.getMappingContext())
+                .map(highlightQuery -> new HighlightQueryBuilder(elasticsearchConverter.getMappingContext(), this)
                         .getHighlight(highlightQuery.getHighlight(), highlightQuery.getType()))
                 .orElse(null);
 
@@ -1596,7 +1641,7 @@ class RequestConverter {
     private void addHighlight(Query query, MultisearchBody.Builder builder) {
 
         Highlight highlight = query.getHighlightQuery()
-                .map(highlightQuery -> new HighlightQueryBuilder(elasticsearchConverter.getMappingContext())
+                .map(highlightQuery -> new HighlightQueryBuilder(elasticsearchConverter.getMappingContext(), this)
                         .getHighlight(highlightQuery.getHighlight(), highlightQuery.getType()))
                 .orElse(null);
 

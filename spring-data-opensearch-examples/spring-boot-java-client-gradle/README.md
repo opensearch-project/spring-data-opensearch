@@ -20,7 +20,7 @@ docker run -p 9200:9200 -e "discovery.type=single-node" -e OPENSEARCH_INITIAL_AD
 2. Build and run the project using [Gradle](https://gradle.org/):
 
 ```shell
-./gradlew :spring-data-opensearch-examples:spring-boot-gradle:bootRun
+./gradlew :spring-data-opensearch-examples:spring-boot-java-client-gradle:bootRun
 ```
 
 3. Exercise the REST endpoint available at: `http://localhost:8080/marketplace`
@@ -34,7 +34,7 @@ docker run -p 9200:9200 -e "discovery.type=single-node" -e OPENSEARCH_INITIAL_AD
 1. Build and run the project using [Gradle](https://gradle.org/):
 
 ```shell
-./gradlew :spring-data-opensearch-examples:spring-boot-gradle:bootTestRun
+./gradlew :spring-data-opensearch-examples:spring-boot-java-client-gradle:bootTestRun
 ```
 
 2. Exercise the REST endpoint available at: `http://localhost:8080/marketplace`
