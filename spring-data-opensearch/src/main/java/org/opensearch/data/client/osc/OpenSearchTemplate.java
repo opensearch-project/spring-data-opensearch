@@ -32,9 +32,9 @@ import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.Time;
 import org.opensearch.client.opensearch.core.*;
+import org.opensearch.client.opensearch.core.DeletePitRequest;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.opensearch.core.msearch.MultiSearchResponseItem;
-import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.opensearch.core.search.SearchResult;
 import org.opensearch.client.transport.Version;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -625,7 +625,7 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
     @Override
     public List<PitInfo> listPointInTime() {
-        return execute(client -> client.listAllPit()).pits()
+        return execute(client -> client.getAllPits()).pits()
             .stream()
             .map(pit -> new PitInfo(pit.pitId(), pit.creationTime(), pit.keepAlive() == null ? null : Duration.ofMillis(pit.keepAlive())))
             .toList();

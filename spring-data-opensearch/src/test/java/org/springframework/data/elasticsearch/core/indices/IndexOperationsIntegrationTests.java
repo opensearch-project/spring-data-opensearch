@@ -92,8 +92,12 @@ public abstract class IndexOperationsIntegrationTests {
 		Settings settings = indexInformation.getSettings();
 		assertThat(settings).isNotNull();
 		// old Elasticsearch client returns "1", the new one is typed and returns 1, so we check for Strings here
-		softly.assertThat(settings.get("index.number_of_shards")).isEqualTo("1");
-		softly.assertThat(settings.get("index.number_of_replicas")).isEqualTo("0");
+		softly.assertThat(settings.get("index.number_of_shards")).satisfiesAnyOf(
+		        shards -> assertThat(shards).isEqualTo("1"), // RHLC
+		        shards -> assertThat(shards).isEqualTo(1)); // OSC
+		softly.assertThat(settings.get("index.number_of_replicas")).satisfiesAnyOf(
+		        replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+		        replicas -> assertThat(replicas).isEqualTo(0)); // OSC
 		softly.assertThat(settings.get("index.analysis.analyzer.emailAnalyzer.type")).isEqualTo("custom");
 		softly.assertAll();
 

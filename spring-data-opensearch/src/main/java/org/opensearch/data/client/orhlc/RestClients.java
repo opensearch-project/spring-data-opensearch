@@ -12,21 +12,27 @@ package org.opensearch.data.client.orhlc;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.RequestConfig.Builder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Timeout;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.RestHighLevelClient;
@@ -51,7 +57,13 @@ public final class RestClients {
         Assert.notNull(clientConfiguration, "ClientConfiguration must not be null!");
 
         HttpHost[] httpHosts = formattedHosts(clientConfiguration.getEndpoints(), clientConfiguration.useSsl()).stream()
-                .map(HttpHost::create)
+                .map(s -> {
+                    try {
+                        return HttpHost.create(s);
+                    } catch (final URISyntaxException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                })
                 .toArray(HttpHost[]::new);
         RestClientBuilder builder = RestClient.builder(httpHosts);
 
@@ -66,27 +78,34 @@ public final class RestClients {
         }
 
         builder.setHttpClientConfigCallback(clientBuilder -> {
-            clientConfiguration.getSslContext().ifPresent(clientBuilder::setSSLContext);
-            clientConfiguration.getHostNameVerifier().ifPresent(clientBuilder::setSSLHostnameVerifier);
-            clientBuilder.addInterceptorLast(new CustomHeaderInjector(clientConfiguration.getHeadersSupplier()));
+            ClientTlsStrategyBuilder tlsStrategy = ClientTlsStrategyBuilder.create();
+
+            clientConfiguration.getSslContext().ifPresent(tlsStrategy::setSslContext);
+            clientConfiguration.getHostNameVerifier().ifPresent(tlsStrategy::setHostnameVerifier);
+            clientBuilder.addRequestInterceptorLast(new CustomHeaderInjector(clientConfiguration.getHeadersSupplier()));
 
             Builder requestConfigBuilder = RequestConfig.custom();
             Duration connectTimeout = clientConfiguration.getConnectTimeout();
 
             if (!connectTimeout.isNegative()) {
-                requestConfigBuilder.setConnectTimeout(Math.toIntExact(connectTimeout.toMillis()));
+                requestConfigBuilder.setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()));
             }
 
             Duration socketTimeout = clientConfiguration.getSocketTimeout();
 
             if (!socketTimeout.isNegative()) {
-                requestConfigBuilder.setSocketTimeout(Math.toIntExact(socketTimeout.toMillis()));
-                requestConfigBuilder.setConnectionRequestTimeout(Math.toIntExact(socketTimeout.toMillis()));
+                requestConfigBuilder.setConnectionRequestTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis()));
             }
 
             clientBuilder.setDefaultRequestConfig(requestConfigBuilder.build());
 
-            clientConfiguration.getProxy().map(HttpHost::create).ifPresent(clientBuilder::setProxy);
+            clientConfiguration.getProxy().map(s -> {
+                try {
+                    return HttpHost.create(s);
+                } catch (final URISyntaxException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }).ifPresent(clientBuilder::setProxy);
 
             for (ClientConfiguration.ClientConfigurationCallback<?> clientConfigurer :
                     clientConfiguration.getClientConfigurers()) {
@@ -97,7 +116,11 @@ public final class RestClients {
                 }
             }
 
-            return clientBuilder;
+            final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                    .setTlsStrategy(tlsStrategy.build())
+                    .build();
+
+            return clientBuilder.setConnectionManager(connectionManager);
         });
 
         RestHighLevelClient client = new RestHighLevelClient(builder);
@@ -157,7 +180,7 @@ public final class RestClients {
         private final Supplier<HttpHeaders> headersSupplier;
 
         @Override
-        public void process(HttpRequest request, HttpContext context) {
+        public void process(HttpRequest request,  EntityDetails entity, HttpContext context) {
             HttpHeaders httpHeaders = headersSupplier.get();
 
             if (httpHeaders != null && !httpHeaders.isEmpty()) {

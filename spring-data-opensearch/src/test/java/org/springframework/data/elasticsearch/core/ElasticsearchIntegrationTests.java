@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -964,8 +965,12 @@ public abstract class ElasticsearchIntegrationTests {
 		Settings setting = indexOperations.getSettings().flatten();
 
 		// then
-		assertThat(setting.get("index.number_of_shards")).isEqualTo("1");
-		assertThat(setting.get("index.number_of_replicas")).isEqualTo("0");
+		assertThat(setting.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
+		assertThat(setting.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
 	}
 
 	@Test
@@ -2296,8 +2301,12 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(storedSettings.containsKey("index.number_of_replicas")).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_shards")).isTrue();
 		assertThat(storedSettings.get("index.refresh_interval")).isEqualTo("-1");
-		assertThat(storedSettings.get("index.number_of_replicas")).isEqualTo("0");
-		assertThat(storedSettings.get("index.number_of_shards")).isEqualTo("1");
+		assertThat(storedSettings.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+		assertThat(storedSettings.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
 	}
 
 	@Test // DATAES-88
@@ -2327,8 +2336,12 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(operations.indexOps(IndexCoordinates.of(indexNameProvider.indexName())).exists()).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_replicas")).isTrue();
 		assertThat(storedSettings.containsKey("index.number_of_shards")).isTrue();
-		assertThat((String) storedSettings.get("index.number_of_replicas")).isEqualTo("0");
-		assertThat((String) storedSettings.get("index.number_of_shards")).isEqualTo("1");
+		assertThat(storedSettings.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+		assertThat(storedSettings.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
 	}
 
 	@Test
@@ -2401,8 +2414,12 @@ public abstract class ElasticsearchIntegrationTests {
 
 		assertThat(created).isTrue();
 		Settings setting = indexOps.getSettings();
-		assertThat(setting.get("index.number_of_shards")).isEqualTo("1");
-		assertThat(setting.get("index.number_of_replicas")).isEqualTo("1");
+		assertThat(setting.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
+		assertThat(setting.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("1"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(1)); // OSC
 	}
 
 	@Test // DATAES-531
@@ -2967,7 +2984,14 @@ public abstract class ElasticsearchIntegrationTests {
 		SearchHit<SearchHitsEntity> searchHit = searchHits.getSearchHit(0);
 		List<Object> sortValues = searchHit.getSortValues();
 		assertThat(sortValues).hasSize(2);
-		assertThat(sortValues.get(0)).isInstanceOf(String.class).isEqualTo("thousands");
+		if (sortValues.get(0) instanceof String s) {
+		    assertThat(s).isEqualTo("thousands");
+	    } else if (sortValues.get(0) instanceof FieldValue f) {
+            assertThat(f.isString()).isTrue();
+            assertThat(f.stringValue()).isEqualTo("thousands");
+	    } else {
+            fail("unexpected object type " + sortValues.get(0));
+        }
 		// transport client returns Long, RestHighlevelClient Integer, new ElasticsearchClient String
 		java.lang.Object o = sortValues.get(1);
 		if (o instanceof Integer i) {
@@ -2976,7 +3000,10 @@ public abstract class ElasticsearchIntegrationTests {
 			assertThat(o).isInstanceOf(Long.class).isEqualTo(1000L);
 		} else if (o instanceof String) {
 			assertThat(o).isInstanceOf(String.class).isEqualTo("1000");
-		} else {
+		} else if (o instanceof FieldValue f) {
+            assertThat(f.isLong()).isTrue();
+            assertThat(f.longValue()).isEqualTo(1000);
+        } else {
 			fail("unexpected object type " + o);
 		}
 	}

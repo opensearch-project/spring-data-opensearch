@@ -23,9 +23,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opensearch.client.json.JsonData;
 import org.opensearch.client.json.JsonpMapper;
-import org.opensearch.client.opensearch._types.BulkIndexByScrollFailure;
+import org.opensearch.client.opensearch._types.BulkByScrollFailure;
 import org.opensearch.client.opensearch._types.ErrorCause;
 import org.opensearch.client.opensearch._types.Time;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
@@ -38,8 +37,8 @@ import org.opensearch.client.opensearch.core.UpdateByQueryResponse;
 import org.opensearch.client.opensearch.core.mget.MultiGetError;
 import org.opensearch.client.opensearch.core.mget.MultiGetResponseItem;
 import org.opensearch.client.opensearch.indices.*;
+import org.opensearch.client.opensearch.indices.IndexTemplateSummary;
 import org.opensearch.client.opensearch.indices.get_index_template.IndexTemplateItem;
-import org.opensearch.client.opensearch.indices.get_index_template.IndexTemplateSummary;
 import org.opensearch.client.opensearch.indices.get_mapping.IndexMappingRecord;
 import org.springframework.data.elasticsearch.ElasticsearchErrorCause;
 import org.springframework.data.elasticsearch.core.IndexInformation;
@@ -80,7 +79,7 @@ class ResponseConverter {
         return ClusterHealth.builder() //
                 .withActivePrimaryShards(healthResponse.activePrimaryShards()) //
                 .withActiveShards(healthResponse.activeShards()) //
-                .withActiveShardsPercent(Double.parseDouble(healthResponse.activeShardsPercentAsNumber()))//
+                .withActiveShardsPercent(healthResponse.activeShardsPercentAsNumber())//
                 .withClusterName(healthResponse.clusterName()) //
                 .withDelayedUnassignedShards(healthResponse.delayedUnassignedShards()) //
                 .withInitializingShards(healthResponse.initializingShards()) //
@@ -90,7 +89,7 @@ class ResponseConverter {
                 .withNumberOfPendingTasks(healthResponse.numberOfPendingTasks()) //
                 .withRelocatingShards(healthResponse.relocatingShards()) //
                 .withStatus(healthResponse.status().toString()) //
-                .withTaskMaxWaitingTimeMillis(Long.parseLong(healthResponse.taskMaxWaitingInQueueMillis())) //
+                .withTaskMaxWaitingTimeMillis(healthResponse.taskMaxWaitingInQueueMillis()) //
                 .withTimedOut(healthResponse.timedOut()) //
                 .withUnassignedShards(healthResponse.unassignedShards()) //
                 .build(); //
@@ -327,14 +326,14 @@ class ResponseConverter {
             List<String> composedOf) {
         var mapping = typeMapping(indexTemplateSummary.mappings());
 
-        Function<Map<String, JsonData>, Settings> indexSettingsToSettings = indexSettings -> {
+        Function<IndexSettings, Settings> indexSettingsToSettings = indexSettings -> {
 
             if (indexSettings == null) {
                 return null;
             }
 
             Settings parsedSettings = Settings.parse(toJson(indexSettings, jsonpMapper));
-            return (indexSettings.get("index") != null) ? parsedSettings : new Settings().append("index", parsedSettings);
+            return (indexSettings.index() != null) ? parsedSettings : new Settings().append("index", parsedSettings);
         };
         var settings = indexSettingsToSettings.apply(indexTemplateSummary.settings());
 
@@ -367,7 +366,7 @@ class ResponseConverter {
 
         // noinspection ConstantConditions
         return ReindexResponse.builder() //
-                .withTook(timeToLong(reindexResponse.took())) //
+                .withTook(reindexResponse.took()) //
                 .withTimedOut(reindexResponse.timedOut()) //
                 .withTotal(reindexResponse.total()) //
                 .withCreated(reindexResponse.created()) //
@@ -378,14 +377,14 @@ class ResponseConverter {
                 .withNoops(reindexResponse.noops()) //
                 .withBulkRetries(reindexResponse.retries().bulk()) //
                 .withSearchRetries(reindexResponse.retries().search()) //
-                .withThrottledMillis(timeToLong(reindexResponse.throttledMillis())) //
+                .withThrottledMillis(reindexResponse.throttledMillis()) //
                 .withRequestsPerSecond(reindexResponse.requestsPerSecond()) //
-                .withThrottledUntilMillis(timeToLong(reindexResponse.throttledUntilMillis())) //
+                .withThrottledUntilMillis(reindexResponse.throttledUntilMillis()) //
                 .withFailures(failures) //
                 .build();
     }
 
-    private ReindexResponse.Failure reindexResponseFailureOf(BulkIndexByScrollFailure failure) {
+    private ReindexResponse.Failure reindexResponseFailureOf(BulkByScrollFailure failure) {
         return ReindexResponse.Failure.builder() //
                 .withIndex(failure.index()) //
                 .withId(failure.id()) //
@@ -395,7 +394,7 @@ class ResponseConverter {
                 .build();
     }
 
-    private ByQueryResponse.Failure byQueryResponseFailureOf(BulkIndexByScrollFailure failure) {
+    private ByQueryResponse.Failure byQueryResponseFailureOf(BulkByScrollFailure failure) {
         return ByQueryResponse.Failure.builder() //
                 .withIndex(failure.index()) //
                 .withId(failure.id()) //
@@ -523,7 +522,7 @@ class ResponseConverter {
         return response.found() //
                 ? Script.builder() //
                         .withId(response.id()) //
-                        .withLanguage(response.script().lang()) //
+                        .withLanguage(response.script().lang()._toJsonString()) //
                         .withSource(response.script().source()).build() //
                 : null;
     }
