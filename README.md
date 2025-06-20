@@ -360,7 +360,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 <repository>
   <id>opensearch-libs-snapshot</id>
   <name>AWS Snapshot Repository</name>
-  <url>https://aws.oss.sonatype.org/content/repositories/snapshots/</url>
+  <url>https://central.sonatype.com/repository/maven-snapshots/</url>
 </repository>
 ```
 
@@ -387,7 +387,7 @@ dependencies {
 repositories {
   ...
   maven {
-    url = "https://aws.oss.sonatype.org/content/repositories/snapshots/"
+    url = "https://central.sonatype.com/repository/maven-snapshots/"
   }
   ...
 }
