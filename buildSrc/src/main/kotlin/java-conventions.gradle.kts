@@ -109,7 +109,7 @@ tasks.test {
 publishing {
   repositories {
     if (version.toString().endsWith("SNAPSHOT")) {
-      maven("https://aws.oss.sonatype.org/content/repositories/snapshots/") {
+      maven("https://central.sonatype.com/repository/maven-snapshots/") {
         name = "Snapshots"
         credentials {
             username = System.getenv("SONATYPE_USERNAME")
