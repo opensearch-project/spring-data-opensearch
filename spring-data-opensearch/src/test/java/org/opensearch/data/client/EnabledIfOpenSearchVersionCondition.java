@@ -28,7 +28,7 @@ public class EnabledIfOpenSearchVersionCondition implements ExecutionCondition {
 
         final Version onOrAfter = Version.fromString(annotation.onOrAfter());
         final String image = ClusterConnection.clusterConnectionInfo()
-                .getOpensearchContainer()
+                .getOpenSearchContainer()
                 .getDockerImageName();
         final int index = image.lastIndexOf(":");
         if (index > 0) {

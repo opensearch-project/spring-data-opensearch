@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -755,7 +756,10 @@ public abstract class ReactiveElasticsearchIntegrationTests {
 						assertThat(o).isInstanceOf(Long.class).isEqualTo(42L);
 					} else if (o instanceof String) {
 						assertThat(o).isInstanceOf(String.class).isEqualTo("42");
-					} else {
+					} else if (sortValues.get(0) instanceof FieldValue f) {
+			            assertThat(f.isLong()).isTrue();
+			            assertThat(f.longValue()).isEqualTo(42L);
+			        } else {
 						fail("unexpected object type " + o);
 					}
 				}) //
@@ -1124,8 +1128,12 @@ public abstract class ReactiveElasticsearchIntegrationTests {
 
 		indexOps.getInformation().as(StepVerifier::create).consumeNextWith(indexInformation -> {
 			assertThat(indexInformation.getName()).isEqualTo(indexName);
-			assertThat(indexInformation.getSettings().get("index.number_of_shards")).isEqualTo("1");
-			assertThat(indexInformation.getSettings().get("index.number_of_replicas")).isEqualTo("0");
+			assertThat(indexInformation.getSettings().get("index.number_of_shards")).satisfiesAnyOf(
+					shards -> assertThat(shards).isEqualTo("1"), // RHLC
+					shards -> assertThat(shards).isEqualTo(1)); // OSC
+			assertThat(indexInformation.getSettings().get("index.number_of_replicas")).satisfiesAnyOf(
+					replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+					replicas -> assertThat(replicas).isEqualTo(0));
 			assertThat(indexInformation.getSettings().get("index.analysis.analyzer.emailAnalyzer.type")).isEqualTo("custom");
 			assertThat(indexInformation.getAliases()).hasSize(1);
 

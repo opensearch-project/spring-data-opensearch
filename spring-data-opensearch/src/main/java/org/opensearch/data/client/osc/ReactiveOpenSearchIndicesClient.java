@@ -37,8 +37,6 @@ import org.opensearch.client.opensearch.indices.DeleteIndexTemplateRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexTemplateResponse;
 import org.opensearch.client.opensearch.indices.DeleteTemplateRequest;
 import org.opensearch.client.opensearch.indices.DeleteTemplateResponse;
-import org.opensearch.client.opensearch.indices.DiskUsageRequest;
-import org.opensearch.client.opensearch.indices.DiskUsageResponse;
 import org.opensearch.client.opensearch.indices.ExistsAliasRequest;
 import org.opensearch.client.opensearch.indices.ExistsIndexTemplateRequest;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
@@ -245,14 +243,6 @@ public class ReactiveOpenSearchIndicesClient
     public Mono<DeleteTemplateResponse> deleteTemplate(
             Function<DeleteTemplateRequest.Builder, ObjectBuilder<DeleteTemplateRequest>> fn) {
         return deleteTemplate(fn.apply(new DeleteTemplateRequest.Builder()).build());
-    }
-
-    public Mono<DiskUsageResponse> diskUsage(DiskUsageRequest request) {
-        return Mono.fromFuture(transport.performRequestAsync(request, DiskUsageRequest._ENDPOINT, transportOptions));
-    }
-
-    public Mono<DiskUsageResponse> diskUsage(Function<DiskUsageRequest.Builder, ObjectBuilder<DiskUsageRequest>> fn) {
-        return diskUsage(fn.apply(new DiskUsageRequest.Builder()).build());
     }
 
     public Mono<BooleanResponse> exists(ExistsRequest request) {

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
 import org.opensearch.client.RestClient;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -31,12 +31,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 class OpenSearchRestClientAutoConfigurationIntegrationTests extends AbstractOpenSearchIntegrationTest {
     @Container
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>(getDockerImageName())
+    static final OpenSearchContainer<?> opensearch = new OpenSearchContainer<>(getDockerImageName())
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 
     @Container
-    static final OpensearchContainer<?> secureOpensearch = new OpensearchContainer<>(getDockerImageName())
+    static final OpenSearchContainer<?> secureOpensearch = new OpenSearchContainer<>(getDockerImageName())
             .withSecurityEnabled()
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));

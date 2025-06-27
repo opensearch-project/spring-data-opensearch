@@ -85,7 +85,7 @@ final class TypeUtils {
             case "yd", "yards" -> DistanceUnit.Yards;
             case "ft", "feet" -> DistanceUnit.Feet;
             case "km", "kilometers" -> DistanceUnit.Kilometers;
-            case "nm", "nmi" -> DistanceUnit.NauticMiles;
+            case "nm", "nmi" -> DistanceUnit.NauticalMiles;
             case "mm", "millimeters" -> DistanceUnit.Millimeters;
             case "cm", "centimeters" -> DistanceUnit.Centimeters;
             case "mi", "miles" -> DistanceUnit.Miles;
@@ -164,9 +164,12 @@ final class TypeUtils {
 
     @Nullable
     static FieldValue toFieldValue(@Nullable Object fieldValue) {
-
         if (fieldValue == null) {
             return FieldValue.NULL;
+        }
+
+        if (fieldValue instanceof FieldValue f) {
+            return f;
         }
 
         if (fieldValue instanceof Boolean b) {
@@ -434,6 +437,11 @@ final class TypeUtils {
     @Nullable
     static Float toFloat(@Nullable Long value) {
         return value != null ? Float.valueOf(value) : null;
+    }
+
+    @Nullable
+    static Integer toInt(@Nullable Long value) {
+        return value != null ? value.intValue() : null;
     }
 
     /**

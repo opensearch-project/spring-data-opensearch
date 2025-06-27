@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch._types.GeoDistanceType;
 import org.opensearch.client.opensearch._types.GeoShapeRelation;
@@ -32,7 +34,6 @@ import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.query_dsl.QueryBuilders;
 import org.opensearch.client.opensearch._types.query_dsl.QueryVariant;
 import org.opensearch.client.util.ObjectBuilder;
-import org.springframework.data.elasticsearch.core.convert.GeoConverters;
 import org.springframework.data.elasticsearch.core.geo.GeoBox;
 import org.springframework.data.elasticsearch.core.geo.GeoJson;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
@@ -156,7 +157,7 @@ class CriteriaFilterProcessor {
             }
         }
 
-        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build()._toQuery() : null);
+        return Optional.ofNullable(queryBuilder != null ? queryBuilder.build().toQuery() : null);
     }
 
     private static ObjectBuilder<GeoDistanceQuery> withinQuery(String fieldName, Object... values) {
@@ -301,8 +302,26 @@ class CriteriaFilterProcessor {
             String relation) {
         return QueryBuilders.geoShape().field(fieldName) //
                 .shape(gsf -> gsf //
-                        .shape(JsonData.of(GeoConverters.GeoJsonToMapConverter.INSTANCE.convert(geoJson))) //
+                        .shape(fn -> fn
+                                .type(geoJson.getType())
+                                .coordinates(toJsonData(geoJson)
+                                        .map(JsonData::of)
+                                        .toList())) //
                         .relation(toRelation(relation))); //
+    }
+
+    private static Stream<Object> toJsonData(GeoJson<?> geoJson) {
+        return StreamSupport
+            .stream(geoJson.getCoordinates().spliterator(), false)
+            .map(json -> {
+                if (json instanceof  GeoJson<?> g) {
+                    return toJsonData(g).toList();
+                } else if (json instanceof Point p) {
+                    return List.of(new Double[] { p.getX(), p.getY() });
+                } else {
+                    return json;
+                }
+            });
     }
 
     private static GeoShapeRelation toRelation(String relation) {

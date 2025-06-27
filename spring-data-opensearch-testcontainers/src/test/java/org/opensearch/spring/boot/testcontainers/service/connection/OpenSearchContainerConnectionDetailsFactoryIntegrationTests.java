@@ -18,7 +18,7 @@ import org.opensearch.client.Request;
 import org.opensearch.client.Response;
 import org.opensearch.client.RestClient;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchRestClientAutoConfiguration;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -34,7 +34,7 @@ class OpenSearchContainerConnectionDetailsFactoryIntegrationTests {
 
     @Container
     @ServiceConnection
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
+    static final OpenSearchContainer<?> opensearch = new OpenSearchContainer<>("opensearchproject/opensearch:3.1.0")
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 
@@ -48,7 +48,7 @@ class OpenSearchContainerConnectionDetailsFactoryIntegrationTests {
         try (InputStream input = response.getEntity().getContent()) {
             JsonNode result = new ObjectMapper().readTree(input);
             assertThat(result.path("version").path("number").asText())
-                    .isEqualTo("2.19.1");
+                    .isEqualTo("3.1.0");
         }
     }
 

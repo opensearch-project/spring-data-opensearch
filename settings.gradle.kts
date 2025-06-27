@@ -37,12 +37,12 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.19.2")
-      library("java-client", "org.opensearch.client:opensearch-java:2.25.0")
+      version("opensearch", "3.1.0")
+      library("java-client", "org.opensearch.client:opensearch-java:3.1.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
-      library("testcontainers", "org.opensearch:opensearch-testcontainers:2.1.3") 
+      library("testcontainers", "org.opensearch:opensearch-testcontainers:3.0.1")
     }
     
     create("jacksonLibs") {

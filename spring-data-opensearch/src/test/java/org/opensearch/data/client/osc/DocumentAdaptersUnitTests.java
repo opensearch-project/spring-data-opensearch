@@ -117,7 +117,12 @@ class DocumentAdaptersUnitTests {
                 .explanation(eb -> eb //
                         .value(3.14f) //
                         .description("explanation 3.14") //
-                        .details(edb -> edb.description("explanation noMatch").value(0f)))
+                        .details(org.opensearch.client.opensearch.core.explain.Explanation
+                                .builder()
+                                .description("explanation noMatch")
+                                .value(0f)
+                                .details(Collections.emptyList())
+                                .build()))
                 .build();
 
         SearchDocument searchDocument = DocumentAdapters.from(searchHit, jsonpMapper);

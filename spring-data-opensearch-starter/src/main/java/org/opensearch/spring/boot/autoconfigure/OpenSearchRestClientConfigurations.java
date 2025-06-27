@@ -8,17 +8,19 @@ package org.opensearch.spring.boot.autoconfigure;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.impl.nio.reactor.IOReactorConfig;
-import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.Timeout;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.sniff.Sniffer;
@@ -61,7 +63,7 @@ class OpenSearchRestClientConfigurations {
         @Bean
         RestClientBuilder opensearchRestClientBuilder(ObjectProvider<RestClientBuilderCustomizer> builderCustomizers) {
             HttpHost[] hosts =
-                    this.connectionDetails.getUris().stream().map(this::createHttpHost).toArray(HttpHost[]::new);
+                    this.connectionDetails.getUris().stream().map(RestClientBuilderConfiguration::createHttpHost).toArray(HttpHost[]::new);
             RestClientBuilder builder = RestClient.builder(hosts);
             builder.setHttpClientConfigCallback((httpClientBuilder) -> {
                 builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(httpClientBuilder));
@@ -78,19 +80,24 @@ class OpenSearchRestClientConfigurations {
             return builder;
         }
 
-        private HttpHost createHttpHost(String uri) {
+        private static HttpHost createHttpHost(String uri) {
             try {
                 return createHttpHost(URI.create(uri));
             } catch (IllegalArgumentException ex) {
-                return HttpHost.create(uri);
+                try {
+                    return HttpHost.create(uri);
+                } catch (final URISyntaxException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         }
 
-        private HttpHost createHttpHost(URI uri) {
-            if (!StringUtils.hasLength(uri.getUserInfo())) {
-                return HttpHost.create(uri.toString());
-            }
+        private static HttpHost createHttpHost(URI uri) {
             try {
+                if (!StringUtils.hasLength(uri.getUserInfo())) {
+                    return HttpHost.create(uri.toString());
+                }
+
                 return HttpHost.create(new URI(
                                 uri.getScheme(),
                                 null,
@@ -157,7 +164,7 @@ class OpenSearchRestClientConfigurations {
         public void customize(HttpAsyncClientBuilder builder) {
             builder.setDefaultCredentialsProvider(new ConnectionsDetailsCredentialsProvider(this.connectionDetails));
             map.from(this.properties::isSocketKeepAlive)
-                    .to((keepAlive) -> builder.setDefaultIOReactorConfig(
+                    .to((keepAlive) -> builder.setIOReactorConfig(
                             IOReactorConfig.custom().setSoKeepAlive(keepAlive).build()));
 
             String sslBundleName = properties.getRestclient().getSsl().getBundle();
@@ -171,18 +178,31 @@ class OpenSearchRestClientConfigurations {
             map.from(this.properties::getConnectionTimeout)
                     .whenNonNull()
                     .asInt(Duration::toMillis)
+                    .as(Timeout::ofMilliseconds)
                     .to(builder::setConnectTimeout);
-            map.from(this.properties::getSocketTimeout)
+            map.from(this.properties::getConnectionTimeout)
                     .whenNonNull()
                     .asInt(Duration::toMillis)
-                    .to(builder::setSocketTimeout);
+                    .as(Timeout::ofMilliseconds)
+                    .to(builder::setConnectionRequestTimeout);
         }
 
         private void configureSsl(HttpAsyncClientBuilder builder, SslBundle sslBundle) {
             SSLContext sslcontext = sslBundle.createSslContext();
             SslOptions sslOptions = sslBundle.getOptions();
 
-            builder.setSSLStrategy(new SSLIOSessionStrategy(sslcontext, sslOptions.getEnabledProtocols(), sslOptions.getCiphers(), (HostnameVerifier) null));
+            final ClientTlsStrategyBuilder tlsStrategy = ClientTlsStrategyBuilder.create()
+                    .setSslContext(sslcontext)
+                    .setCiphers(sslOptions.getCiphers())
+                    .setHostnameVerifier(null)
+                    .setTlsVersions(sslOptions.getEnabledProtocols());
+
+            final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder
+                    .create()
+                    .setTlsStrategy(tlsStrategy.build())
+                    .build();
+
+            builder.setConnectionManager(connectionManager);
         }
     }
 
@@ -191,8 +211,10 @@ class OpenSearchRestClientConfigurations {
         ConnectionsDetailsCredentialsProvider(OpenSearchConnectionDetails connectionDetails) {
             if (StringUtils.hasText(connectionDetails.getUsername())) {
                 Credentials credentials =
-                        new UsernamePasswordCredentials(connectionDetails.getUsername(), connectionDetails.getPassword());
-                setCredentials(AuthScope.ANY, credentials);
+                        new UsernamePasswordCredentials(connectionDetails.getUsername(), connectionDetails.getPassword().toCharArray());
+                for (var uri: connectionDetails.getUris()) {
+                    setCredentials(new AuthScope(RestClientBuilderConfiguration.createHttpHost(uri)), credentials);
+                }
             }
             connectionDetails.getUris().stream()
                     .map(this::toUri)
@@ -225,7 +247,7 @@ class OpenSearchRestClientConfigurations {
             }
             String username = userInfo.substring(0, delimiter);
             String password = userInfo.substring(delimiter + 1);
-            return new UsernamePasswordCredentials(username, password);
+            return new UsernamePasswordCredentials(username, password.toCharArray());
         }
     }
 }

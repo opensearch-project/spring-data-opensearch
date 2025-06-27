@@ -15,7 +15,7 @@
  */
 package org.springframework.data.elasticsearch.junit.jupiter;
 
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -34,14 +34,14 @@ public final class ClusterConnectionInfo {
 	private final String host;
 	private final int httpPort;
 	private final String clusterName;
-	@Nullable private final OpensearchContainer opensearchContainer;
+	@Nullable private final OpenSearchContainer<?> opensearchContainer;
 
 	public static Builder builder() {
 		return new Builder();
 	}
 
 	private ClusterConnectionInfo(IntegrationtestEnvironment integrationtestEnvironment, String host, int httpPort,
-			boolean useSsl, @Nullable OpensearchContainer opensearchContainer) {
+			boolean useSsl, @Nullable OpenSearchContainer<?> opensearchContainer) {
 		this.integrationtestEnvironment = integrationtestEnvironment;
 		this.host = host;
 		this.httpPort = httpPort;
@@ -77,7 +77,7 @@ public final class ClusterConnectionInfo {
 	}
 
 	@Nullable
-	public OpensearchContainer getOpensearchContainer() {
+	public OpenSearchContainer getOpenSearchContainer() {
 		return opensearchContainer;
 	}
 
@@ -86,7 +86,7 @@ public final class ClusterConnectionInfo {
 		private boolean useSsl = false;
 		private String host;
 		private int httpPort;
-		@Nullable private OpensearchContainer opensearchContainer;
+		@Nullable private OpenSearchContainer<?> opensearchContainer;
 
 		public Builder withIntegrationtestEnvironment(IntegrationtestEnvironment integrationtestEnvironment) {
 			this.integrationtestEnvironment = integrationtestEnvironment;
@@ -107,7 +107,7 @@ public final class ClusterConnectionInfo {
 			return this;
 		}
 
-		public Builder withOpensearchContainer(OpensearchContainer opensearchContainer) {
+		public Builder withOpensearchContainer(OpenSearchContainer<?> opensearchContainer) {
 			this.opensearchContainer = opensearchContainer;
 			return this;
 		}

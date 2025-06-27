@@ -1,7 +1,7 @@
 package org.opensearch.data.example.repository;
 
 import org.opensearch.data.example.MarketplaceApplication;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -20,8 +20,8 @@ public class TestMarketplaceApplication {
 
         @Bean
         @ServiceConnection
-        OpensearchContainer<?> opensearchContainer() {
-            return new OpensearchContainer<>("opensearchproject/opensearch:2.19.1");
+        OpenSearchContainer<?> opensearchContainer() {
+            return new OpenSearchContainer<>("opensearchproject/opensearch:3.1.0");
         }
 
     }

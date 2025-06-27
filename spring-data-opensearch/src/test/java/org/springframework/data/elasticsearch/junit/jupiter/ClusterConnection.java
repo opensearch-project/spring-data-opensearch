@@ -26,7 +26,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -131,7 +131,7 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 			DockerImageName dockerImageName = getDockerImageName(testcontainersProperties);
 
 			@SuppressWarnings("resource")
-			OpensearchContainer<?> opensearchContainer = new SpringDataOpensearchContainer(dockerImageName)
+			OpenSearchContainer<?> opensearchContainer = new SpringDataOpensearchContainer(dockerImageName)
 					.withEnv(testcontainersProperties);
 			opensearchContainer.start();
 
@@ -192,11 +192,11 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 	@Override
 	public void close() {
 
-		if (clusterConnectionInfo != null && clusterConnectionInfo.getOpensearchContainer() != null) {
+		if (clusterConnectionInfo != null && clusterConnectionInfo.getOpenSearchContainer() != null) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Stopping container");
 			}
-			clusterConnectionInfo.getOpensearchContainer().stop();
+			clusterConnectionInfo.getOpenSearchContainer().stop();
 		}
 
 		if (LOGGER.isDebugEnabled()) {
@@ -204,7 +204,7 @@ public class ClusterConnection implements ExtensionContext.Store.CloseableResour
 		}
 	}
 
-	private static class SpringDataOpensearchContainer extends OpensearchContainer<SpringDataOpensearchContainer> {
+	private static class SpringDataOpensearchContainer extends OpenSearchContainer<SpringDataOpensearchContainer> {
 
 		public SpringDataOpensearchContainer(DockerImageName dockerImageName) {
 			super(dockerImageName);

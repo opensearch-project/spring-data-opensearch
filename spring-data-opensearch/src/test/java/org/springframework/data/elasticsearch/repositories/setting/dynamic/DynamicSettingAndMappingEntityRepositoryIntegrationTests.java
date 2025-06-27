@@ -75,8 +75,12 @@ public abstract class DynamicSettingAndMappingEntityRepositoryIntegrationTests {
 		assertThat(map.containsKey("index.number_of_replicas")).isTrue();
 		assertThat(map.containsKey("index.number_of_shards")).isTrue();
 		assertThat(map.containsKey("index.analysis.analyzer.emailAnalyzer.tokenizer")).isTrue();
-		assertThat(map.get("index.number_of_replicas")).isEqualTo("0");
-		assertThat(map.get("index.number_of_shards")).isEqualTo("1");
+		assertThat(map.get("index.number_of_replicas")).satisfiesAnyOf(
+                replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+                replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+		assertThat(map.get("index.number_of_shards")).satisfiesAnyOf(
+                shards -> assertThat(shards).isEqualTo("1"), // RHLC
+                shards -> assertThat(shards).isEqualTo(1)); // OSC
 		assertThat(map.get("index.analysis.analyzer.emailAnalyzer.tokenizer")).isEqualTo("uax_url_email");
 	}
 

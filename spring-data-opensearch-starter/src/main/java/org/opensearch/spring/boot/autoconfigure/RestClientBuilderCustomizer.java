@@ -5,9 +5,9 @@
 
 package org.opensearch.spring.boot.autoconfigure;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.RequestConfig.Builder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.opensearch.client.RestClientBuilder;
 
 /**

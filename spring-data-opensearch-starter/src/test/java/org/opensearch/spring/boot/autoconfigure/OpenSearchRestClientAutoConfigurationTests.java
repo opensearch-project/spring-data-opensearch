@@ -10,14 +10,17 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.nio.conn.SchemeIOSessionStrategy;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.util.Timeout;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.Node;
@@ -88,7 +91,7 @@ class OpenSearchRestClientAutoConfigurationTests {
                     RestClient restClient = context.getBean(RestClient.class);
                     assertThat(restClient).hasFieldOrPropertyWithValue("pathPrefix", "/test");
                     assertThat(restClient)
-                            .extracting("client.connmgr.pool.maxTotal")
+                            .extracting("client.manager.pool.maxTotal")
                             .isEqualTo(100);
                     assertThat(restClient)
                             .extracting("client.defaultConfig.cookieSpec")
@@ -104,7 +107,7 @@ class OpenSearchRestClientAutoConfigurationTests {
             assertTimeouts(
                     restClient,
                     Duration.ofMillis(RestClientBuilder.DEFAULT_CONNECT_TIMEOUT_MILLIS),
-                    Duration.ofMillis(RestClientBuilder.DEFAULT_SOCKET_TIMEOUT_MILLIS));
+                    Duration.ofMillis(RestClientBuilder.DEFAULT_CONNECT_TIMEOUT_MILLIS));
         });
     }
 
@@ -115,7 +118,7 @@ class OpenSearchRestClientAutoConfigurationTests {
                 .run((context) -> {
                     assertThat(context).hasSingleBean(RestClient.class);
                     RestClient restClient = context.getBean(RestClient.class);
-                    assertTimeouts(restClient, Duration.ofSeconds(15), Duration.ofMinutes(1));
+                    assertTimeouts(restClient, Duration.ofSeconds(15), Duration.ofSeconds(15));
                 });
     }
 
@@ -142,7 +145,7 @@ class OpenSearchRestClientAutoConfigurationTests {
                                     InstanceOfAssertFactories.type(CredentialsProvider.class))
                             .satisfies((credentialsProvider) -> {
                                 Credentials credentials =
-                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200));
+                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200), HttpClientContext.create());
                                 assertThat(credentials.getUserPrincipal().getName())
                                         .isEqualTo("user");
                                 assertThat(credentials.getPassword()).isNull();
@@ -164,7 +167,8 @@ class OpenSearchRestClientAutoConfigurationTests {
                                     InstanceOfAssertFactories.type(CredentialsProvider.class))
                             .satisfies((credentialsProvider) -> {
                                 Credentials credentials =
-                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200));
+                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200),
+                                                HttpClientContext.create());
                                 assertThat(credentials.getUserPrincipal().getName())
                                         .isEqualTo("user");
                                 assertThat(credentials.getPassword()).isEmpty();
@@ -189,15 +193,17 @@ class OpenSearchRestClientAutoConfigurationTests {
                                     InstanceOfAssertFactories.type(CredentialsProvider.class))
                             .satisfies((credentialsProvider) -> {
                                 Credentials uriCredentials =
-                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200));
+                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9200),
+                                                HttpClientContext.create());
                                 assertThat(uriCredentials.getUserPrincipal().getName())
                                         .isEqualTo("user");
-                                assertThat(uriCredentials.getPassword()).isEqualTo("password");
+                                assertThat(uriCredentials.getPassword()).isEqualTo("password".toCharArray());
                                 Credentials defaultCredentials =
-                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9201));
+                                        credentialsProvider.getCredentials(new AuthScope("localhost", 9201),
+                                                HttpClientContext.create());
                                 assertThat(defaultCredentials.getUserPrincipal().getName())
                                         .isEqualTo("admin");
-                                assertThat(defaultCredentials.getPassword()).isEqualTo("admin");
+                                assertThat(defaultCredentials.getPassword()).isEqualTo("admin".toCharArray());
                             });
                 });
     }
@@ -277,9 +283,11 @@ class OpenSearchRestClientAutoConfigurationTests {
                     assertThat(context).hasSingleBean(RestClient.class);
                     RestClient restClient = context.getBean(RestClient.class);
                     Object client = ReflectionTestUtils.getField(restClient, "client");
-                    Object connmgr = ReflectionTestUtils.getField(client, "connmgr");
-                    Registry<SchemeIOSessionStrategy> registry = (Registry<SchemeIOSessionStrategy>) ReflectionTestUtils.getField(connmgr, "ioSessionFactoryRegistry");
-                    SchemeIOSessionStrategy strategy = registry.lookup("https");
+                    Object connmgr = ReflectionTestUtils.getField(client, "manager");
+                    Object connectionOperator = ReflectionTestUtils.getField(connmgr, "connectionOperator");
+
+                    Lookup<TlsStrategy> registry = (Lookup<TlsStrategy>) ReflectionTestUtils.getField(connectionOperator, "tlsStrategyLookup");
+                    TlsStrategy strategy = registry.lookup("https");
                     assertThat(strategy).extracting("sslContext").isNotNull();
                     assertThat(strategy).extracting("supportedCipherSuites")
                             .asInstanceOf(InstanceOfAssertFactories.ARRAY)
@@ -305,7 +313,8 @@ class OpenSearchRestClientAutoConfigurationTests {
 
                 @Override
                 public void customize(HttpAsyncClientBuilder builder) {
-                    builder.setMaxConnTotal(100);
+                    builder.setConnectionManager(PoolingAsyncClientConnectionManagerBuilder
+                        .create().setMaxConnTotal(100).build());
                 }
 
                 @Override
@@ -318,11 +327,11 @@ class OpenSearchRestClientAutoConfigurationTests {
 
     private static void assertTimeouts(RestClient restClient, Duration connectTimeout, Duration readTimeout) {
         assertThat(restClient)
-                .extracting("client.defaultConfig.socketTimeout")
-                .isEqualTo(Math.toIntExact(readTimeout.toMillis()));
+                .extracting("client.defaultConfig.connectionRequestTimeout")
+                .isEqualTo(Timeout.ofMilliseconds(readTimeout.toMillis()));
         assertThat(restClient)
                 .extracting("client.defaultConfig.connectTimeout")
-                .isEqualTo(Math.toIntExact(connectTimeout.toMillis()));
+                .isEqualTo(Timeout.ofMilliseconds(connectTimeout.toMillis()));
     }
 
     @Configuration(proxyBeanMethods = false)

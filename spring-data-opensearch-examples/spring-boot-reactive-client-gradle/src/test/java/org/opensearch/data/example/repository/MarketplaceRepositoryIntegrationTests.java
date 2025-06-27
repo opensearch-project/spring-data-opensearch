@@ -9,7 +9,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.opensearch.spring.boot.autoconfigure.test.DataOpenSearchTest;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.elasticsearch.repository.config.EnableReactiveElasticsearchRepositories;
@@ -24,7 +24,7 @@ import reactor.test.StepVerifier;
 public class MarketplaceRepositoryIntegrationTests {
     @Container
     @ServiceConnection
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
+    static final OpenSearchContainer<?> opensearch = new OpenSearchContainer<>("opensearchproject/opensearch:3.1.0")
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(2));
 
