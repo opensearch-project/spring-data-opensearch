@@ -113,8 +113,12 @@ public abstract class ReactiveIndexOperationsIntegrationTests {
 
 		// check the settings from the class annotation
 		indexOps.getSettings().as(StepVerifier::create).consumeNextWith(settings -> {
-			assertThat(settings.get("index.number_of_replicas")).isEqualTo("2");
-			assertThat(settings.get("index.number_of_shards")).isEqualTo("3");
+			assertThat(settings.get("index.number_of_replicas")).satisfiesAnyOf(
+					replicas -> assertThat(replicas).isEqualTo("2"), // RHLC
+					replicas -> assertThat(replicas).isEqualTo(2)); // OSC
+			assertThat(settings.get("index.number_of_shards")).satisfiesAnyOf(
+					shards -> assertThat(shards).isEqualTo("3"), // RHLC
+					shards -> assertThat(shards).isEqualTo(3)); // OSC
 			assertThat(settings.get("index.refresh_interval")).isEqualTo("4s");
 		}).verifyComplete();
 	}
@@ -135,8 +139,12 @@ public abstract class ReactiveIndexOperationsIntegrationTests {
 
 		indexOperations.getSettings().as(StepVerifier::create).consumeNextWith(settings -> {
 			var flattened = settings.flatten();
-			assertThat(flattened.get("index.number_of_replicas")).isEqualTo("3");
-			assertThat(flattened.get("index.number_of_shards")).isEqualTo("4");
+			assertThat(flattened.get("index.number_of_replicas")).satisfiesAnyOf(
+					replicas -> assertThat(replicas).isEqualTo("3"), // RHLC
+					replicas -> assertThat(replicas).isEqualTo(3)); // OSC
+			assertThat(flattened.get("index.number_of_shards")).satisfiesAnyOf(
+					shards -> assertThat(shards).isEqualTo("4"), // RHLC
+					shards -> assertThat(shards).isEqualTo(4)); // OSC;
 			assertThat(flattened.get("index.refresh_interval")).isEqualTo("5s");
 		}).verifyComplete();
 	}
@@ -152,8 +160,12 @@ public abstract class ReactiveIndexOperationsIntegrationTests {
 				.verifyComplete();
 
 		indexOps.getSettings().as(StepVerifier::create).consumeNextWith(settings -> {
-			assertThat(settings.get("index.number_of_replicas")).isEqualTo("0");
-			assertThat(settings.get("index.number_of_shards")).isEqualTo("1");
+			assertThat(settings.get("index.number_of_replicas")).satisfiesAnyOf(
+					replicas -> assertThat(replicas).isEqualTo("0"), // RHLC
+					replicas -> assertThat(replicas).isEqualTo(0)); // OSC
+			assertThat(settings.get("index.number_of_shards")).satisfiesAnyOf(
+					shards -> assertThat(shards).isEqualTo("1"), // RHLC
+					shards -> assertThat(shards).isEqualTo(1)); // OSC
 			assertThat(settings.get("index.analysis.analyzer.emailAnalyzer.tokenizer")).isNotNull();
 			assertThat(settings.get("index.analysis.analyzer.emailAnalyzer.tokenizer")).isEqualTo("uax_url_email");
 		}).verifyComplete();
@@ -169,8 +181,12 @@ public abstract class ReactiveIndexOperationsIntegrationTests {
 
 		// check the settings from the class annotation
 		indexOperations.getSettings().as(StepVerifier::create).consumeNextWith(settings -> {
-			assertThat(settings.get("index.number_of_replicas")).isEqualTo("1");
-			assertThat(settings.get("index.number_of_shards")).isEqualTo("1");
+			assertThat(settings.get("index.number_of_replicas")).satisfiesAnyOf(
+					replicas -> assertThat(replicas).isEqualTo("1"), // RHLC
+					replicas -> assertThat(replicas).isEqualTo(1)); // OSC
+			assertThat(settings.get("index.number_of_shards")).satisfiesAnyOf(
+					shards -> assertThat(shards).isEqualTo("1"), // RHLC
+					shards -> assertThat(shards).isEqualTo(1)); // OSC
 		}).verifyComplete();
 	}
 

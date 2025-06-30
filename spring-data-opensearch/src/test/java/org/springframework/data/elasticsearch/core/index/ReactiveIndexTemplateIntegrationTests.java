@@ -31,6 +31,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.skyscreamer.jsonassert.JSONCompareResult;
+import org.skyscreamer.jsonassert.comparator.DefaultComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -161,7 +164,21 @@ public abstract class ReactiveIndexTemplateIntegrationTests {
 		var componentTemplateData = returnedComponentTemplate.templateData();
 
 		assertEquals(mapping.toJson(), componentTemplateData.mapping().toJson(), false);
-		assertEquals(settings.flatten().toJson(), componentTemplateData.settings().flatten().toJson(), false);
+		assertEquals(settings.flatten().toJson(), componentTemplateData.settings().flatten().toJson(), new DefaultComparator(JSONCompareMode.LENIENT) {
+			@Override
+			public void compareValues(String prefix, Object expectedValue, Object actualValue, JSONCompareResult result) throws JSONException {
+			    // Since 3.0, OpenSearch Java client represents shards and replicas as numbers, but Spring Data
+				// Elasticsearch repsents them as string in Settings. Providing custom comparator to deal with this
+				// mismatch.
+				if (expectedValue instanceof String s && actualValue instanceof Number) {
+					if (!actualValue.toString().equalsIgnoreCase(s)) {
+						result.fail(prefix, expectedValue, actualValue);
+					}
+				} else {
+					super.compareValues(prefix, expectedValue, actualValue, result);
+				}
+			}
+		});
 		var aliases = componentTemplateData.aliases();
 		assertThat(aliases).hasSize(2);
 		AliasData alias1 = aliases.get("alias1");

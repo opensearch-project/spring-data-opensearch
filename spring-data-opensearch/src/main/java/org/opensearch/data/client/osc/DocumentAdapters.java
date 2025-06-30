@@ -27,7 +27,6 @@ import org.opensearch.client.json.JsonData;
 import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.core.GetResponse;
 import org.opensearch.client.opensearch.core.MgetResponse;
-import org.opensearch.client.opensearch.core.explain.ExplanationDetail;
 import org.opensearch.client.opensearch.core.get.GetResult;
 import org.opensearch.client.opensearch.core.search.CompletionSuggestOption;
 import org.opensearch.client.opensearch.core.search.Hit;
@@ -164,14 +163,7 @@ final class DocumentAdapters {
             return null;
         }
         List<Explanation> details = explanation.details().stream().map(DocumentAdapters::from).collect(Collectors.toList());
-        return new Explanation(true, (double) explanation.value(), explanation.description(), details);
-    }
-
-    private static Explanation from(ExplanationDetail explanationDetail) {
-
-        List<Explanation> details = explanationDetail.details().stream().map(DocumentAdapters::from)
-                .collect(Collectors.toList());
-        return new Explanation(null, (double) explanationDetail.value(), explanationDetail.description(), details);
+        return new Explanation(details.isEmpty() ? null : true, toDouble(explanation.value()), explanation.description(), details);
     }
 
     @Nullable
@@ -236,4 +228,14 @@ final class DocumentAdapters {
                         ResponseConverter.getFailure(itemResponse)))
                 .collect(Collectors.toList());
     }
+
+
+    private static Double toDouble(Number value) {
+        if (value == null) {
+            return null;
+        } else {
+            return value.doubleValue();
+        }
+    }
+
 }

@@ -16,6 +16,7 @@
 package org.opensearch.data.client.osc;
 
 import java.net.InetSocketAddress;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -30,14 +31,19 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Timeout;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
@@ -178,7 +184,13 @@ public final class OpenSearchClients {
 
     private static RestClientBuilder getRestClientBuilder(ClientConfiguration clientConfiguration) {
         HttpHost[] httpHosts = formattedHosts(clientConfiguration.getEndpoints(), clientConfiguration.useSsl()).stream()
-                .map(HttpHost::create).toArray(HttpHost[]::new);
+                .map(s -> {
+                    try {
+                        return HttpHost.create(s);
+                    } catch (final URISyntaxException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                }).toArray(HttpHost[]::new);
         RestClientBuilder builder = RestClient.builder(httpHosts);
 
         if (clientConfiguration.getPathPrefix() != null) {
@@ -192,31 +204,36 @@ public final class OpenSearchClients {
         }
 
         builder.setHttpClientConfigCallback(clientBuilder -> {
+            ClientTlsStrategyBuilder tlsStrategy = ClientTlsStrategyBuilder.create();
             if (clientConfiguration.getCaFingerprint().isPresent()) {
-                clientBuilder
-                        .setSSLContext(sslContextFromCaFingerprint(clientConfiguration.getCaFingerprint().get()));
+                tlsStrategy = tlsStrategy.setSslContext(sslContextFromCaFingerprint(clientConfiguration.getCaFingerprint().get()));
             }
-            clientConfiguration.getSslContext().ifPresent(clientBuilder::setSSLContext);
-            clientConfiguration.getHostNameVerifier().ifPresent(clientBuilder::setSSLHostnameVerifier);
-            clientBuilder.addInterceptorLast(new CustomHeaderInjector(clientConfiguration.getHeadersSupplier()));
+            clientConfiguration.getSslContext().ifPresent(tlsStrategy::setSslContext);
+            clientConfiguration.getHostNameVerifier().ifPresent(tlsStrategy::setHostnameVerifier);
+            clientBuilder.addRequestInterceptorLast(new CustomHeaderInjector(clientConfiguration.getHeadersSupplier()));
 
             RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
             Duration connectTimeout = clientConfiguration.getConnectTimeout();
 
             if (!connectTimeout.isNegative()) {
-                requestConfigBuilder.setConnectTimeout(Math.toIntExact(connectTimeout.toMillis()));
+                requestConfigBuilder.setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()));
             }
 
             Duration socketTimeout = clientConfiguration.getSocketTimeout();
 
             if (!socketTimeout.isNegative()) {
-                requestConfigBuilder.setSocketTimeout(Math.toIntExact(socketTimeout.toMillis()));
-                requestConfigBuilder.setConnectionRequestTimeout(Math.toIntExact(socketTimeout.toMillis()));
+                requestConfigBuilder.setConnectionRequestTimeout(Timeout.ofMilliseconds(socketTimeout.toMillis()));
             }
 
             clientBuilder.setDefaultRequestConfig(requestConfigBuilder.build());
 
-            clientConfiguration.getProxy().map(HttpHost::create).ifPresent(clientBuilder::setProxy);
+            clientConfiguration.getProxy().map(s -> {
+                try {
+                    return HttpHost.create(s);
+                } catch (final URISyntaxException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }).ifPresent(clientBuilder::setProxy);
 
             for (ClientConfiguration.ClientConfigurationCallback<?> clientConfigurer : clientConfiguration
                     .getClientConfigurers()) {
@@ -225,7 +242,11 @@ public final class OpenSearchClients {
                 }
             }
 
-            return clientBuilder;
+            final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                .setTlsStrategy(tlsStrategy.build())
+                .build();
+
+            return clientBuilder.setConnectionManager(connectionManager);
         });
 
         for (ClientConfiguration.ClientConfigurationCallback<?> clientConfigurationCallback : clientConfiguration
@@ -375,11 +396,11 @@ public final class OpenSearchClients {
                 .collect(Collectors.toList());
     }
 
-    private static org.apache.http.Header[] toHeaderArray(HttpHeaders headers) {
+    private static org.apache.hc.core5.http.Header[] toHeaderArray(HttpHeaders headers) {
         return headers.entrySet().stream() //
                 .flatMap(entry -> entry.getValue().stream() //
                         .map(value -> new BasicHeader(entry.getKey(), value))) //
-                .toArray(org.apache.http.Header[]::new);
+                .toArray(org.apache.hc.core5.http.Header[]::new);
     }
 
     /**
@@ -390,7 +411,7 @@ public final class OpenSearchClients {
     private record CustomHeaderInjector(Supplier<HttpHeaders> headersSupplier) implements HttpRequestInterceptor {
 
         @Override
-        public void process(HttpRequest request, HttpContext context) {
+        public void process(HttpRequest request, EntityDetails entity, HttpContext context) {
             HttpHeaders httpHeaders = headersSupplier.get();
 
             if (httpHeaders != null && !httpHeaders.isEmpty()) {

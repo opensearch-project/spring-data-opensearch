@@ -13,7 +13,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.DisposableBean;
@@ -79,7 +79,7 @@ public class RestClientFactoryBean implements FactoryBean<RestHighLevelClient>, 
         ArrayList<HttpHost> httpHosts = new ArrayList<>();
         for (String host : hosts.split(COMMA)) {
             URL hostUrl = new URL(host);
-            httpHosts.add(new HttpHost(hostUrl.getHost(), hostUrl.getPort(), hostUrl.getProtocol()));
+            httpHosts.add(new HttpHost(hostUrl.getProtocol(), hostUrl.getHost(), hostUrl.getPort()));
         }
         client = new RestHighLevelClient(RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()])));
     }

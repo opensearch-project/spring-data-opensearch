@@ -22,7 +22,7 @@ import org.opensearch.spring.boot.autoconfigure.data.entity.Product;
 import org.opensearch.spring.boot.autoconfigure.data.entity.ProductOpenSearchRepository;
 import org.opensearch.spring.boot.autoconfigure.data.entity.ReactiveProductOpenSearchRepository;
 import org.opensearch.spring.boot.autoconfigure.data.repository.ProductRepository;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -41,7 +41,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 class OpenSearchDataAutoConfigurationIntegrationTests extends AbstractOpenSearchIntegrationTest {
     @Container
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>(getDockerImageName())
+    static final OpenSearchContainer<?> opensearch = new OpenSearchContainer<>(getDockerImageName())
             .withStartupAttempts(5)
             .withStartupTimeout(Duration.ofMinutes(10));
 

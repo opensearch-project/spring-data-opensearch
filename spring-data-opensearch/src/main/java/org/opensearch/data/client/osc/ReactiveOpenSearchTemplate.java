@@ -25,9 +25,9 @@ import org.apache.commons.logging.LogFactory;
 import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.*;
+import org.opensearch.client.opensearch.core.CreatePitResponse;
+import org.opensearch.client.opensearch.core.DeletePitRequest;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
-import org.opensearch.client.opensearch.core.pit.CreatePitResponse;
-import org.opensearch.client.opensearch.core.pit.DeletePitRequest;
 import org.opensearch.client.transport.Version;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.reactivestreams.Publisher;
@@ -400,7 +400,7 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
                                 return Mono.empty();
                             }
 
-                            List<Object> sortOptions = hits.get(hits.size() - 1).sortVals().stream().map(TypeUtils::toObject)
+                            List<Object> sortOptions = hits.get(hits.size() - 1).sort().stream().map(TypeUtils::toObject)
                                     .collect(Collectors.toList());
                             baseQuery.setSearchAfter(sortOptions);
                             SearchRequest followSearchRequest = requestConverter.searchRequest(baseQuery,
