@@ -95,7 +95,9 @@ import org.springframework.data.elasticsearch.core.index.AliasAction;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
 import org.springframework.data.elasticsearch.core.index.DeleteTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.ExistsIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.ExistsTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
@@ -396,12 +398,24 @@ class RequestFactory {
         return new GetIndexTemplatesRequest(getTemplateRequest.getTemplateName());
     }
 
+    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetIndexTemplateRequest getTemplateRequest) {
+        return new GetIndexTemplatesRequest(getTemplateRequest.templateName());
+    }
+
     public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsTemplateRequest existsTemplateRequest) {
         return new IndexTemplatesExistRequest(existsTemplateRequest.getTemplateName());
     }
 
+    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsIndexTemplateRequest existsTemplateRequest) {
+        return new IndexTemplatesExistRequest(existsTemplateRequest.templateName());
+    }
+
     public DeleteIndexTemplateRequest deleteIndexTemplateRequest(DeleteTemplateRequest deleteTemplateRequest) {
         return new DeleteIndexTemplateRequest(deleteTemplateRequest.getTemplateName());
+    }
+
+    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteTemplateRequest) {
+        return new DeleteIndexTemplateRequest(deleteTemplateRequest.templateName());
     }
 
     public org.opensearch.index.reindex.ReindexRequest reindexRequest(ReindexRequest reindexRequest) {
