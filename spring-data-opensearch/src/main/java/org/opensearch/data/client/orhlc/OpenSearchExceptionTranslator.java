@@ -64,10 +64,10 @@ public class OpenSearchExceptionTranslator implements PersistenceExceptionTransl
 
             if (statusException.status() == RestStatus.NOT_FOUND) {
                 if (statusException.getMessage().contains("index_not_found_exception")) {
-                    Pattern pattern = Pattern.compile(".*no such index \\[(.*)\\]");
+                    Pattern pattern = Pattern.compile("no such index \\[([^\\]]+)]");
                     String index = "";
                     Matcher matcher = pattern.matcher(statusException.getMessage());
-                    if (matcher.matches()) {
+                    if (matcher.find()) {
                         index = matcher.group(1);
                     }
 
