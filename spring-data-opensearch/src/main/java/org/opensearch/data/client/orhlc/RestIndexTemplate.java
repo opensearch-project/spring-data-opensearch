@@ -232,7 +232,6 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
     }
 
     @Override
-    // todo tlongo test?
     public boolean putIndexTemplate(
             org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest esPutIndexTemplateRequest)
     {

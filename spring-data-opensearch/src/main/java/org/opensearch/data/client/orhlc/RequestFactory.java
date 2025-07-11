@@ -327,7 +327,6 @@ class RequestFactory {
     }
 
     public PutIndexTemplateRequest putIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
-
         PutIndexTemplateRequest request = new PutIndexTemplateRequest(putIndexTemplateRequest.name())
                 .patterns(Arrays.asList(putIndexTemplateRequest.indexPatterns()));
 
@@ -339,60 +338,68 @@ class RequestFactory {
             request.mapping(putIndexTemplateRequest.mapping());
         }
 
-        // todo tlongo where to get order from?
-//        request.order(putIndexTemplateRequest.getOrder()).version(putIndexTemplateRequest.getVersion());
-
         AliasActions aliasActions = putIndexTemplateRequest.aliasActions();
 
-        if (aliasActions != null) {
-            aliasActions.getActions().forEach(aliasAction -> {
-                AliasActionParameters parameters = aliasAction.getParameters();
-                String[] parametersAliases = parameters.getAliases();
-
-                if (parametersAliases != null) {
-                    for (String aliasName : parametersAliases) {
-                        Alias alias = new Alias(aliasName);
-
-                        if (parameters.getRouting() != null) {
-                            alias.routing(parameters.getRouting());
-                        }
-
-                        if (parameters.getIndexRouting() != null) {
-                            alias.indexRouting(parameters.getIndexRouting());
-                        }
-
-                        if (parameters.getSearchRouting() != null) {
-                            alias.searchRouting(parameters.getSearchRouting());
-                        }
-
-                        if (parameters.getHidden() != null) {
-                            alias.isHidden(parameters.getHidden());
-                        }
-
-                        if (parameters.getWriteIndex() != null) {
-                            alias.writeIndex(parameters.getWriteIndex());
-                        }
-
-                        Query filterQuery = parameters.getFilterQuery();
-
-                        if (filterQuery != null) {
-                            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
-                            QueryBuilder queryBuilder = getFilter(filterQuery);
-
-                            if (queryBuilder == null) {
-                                queryBuilder = getQuery(filterQuery);
-                            }
-
-                            alias.filter(queryBuilder);
-                        }
-
-                        request.alias(alias);
-                    }
-                }
-            });
+        if (aliasActions == null) {
+            return request;
         }
 
+        aliasActions.getActions().forEach(aliasAction -> {
+            AliasActionParameters parameters = aliasAction.getParameters();
+            String[] parametersAliases = parameters.getAliases();
+
+            if (parametersAliases == null) {
+                return;
+            }
+
+            for (String aliasName : parametersAliases) {
+                Alias alias = createAndConfigureAlias(aliasName, parameters);
+                request.alias(alias);
+            }
+        });
+
         return request;
+    }
+
+    private Alias createAndConfigureAlias(String aliasName, AliasActionParameters parameters) {
+        Alias alias = new Alias(aliasName);
+
+        // noinspection DuplicatedCode
+        if (parameters.getRouting() != null) {
+            alias.routing(parameters.getRouting());
+        }
+
+        if (parameters.getIndexRouting() != null) {
+            alias.indexRouting(parameters.getIndexRouting());
+        }
+
+        if (parameters.getSearchRouting() != null) {
+            alias.searchRouting(parameters.getSearchRouting());
+        }
+
+        if (parameters.getHidden() != null) {
+            alias.isHidden(parameters.getHidden());
+        }
+
+        if (parameters.getWriteIndex() != null) {
+            alias.writeIndex(parameters.getWriteIndex());
+        }
+
+        // noinspection DuplicatedCode
+        Query filterQuery = parameters.getFilterQuery();
+
+        if (filterQuery != null) {
+            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
+            QueryBuilder queryBuilder = getFilter(filterQuery);
+
+            if (queryBuilder == null) {
+                queryBuilder = getQuery(filterQuery);
+            }
+
+            alias.filter(queryBuilder);
+        }
+
+        return alias;
     }
 
     public PutIndexTemplateRequest putIndexTemplateRequest(PutTemplateRequest putTemplateRequest) {
@@ -419,41 +426,7 @@ class RequestFactory {
 
                 if (parametersAliases != null) {
                     for (String aliasName : parametersAliases) {
-                        Alias alias = new Alias(aliasName);
-
-                        if (parameters.getRouting() != null) {
-                            alias.routing(parameters.getRouting());
-                        }
-
-                        if (parameters.getIndexRouting() != null) {
-                            alias.indexRouting(parameters.getIndexRouting());
-                        }
-
-                        if (parameters.getSearchRouting() != null) {
-                            alias.searchRouting(parameters.getSearchRouting());
-                        }
-
-                        if (parameters.getHidden() != null) {
-                            alias.isHidden(parameters.getHidden());
-                        }
-
-                        if (parameters.getWriteIndex() != null) {
-                            alias.writeIndex(parameters.getWriteIndex());
-                        }
-
-                        Query filterQuery = parameters.getFilterQuery();
-
-                        if (filterQuery != null) {
-                            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
-                            QueryBuilder queryBuilder = getFilter(filterQuery);
-
-                            if (queryBuilder == null) {
-                                queryBuilder = getQuery(filterQuery);
-                            }
-
-                            alias.filter(queryBuilder);
-                        }
-
+                        Alias alias = createAndConfigureAlias(aliasName, parameters);
                         request.alias(alias);
                     }
                 }
