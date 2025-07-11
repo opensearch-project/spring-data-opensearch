@@ -239,9 +239,7 @@ public class ResponseConverter {
 
             if (indexTemplateMetadata.name().equals(templateName)) {
 
-                Settings settings = new Settings();
-                org.opensearch.common.settings.Settings templateSettings = indexTemplateMetadata.settings();
-                templateSettings.keySet().forEach(key -> settings.put(key, templateSettings.get(key)));
+                Settings settings = extracSettingsFromMetaData(indexTemplateMetadata);
 
                 Map<String, AliasData> aliases = new LinkedHashMap<>();
 

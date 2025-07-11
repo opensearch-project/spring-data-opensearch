@@ -37,7 +37,6 @@ import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.opensearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.opensearch.action.admin.indices.refresh.RefreshRequest;
 import org.opensearch.action.admin.indices.settings.get.GetSettingsRequest;
-import org.opensearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.delete.DeleteRequest;
 import org.opensearch.action.get.GetRequest;
@@ -53,9 +52,7 @@ import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.client.Requests;
 import org.opensearch.client.indices.CreateIndexRequest;
 import org.opensearch.client.indices.GetIndexRequest;
-import org.opensearch.client.indices.GetIndexTemplatesRequest;
 import org.opensearch.client.indices.GetMappingsRequest;
-import org.opensearch.client.indices.IndexTemplatesExistRequest;
 import org.opensearch.client.indices.PutIndexTemplateRequest;
 import org.opensearch.client.indices.PutMappingRequest;
 import org.opensearch.common.geo.GeoDistance;
@@ -95,9 +92,6 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.AliasAction;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
-import org.springframework.data.elasticsearch.core.index.DeleteTemplateRequest;
-import org.springframework.data.elasticsearch.core.index.ExistsTemplateRequest;
-import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
@@ -396,18 +390,6 @@ class RequestFactory {
         }
 
         return request;
-    }
-
-    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetTemplateRequest getTemplateRequest) {
-        return new GetIndexTemplatesRequest(getTemplateRequest.getTemplateName());
-    }
-
-    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsTemplateRequest existsTemplateRequest) {
-        return new IndexTemplatesExistRequest(existsTemplateRequest.getTemplateName());
-    }
-
-    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(DeleteTemplateRequest deleteTemplateRequest) {
-        return new DeleteIndexTemplateRequest(deleteTemplateRequest.getTemplateName());
     }
 
     public org.opensearch.index.reindex.ReindexRequest reindexRequest(ReindexRequest reindexRequest) {

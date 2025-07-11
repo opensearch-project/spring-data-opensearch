@@ -13,8 +13,11 @@ import org.opensearch.index.query.QueryBuilder;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
+import org.springframework.data.elasticsearch.core.index.DeleteTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.ExistsIndexTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.ExistsTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.query.Query;
 
 public class IndexTemplateRequestFactory {
@@ -34,6 +37,18 @@ public class IndexTemplateRequestFactory {
 
     public DeleteIndexTemplateRequest deleteIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteTemplateRequest) {
         return new DeleteIndexTemplateRequest(deleteTemplateRequest.templateName());
+    }
+
+    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetTemplateRequest getTemplateRequest) {
+        return new GetIndexTemplatesRequest(getTemplateRequest.getTemplateName());
+    }
+
+    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsTemplateRequest existsTemplateRequest) {
+        return new IndexTemplatesExistRequest(existsTemplateRequest.getTemplateName());
+    }
+
+    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(DeleteTemplateRequest deleteTemplateRequest) {
+        return new DeleteIndexTemplateRequest(deleteTemplateRequest.getTemplateName());
     }
 
     public PutIndexTemplateRequest putIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {

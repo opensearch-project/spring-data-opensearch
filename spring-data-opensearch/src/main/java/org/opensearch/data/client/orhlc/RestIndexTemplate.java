@@ -205,7 +205,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
             return null;
         }
 
-        GetIndexTemplatesRequest getIndexTemplatesRequest = requestFactory.getIndexTemplatesRequest(getTemplateRequest);
+        GetIndexTemplatesRequest getIndexTemplatesRequest = indexTemplateRequestFactory.getIndexTemplatesRequest(getTemplateRequest);
         GetIndexTemplatesResponse getIndexTemplatesResponse = restTemplate.execute(
                 client -> client.indices().getIndexTemplate(getIndexTemplatesRequest, RequestOptions.DEFAULT));
         return ResponseConverter.getTemplateData(getIndexTemplatesResponse, getTemplateRequest.getTemplateName());
@@ -216,10 +216,8 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
-        IndexTemplatesExistRequest putIndexTemplateRequest =
-                requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
-        return restTemplate.execute(
-                client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
+        IndexTemplatesExistRequest putIndexTemplateRequest = indexTemplateRequestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
+        return restTemplate.execute(client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
     }
 
     @Override
@@ -227,7 +225,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(deleteTemplateRequest, "deleteTemplateRequest must not be null");
 
-        DeleteIndexTemplateRequest deleteIndexTemplateRequest = requestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
+        DeleteIndexTemplateRequest deleteIndexTemplateRequest = indexTemplateRequestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
         return restTemplate
                 .execute(client -> client.indices()
                 .deleteTemplate(deleteIndexTemplateRequest, RequestOptions.DEFAULT)
