@@ -39,10 +39,12 @@ import org.springframework.util.StringUtils;
  */
 class HighlightQueryBuilder {
     private final MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext;
+    private final RequestConverter requestConverter;
 
     HighlightQueryBuilder(
-            MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext) {
+            MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext, RequestConverter requestConverter) {
         this.mappingContext = mappingContext;
+        this.requestConverter = requestConverter;
     }
 
     public org.opensearch.client.opensearch.core.search.Highlight getHighlight(Highlight highlight,
@@ -101,6 +103,10 @@ class HighlightQueryBuilder {
 
         if (parameters.getNumberOfFragments() > -1) {
             builder.numberOfFragments(parameters.getNumberOfFragments());
+        }
+
+        if (parameters.getHighlightQuery() != null) {
+            builder.highlightQuery(requestConverter.getQuery(parameters.getHighlightQuery(), type));
         }
 
         if (StringUtils.hasLength(parameters.getOrder())) {
@@ -172,6 +178,10 @@ class HighlightQueryBuilder {
 
         if (parameters.getNumberOfFragments() > -1) {
             builder.numberOfFragments(parameters.getNumberOfFragments());
+        }
+
+        if (parameters.getHighlightQuery() != null) {
+            builder.highlightQuery(requestConverter.getQuery(parameters.getHighlightQuery(), type));
         }
 
         if (StringUtils.hasLength(parameters.getOrder())) {

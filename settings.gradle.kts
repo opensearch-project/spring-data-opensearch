@@ -8,42 +8,45 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.12.2")
-      version("launcher", "1.12.2")
+      version("jupiter", "5.13.1")
+      version("launcher", "1.13.1")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
       library("junit-platform-launcher", "org.junit.platform", "junit-platform-launcher").versionRef("launcher")
     }
 
     create("springLibs") {
-      version("spring", "6.2.7")
-      version("spring-boot", "3.4.5")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.5.0")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.0")
+      version("spring", "6.2.8")
+      version("spring-boot", "3.5.3")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.5.1")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.1")
       library("web", "org.springframework", "spring-web").versionRef("spring")
+      library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
       library("tx", "org.springframework", "spring-tx").versionRef("spring")
       library("test", "org.springframework", "spring-test").versionRef("spring")
       library("boot-web", "org.springframework.boot", "spring-boot-starter-web").versionRef("spring-boot")
+      library("boot-webflux", "org.springframework.boot", "spring-boot-starter-webflux").versionRef("spring-boot")
       library("boot-autoconfigure", "org.springframework.boot", "spring-boot-autoconfigure").versionRef("spring-boot")
       library("boot-docker-compose", "org.springframework.boot", "spring-boot-docker-compose").versionRef("spring-boot")
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
+      library("projectreactor", "io.projectreactor:reactor-test:3.7.7")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
     create("opensearchLibs") {
-      version("opensearch", "2.19.0")
-      library("java-client", "org.opensearch.client:opensearch-java:2.23.0")
+      version("opensearch", "3.1.0")
+      library("java-client", "org.opensearch.client:opensearch-java:3.1.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
-      library("testcontainers", "org.opensearch:opensearch-testcontainers:2.1.3") 
+      library("testcontainers", "org.opensearch:opensearch-testcontainers:3.0.1")
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.18.2")
+      version("jackson", "2.19.1")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
@@ -90,3 +93,4 @@ include("spring-data-opensearch-test-autoconfigure")
 include("spring-data-opensearch-testcontainers")
 include("spring-data-opensearch-examples:spring-boot-gradle")
 include("spring-data-opensearch-examples:spring-boot-java-client-gradle")
+include("spring-data-opensearch-examples:spring-boot-reactive-client-gradle")

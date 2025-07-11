@@ -19,6 +19,6 @@ public final class SearchHitsUtil {
     private SearchHitsUtil() {}
 
     public static long getTotalCount(SearchHits searchHits) {
-        return searchHits.getTotalHits().value;
+        return searchHits.getTotalHits().value();
     }
 }

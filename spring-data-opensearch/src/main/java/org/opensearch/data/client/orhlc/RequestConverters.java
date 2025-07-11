@@ -18,14 +18,14 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.lucene.util.BytesRef;
 import org.opensearch.action.DocWriteRequest;
 import org.opensearch.action.admin.cluster.health.ClusterHealthRequest;
@@ -62,7 +62,6 @@ import org.opensearch.action.support.IndicesOptions;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
 import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.client.Request;
-import org.opensearch.client.Requests;
 import org.opensearch.client.RethrottleRequest;
 import org.opensearch.client.core.CountRequest;
 import org.opensearch.client.indices.AnalyzeRequest;
@@ -97,6 +96,7 @@ import org.opensearch.index.reindex.UpdateByQueryRequest;
 import org.opensearch.index.seqno.SequenceNumbers;
 import org.opensearch.script.mustache.SearchTemplateRequest;
 import org.opensearch.search.fetch.subphase.FetchSourceContext;
+import org.opensearch.transport.client.Requests;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -734,7 +734,7 @@ public class RequestConverters {
         params.withLocal(getIndexRequest.local());
         params.withIncludeDefaults(getIndexRequest.includeDefaults());
         params.withHuman(getIndexRequest.humanReadable());
-        params.withMasterTimeout(getIndexRequest.masterNodeTimeout());
+        params.withMasterTimeout(getIndexRequest.clusterManagerNodeTimeout());
 
         return request;
     }
@@ -850,7 +850,7 @@ public class RequestConverters {
 
         Params parameters = new Params(request);
         parameters.withTimeout(createIndexRequest.timeout());
-        parameters.withMasterTimeout(createIndexRequest.masterNodeTimeout());
+        parameters.withMasterTimeout(createIndexRequest.clusterManagerNodeTimeout());
         parameters.withWaitForActiveShards(createIndexRequest.waitForActiveShards(), ActiveShardCount.DEFAULT);
 
         request.setEntity(createEntity(createIndexRequest, RequestConverters.REQUEST_BODY_CONTENT_TYPE));
@@ -894,7 +894,7 @@ public class RequestConverters {
 
         new RequestConverters.Params(request) //
                 .withTimeout(putMappingRequest.timeout()) //
-                .withMasterTimeout(putMappingRequest.masterNodeTimeout());
+                .withMasterTimeout(putMappingRequest.clusterManagerNodeTimeout());
         request.setEntity(
                 RequestConverters.createEntity(putMappingRequest, RequestConverters.REQUEST_BODY_CONTENT_TYPE));
         return request;
@@ -929,7 +929,7 @@ public class RequestConverters {
         Request request = new Request(HttpMethod.GET.name(), RequestConverters.endpoint(indices, "_mapping"));
 
         RequestConverters.Params parameters = new RequestConverters.Params(request);
-        parameters.withMasterTimeout(getMappingsRequest.masterNodeTimeout());
+        parameters.withMasterTimeout(getMappingsRequest.clusterManagerNodeTimeout());
         parameters.withIndicesOptions(getMappingsRequest.indicesOptions());
         parameters.withLocal(getMappingsRequest.local());
         return request;
@@ -1004,7 +1004,7 @@ public class RequestConverters {
         final Request request = new Request(HttpGet.METHOD_NAME, endpoint);
         RequestConverters.Params params = new RequestConverters.Params(request);
         params.withLocal(getIndexTemplatesRequest.isLocal());
-        params.withMasterTimeout(getIndexTemplatesRequest.getMasterNodeTimeout());
+        params.withMasterTimeout(getIndexTemplatesRequest.getClusterManagerNodeTimeout());
         return request;
     }
 
@@ -1016,7 +1016,7 @@ public class RequestConverters {
         final Request request = new Request(HttpHead.METHOD_NAME, endpoint);
         final RequestConverters.Params params = new RequestConverters.Params(request);
         params.withLocal(indexTemplatesExistRequest.isLocal());
-        params.withMasterTimeout(indexTemplatesExistRequest.getMasterNodeTimeout());
+        params.withMasterTimeout(indexTemplatesExistRequest.getClusterManagerNodeTimeout());
         return request;
     }
 

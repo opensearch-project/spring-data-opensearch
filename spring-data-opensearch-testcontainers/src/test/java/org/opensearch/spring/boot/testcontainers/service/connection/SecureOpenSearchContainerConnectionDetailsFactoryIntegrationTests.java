@@ -15,9 +15,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
-import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.Request;
@@ -26,7 +29,7 @@ import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchRestClientAutoConfiguration;
 import org.opensearch.spring.boot.autoconfigure.RestClientBuilderCustomizer;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -43,7 +46,7 @@ class SecureOpenSearchContainerConnectionDetailsFactoryIntegrationTests {
 
     @Container
     @ServiceConnection
-    static final OpensearchContainer<?> opensearch = new OpensearchContainer<>("opensearchproject/opensearch:2.19.1")
+    static final OpenSearchContainer<?> opensearch = new OpenSearchContainer<>("opensearchproject/opensearch:3.1.0")
             .withSecurityEnabled()
             .withEnv("OPENSEARCH_INITIAL_ADMIN_PASSWORD", "D3v3l0p-ment");
 
@@ -57,7 +60,7 @@ class SecureOpenSearchContainerConnectionDetailsFactoryIntegrationTests {
         try (InputStream input = response.getEntity().getContent()) {
             JsonNode result = new ObjectMapper().readTree(input);
             assertThat(result.path("version").path("number").asText())
-                    .isEqualTo("2.19.1");
+                    .isEqualTo("3.1.0");
         }
     }
 
@@ -84,7 +87,16 @@ class SecureOpenSearchContainerConnectionDetailsFactoryIntegrationTests {
                     } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
                         throw new RuntimeException(e);
                     }
-                    builder.setSSLContext(sslcontext);
+
+                    final ClientTlsStrategyBuilder tlsStrategy = ClientTlsStrategyBuilder.create()
+                            .setSslContext(sslcontext);
+
+                    final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder
+                            .create()
+                            .setTlsStrategy(tlsStrategy.build())
+                            .build();
+
+                    builder.setConnectionManager(connectionManager);
                 }
             };
         }

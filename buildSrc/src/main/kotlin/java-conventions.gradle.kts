@@ -76,14 +76,16 @@ versionCatalogs
   }
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.20.5")
-  testImplementation("org.testcontainers:junit-jupiter:1.20.5")
-  testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
+  testImplementation("org.testcontainers:testcontainers:1.21.1")
+  testImplementation("org.testcontainers:junit-jupiter:1.21.1")
+  testImplementation("org.mockito:mockito-junit-jupiter:5.18.0")
   testImplementation("org.assertj:assertj-core:3.27.3")
   testImplementation("ch.qos.logback:logback-classic:1.5.17")
 }
 
 java {
+  sourceCompatibility = JavaVersion.VERSION_21
+  targetCompatibility = JavaVersion.VERSION_21
   withSourcesJar()
   withJavadocJar()
 }
@@ -109,7 +111,7 @@ tasks.test {
 publishing {
   repositories {
     if (version.toString().endsWith("SNAPSHOT")) {
-      maven("https://aws.oss.sonatype.org/content/repositories/snapshots/") {
+      maven("https://central.sonatype.com/repository/maven-snapshots/") {
         name = "Snapshots"
         credentials {
             username = System.getenv("SONATYPE_USERNAME")

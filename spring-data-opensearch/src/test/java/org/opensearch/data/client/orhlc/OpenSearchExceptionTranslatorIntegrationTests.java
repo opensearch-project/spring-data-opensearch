@@ -19,6 +19,7 @@ import org.opensearch.core.rest.RestStatus;
 import org.opensearch.index.engine.VersionConflictEngineException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.junit.jupiter.Tags;
 
 @Tag(Tags.INTEGRATION_TEST)
@@ -36,6 +37,18 @@ class OpenSearchExceptionTranslatorIntegrationTests {
         assertThat(translated).isInstanceOf(OptimisticLockingFailureException.class);
         assertThat(translated.getMessage()).startsWith("Cannot index a document due to seq_no+primary_term conflict");
         assertThat(translated.getCause()).isSameAs(ex);
+    }
+
+    @Test
+    void shouldConvertOpenSearchStatusExceptionWithIndexNotFoundToNoSuchIndexException() {
+        OpenSearchStatusException ex = new OpenSearchStatusException(
+                "OpenSearch exception [type=index_not_found_exception, reason=no such index [idx-1]]",
+                RestStatus.NOT_FOUND);
+
+        DataAccessException translated = translator.translateExceptionIfPossible(ex);
+        assertThat(translated).isInstanceOf(NoSuchIndexException.class);
+        assertThat(translated.getMessage()).startsWith("Index idx-1 not found");
+        assertThat(translated.getCause()).isNull();
     }
 
     @Test // DATAES-799

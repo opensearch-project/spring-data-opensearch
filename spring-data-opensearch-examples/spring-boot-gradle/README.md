@@ -14,7 +14,7 @@ This example uses the [`RestHighLevelClient`](https://opensearch.org/docs/latest
 1. Start [OpenSearch](https://opensearch.org) using 
 
 ```shell
-docker run -p 9200:9200 -e "discovery.type=single-node" -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=<strong-password> opensearchproject/opensearch:2.15.0
+docker run -p 9200:9200 -e "discovery.type=single-node" -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=<strong-password> opensearchproject/opensearch:3.1.0
 ```
 
 2. Build and run the project using [Gradle](https://gradle.org/):

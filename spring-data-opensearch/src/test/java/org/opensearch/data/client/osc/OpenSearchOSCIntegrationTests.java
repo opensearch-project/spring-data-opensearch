@@ -205,7 +205,7 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
                                         .functionScore(fs -> fs //
                                                 .functions(f1 -> f1 //
                                                         .filter(matchAllQueryAsQuery()) //
-                                                        .weight(1.0) //
+                                                        .weight(1.0f) //
                                                         .gauss(d -> d //
                                                                 .field("rate") //
                                                                 .placement(dp -> dp //
@@ -214,7 +214,7 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
                                                                         .decay(0.5)) //
                                                         )) //
                                                 .functions(f2 -> f2 //
-                                                        .filter(matchAllQueryAsQuery()).weight(100.0) //
+                                                        .filter(matchAllQueryAsQuery()).weight(100.0f) //
                                                         .gauss(d -> d //
                                                                 .field("rate") //
                                                                 .placement(dp -> dp //
@@ -224,7 +224,7 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
 
                                                         )) //
                                                 .scoreMode(FunctionScoreMode.Sum) //
-                                                .maxBoost(80.0) //
+                                                .maxBoost(80.0f) //
                                                 .boostMode(FunctionBoostMode.Replace)) //
                                 ) //
                                 .build() //
