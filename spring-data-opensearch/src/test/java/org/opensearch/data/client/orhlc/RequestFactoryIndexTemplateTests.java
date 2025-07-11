@@ -34,7 +34,7 @@ import org.springframework.util.StreamUtils;
 
 public class RequestFactoryIndexTemplateTests {
 
-    private static RequestFactory requestFactory;
+    private static IndexTemplateRequestFactory requestFactory;
 
     @BeforeAll
     static void setUpAll() {
@@ -46,7 +46,7 @@ public class RequestFactoryIndexTemplateTests {
         MappingElasticsearchConverter converter = new MappingElasticsearchConverter(mappingContext, new GenericConversionService());
         converter.afterPropertiesSet();
 
-        requestFactory = new RequestFactory((converter));
+        requestFactory = new IndexTemplateRequestFactory((converter));
     }
 
     @Test
