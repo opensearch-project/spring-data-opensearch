@@ -326,6 +326,75 @@ class RequestFactory {
         return new GetMappingsRequest().indices(indexNames);
     }
 
+    public PutIndexTemplateRequest putIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
+
+        PutIndexTemplateRequest request = new PutIndexTemplateRequest(putIndexTemplateRequest.name())
+                .patterns(Arrays.asList(putIndexTemplateRequest.indexPatterns()));
+
+        if (putIndexTemplateRequest.settings() != null) {
+            request.settings(putIndexTemplateRequest.settings());
+        }
+
+        if (putIndexTemplateRequest.mapping() != null) {
+            request.mapping(putIndexTemplateRequest.mapping());
+        }
+
+        // todo tlongo where to get order from?
+//        request.order(putIndexTemplateRequest.getOrder()).version(putIndexTemplateRequest.getVersion());
+
+        AliasActions aliasActions = putIndexTemplateRequest.aliasActions();
+
+        if (aliasActions != null) {
+            aliasActions.getActions().forEach(aliasAction -> {
+                AliasActionParameters parameters = aliasAction.getParameters();
+                String[] parametersAliases = parameters.getAliases();
+
+                if (parametersAliases != null) {
+                    for (String aliasName : parametersAliases) {
+                        Alias alias = new Alias(aliasName);
+
+                        if (parameters.getRouting() != null) {
+                            alias.routing(parameters.getRouting());
+                        }
+
+                        if (parameters.getIndexRouting() != null) {
+                            alias.indexRouting(parameters.getIndexRouting());
+                        }
+
+                        if (parameters.getSearchRouting() != null) {
+                            alias.searchRouting(parameters.getSearchRouting());
+                        }
+
+                        if (parameters.getHidden() != null) {
+                            alias.isHidden(parameters.getHidden());
+                        }
+
+                        if (parameters.getWriteIndex() != null) {
+                            alias.writeIndex(parameters.getWriteIndex());
+                        }
+
+                        Query filterQuery = parameters.getFilterQuery();
+
+                        if (filterQuery != null) {
+                            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
+                            QueryBuilder queryBuilder = getFilter(filterQuery);
+
+                            if (queryBuilder == null) {
+                                queryBuilder = getQuery(filterQuery);
+                            }
+
+                            alias.filter(queryBuilder);
+                        }
+
+                        request.alias(alias);
+                    }
+                }
+            });
+        }
+
+        return request;
+    }
+
     public PutIndexTemplateRequest putIndexTemplateRequest(PutTemplateRequest putTemplateRequest) {
 
         PutIndexTemplateRequest request = new PutIndexTemplateRequest(putTemplateRequest.getName())

@@ -232,9 +232,17 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
     }
 
     @Override
+    // todo tlongo test?
     public boolean putIndexTemplate(
-            org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
-        throw new UnsupportedOperationException("not implemented");
+            org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest esPutIndexTemplateRequest)
+    {
+
+        Assert.notNull(esPutIndexTemplateRequest, "putIndexTemplateRequest must not be null");
+
+        PutIndexTemplateRequest putIndexTemplateRequest = requestFactory.putIndexTemplateRequest(esPutIndexTemplateRequest);
+        return restTemplate.execute(client -> client.indices()
+                .putTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT)
+                .isAcknowledged());
     }
 
     @Override
