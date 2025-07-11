@@ -38,11 +38,12 @@ dependencies {
   compileOnly(springLibs.web)
   compileOnly(opensearchLibs.java.client)
 
+  testImplementation(springLibs.projectreactor)
   testImplementation(opensearchLibs.java.client)
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
   testImplementation("org.slf4j:log4j-over-slf4j:2.0.17")
-  testImplementation("org.apache.logging.log4j:log4j-core:2.24.3")
-  testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.24.3")
+  testImplementation("org.apache.logging.log4j:log4j-core:2.25.0")
+  testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.25.0")
   testImplementation("org.apache.geronimo.specs:geronimo-jcdi_2.0_spec:1.3")
   testImplementation("javax.interceptor:javax.interceptor-api:1.2.2")
   testImplementation(opensearchLibs.testcontainers)
@@ -50,7 +51,7 @@ dependencies {
   testImplementation("org.apache.openwebbeans:openwebbeans-spi:2.0.27:jakarta")
   testImplementation("org.apache.openwebbeans:openwebbeans-se:2.0.27:jakarta")
   testImplementation("javax.servlet:javax.servlet-api:4.0.1")
-  testImplementation("org.apache.xbean:xbean-asm5-shaded:4.5")
+  testImplementation("org.apache.xbean:xbean-asm9-shaded:4.27")
   testImplementation("io.specto:hoverfly-java-junit5:0.20.2")
   testImplementation("org.skyscreamer:jsonassert:1.5.3")
   testImplementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
@@ -58,7 +59,7 @@ dependencies {
   testImplementation(springLibs.test) {
     exclude("ch.qos.logback", "logback-classic")
   }
-  testImplementation("org.wiremock:wiremock:3.13.0") {
+  testImplementation("org.wiremock:wiremock:3.13.1") {
     exclude("commons-logging", "commons-logging")
     exclude("org.ow2.asm", "asm")
   }

@@ -7,7 +7,7 @@ package org.opensearch.spring.boot.testcontainers.service.connection;
 
 import java.util.List;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchConnectionDetails;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -16,20 +16,20 @@ import org.springframework.util.StringUtils;
 /**
  * {@link ContainerConnectionDetailsFactory} to create {@link OpenSearchConnectionDetails}
  * from a {@link ServiceConnection @ServiceConnection}-annotated
- * {@link OpensearchContainer}.
+ * {@link OpenSearchContainer}.
  */
 class OpenSearchContainerConnectionDetailsFactory
-    extends ContainerConnectionDetailsFactory<OpensearchContainer<?>, OpenSearchConnectionDetails> {
+    extends ContainerConnectionDetailsFactory<OpenSearchContainer<?>, OpenSearchConnectionDetails> {
 
     @Override
-    protected OpenSearchConnectionDetails getContainerConnectionDetails(ContainerConnectionSource<OpensearchContainer<?>> source) {
+    protected OpenSearchConnectionDetails getContainerConnectionDetails(ContainerConnectionSource<OpenSearchContainer<?>> source) {
         return new OpenSearchContainerConnectionDetails(source);
     }
 
     private static final class OpenSearchContainerConnectionDetails
-            extends ContainerConnectionDetails<OpensearchContainer<?>> implements OpenSearchConnectionDetails {
+            extends ContainerConnectionDetails<OpenSearchContainer<?>> implements OpenSearchConnectionDetails {
 
-        private OpenSearchContainerConnectionDetails(ContainerConnectionSource<OpensearchContainer<?>> source) {
+        private OpenSearchContainerConnectionDetails(ContainerConnectionSource<OpenSearchContainer<?>> source) {
             super(source);
         }
 
@@ -48,11 +48,11 @@ class OpenSearchContainerConnectionDetailsFactory
             return getPassword(getContainer());
         }
 
-        private static boolean isSecured(OpensearchContainer<?> container) {
+        private static boolean isSecured(OpenSearchContainer<?> container) {
             return container.isSecurityEnabled();
         }
 
-        private static String getPassword(OpensearchContainer<?> container) {
+        private static String getPassword(OpenSearchContainer<?> container) {
             if (isSecured(container)) {
                 String initialAdminPassword = container.getEnvMap().get("OPENSEARCH_INITIAL_ADMIN_PASSWORD");
                 if (StringUtils.hasText(initialAdminPassword)) {

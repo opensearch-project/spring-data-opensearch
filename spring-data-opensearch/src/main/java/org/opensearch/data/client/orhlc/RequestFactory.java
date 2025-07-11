@@ -10,8 +10,7 @@
 package org.opensearch.data.client.orhlc;
 
 import static org.opensearch.common.unit.TimeValue.*;
-import static org.opensearch.data.client.orhlc.QueryUtil.getFilter;
-import static org.opensearch.data.client.orhlc.QueryUtil.getQuery;
+import static org.opensearch.index.query.QueryBuilders.wrapperQuery;
 import static org.opensearch.index.reindex.RemoteInfo.*;
 import static org.opensearch.script.Script.*;
 import static org.springframework.util.CollectionUtils.*;
@@ -37,6 +36,7 @@ import org.opensearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.opensearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.opensearch.action.admin.indices.refresh.RefreshRequest;
 import org.opensearch.action.admin.indices.settings.get.GetSettingsRequest;
+import org.opensearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.delete.DeleteRequest;
 import org.opensearch.action.get.GetRequest;
@@ -49,10 +49,11 @@ import org.opensearch.action.support.IndicesOptions.Option;
 import org.opensearch.action.support.IndicesOptions.WildcardStates;
 import org.opensearch.action.support.WriteRequest;
 import org.opensearch.action.update.UpdateRequest;
-import org.opensearch.client.Requests;
 import org.opensearch.client.indices.CreateIndexRequest;
 import org.opensearch.client.indices.GetIndexRequest;
+import org.opensearch.client.indices.GetIndexTemplatesRequest;
 import org.opensearch.client.indices.GetMappingsRequest;
+import org.opensearch.client.indices.IndexTemplatesExistRequest;
 import org.opensearch.client.indices.PutIndexTemplateRequest;
 import org.opensearch.client.indices.PutMappingRequest;
 import org.opensearch.common.geo.GeoDistance;
@@ -84,6 +85,7 @@ import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.search.sort.SortMode;
 import org.opensearch.search.sort.SortOrder;
 import org.opensearch.search.suggest.SuggestBuilder;
+import org.opensearch.transport.client.Requests;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
@@ -92,11 +94,17 @@ import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.AliasAction;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
+import org.springframework.data.elasticsearch.core.index.DeleteTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.ExistsIndexTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.ExistsTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.GeoDistanceOrder;
 import org.springframework.data.elasticsearch.core.query.IndexBoost;
@@ -109,6 +117,7 @@ import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery.ScoreMode;
 import org.springframework.data.elasticsearch.core.query.ScriptType;
 import org.springframework.data.elasticsearch.core.query.SourceFilter;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest.Dest;
@@ -252,6 +261,65 @@ class RequestFactory {
     // endregion
 
     // region index management
+
+    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetIndexTemplateRequest getTemplateRequest) {
+        return new GetIndexTemplatesRequest(getTemplateRequest.templateName());
+    }
+
+    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsIndexTemplateRequest existsTemplateRequest) {
+        return new IndexTemplatesExistRequest(existsTemplateRequest.templateName());
+    }
+
+    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteTemplateRequest) {
+        return new DeleteIndexTemplateRequest(deleteTemplateRequest.templateName());
+    }
+
+    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetTemplateRequest getTemplateRequest) {
+        return new GetIndexTemplatesRequest(getTemplateRequest.getTemplateName());
+    }
+
+    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsTemplateRequest existsTemplateRequest) {
+        return new IndexTemplatesExistRequest(existsTemplateRequest.getTemplateName());
+    }
+
+    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(DeleteTemplateRequest deleteTemplateRequest) {
+        return new DeleteIndexTemplateRequest(deleteTemplateRequest.getTemplateName());
+    }
+
+    public PutIndexTemplateRequest putIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
+        PutIndexTemplateRequest request = new PutIndexTemplateRequest(putIndexTemplateRequest.name())
+                .patterns(Arrays.asList(putIndexTemplateRequest.indexPatterns()));
+
+        if (putIndexTemplateRequest.settings() != null) {
+            request.settings(putIndexTemplateRequest.settings());
+        }
+
+        if (putIndexTemplateRequest.mapping() != null) {
+            request.mapping(putIndexTemplateRequest.mapping());
+        }
+
+        AliasActions aliasActions = putIndexTemplateRequest.aliasActions();
+
+        if (aliasActions == null) {
+            return request;
+        }
+
+        aliasActions.getActions().forEach(aliasAction -> {
+            AliasActionParameters parameters = aliasAction.getParameters();
+            String[] parametersAliases = parameters.getAliases();
+
+            if (parametersAliases == null) {
+                return;
+            }
+
+            for (String aliasName : parametersAliases) {
+                Alias alias = createAndConfigureAlias(aliasName, parameters);
+                request.alias(alias);
+            }
+        });
+
+        return request;
+    }
 
     public CreateIndexRequest createIndexRequest(
             IndexCoordinates index, Map<String, Object> settings, @Nullable Document mapping) {
@@ -1224,6 +1292,46 @@ class RequestFactory {
             default:
                 return WriteRequest.RefreshPolicy.NONE;
         }
+    }
+
+    @Nullable
+    public QueryBuilder getFilter(Query query) {
+        QueryBuilder opensearchFilter;
+
+        if (query instanceof NativeSearchQuery) {
+            NativeSearchQuery searchQuery = (NativeSearchQuery) query;
+            opensearchFilter = searchQuery.getFilter();
+        } else if (query instanceof CriteriaQuery) {
+            CriteriaQuery criteriaQuery = (CriteriaQuery) query;
+            opensearchFilter = new CriteriaFilterProcessor().createFilter(criteriaQuery.getCriteria());
+        } else if (query instanceof StringQuery) {
+            opensearchFilter = null;
+        } else {
+            throw new IllegalArgumentException(
+                    "unhandled Query implementation " + query.getClass().getName());
+        }
+
+        return opensearchFilter;
+    }
+
+    @Nullable
+    public QueryBuilder getQuery(Query query) {
+        QueryBuilder opensearchQuery;
+
+        if (query instanceof NativeSearchQuery) {
+            NativeSearchQuery searchQuery = (NativeSearchQuery) query;
+            opensearchQuery = searchQuery.getQuery();
+        } else if (query instanceof CriteriaQuery) {
+            CriteriaQuery criteriaQuery = (CriteriaQuery) query;
+            opensearchQuery = new CriteriaQueryProcessor().createQuery(criteriaQuery.getCriteria());
+        } else if (query instanceof StringQuery) {
+            StringQuery stringQuery = (StringQuery) query;
+            opensearchQuery = wrapperQuery(stringQuery.getSource());
+        } else {
+            throw new IllegalArgumentException("unhandled Query implementation " + query.getClass().getName());
+        }
+
+        return opensearchQuery;
     }
 
     @Nullable

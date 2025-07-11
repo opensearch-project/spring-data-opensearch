@@ -21,6 +21,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
+import org.opensearch.client.opensearch._types.Refresh;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -82,7 +83,7 @@ class RequestConverterTest {
             IndexCoordinates.of("foo"),
             null);
 
-        assertThat(deleteByQueryRequest.refresh()).isTrue();
+        assertThat(deleteByQueryRequest.refresh()).isEqualTo(Refresh.True);
     }
 
     @Document(indexName = "does-not-matter")

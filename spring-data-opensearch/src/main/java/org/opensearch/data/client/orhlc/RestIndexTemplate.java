@@ -66,20 +66,17 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
     private final OpenSearchRestTemplate restTemplate;
     protected final RequestFactory requestFactory;
-    protected final IndexTemplateRequestFactory indexTemplateRequestFactory;
 
     public RestIndexTemplate(OpenSearchRestTemplate restTemplate, Class<?> boundClass) {
         super(restTemplate.getElasticsearchConverter(), boundClass);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);
-        indexTemplateRequestFactory = new IndexTemplateRequestFactory(elasticsearchConverter);
     }
 
     public RestIndexTemplate(OpenSearchRestTemplate restTemplate, IndexCoordinates boundIndex) {
         super(restTemplate.getElasticsearchConverter(), boundIndex);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);
-        indexTemplateRequestFactory = new IndexTemplateRequestFactory(elasticsearchConverter);
     }
 
     @Override
@@ -205,7 +202,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
             return null;
         }
 
-        GetIndexTemplatesRequest getIndexTemplatesRequest = indexTemplateRequestFactory.getIndexTemplatesRequest(getTemplateRequest);
+        GetIndexTemplatesRequest getIndexTemplatesRequest = requestFactory.getIndexTemplatesRequest(getTemplateRequest);
         GetIndexTemplatesResponse getIndexTemplatesResponse = restTemplate.execute(
                 client -> client.indices().getIndexTemplate(getIndexTemplatesRequest, RequestOptions.DEFAULT));
         return ResponseConverter.getTemplateData(getIndexTemplatesResponse, getTemplateRequest.getTemplateName());
@@ -216,7 +213,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
-        IndexTemplatesExistRequest putIndexTemplateRequest = indexTemplateRequestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
+        IndexTemplatesExistRequest putIndexTemplateRequest = requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
         return restTemplate.execute(client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
     }
 
@@ -225,7 +222,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(deleteTemplateRequest, "deleteTemplateRequest must not be null");
 
-        DeleteIndexTemplateRequest deleteIndexTemplateRequest = indexTemplateRequestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
+        DeleteIndexTemplateRequest deleteIndexTemplateRequest = requestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
         return restTemplate
                 .execute(client -> client.indices()
                 .deleteTemplate(deleteIndexTemplateRequest, RequestOptions.DEFAULT)
@@ -239,7 +236,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(esPutIndexTemplateRequest, "putIndexTemplateRequest must not be null");
 
-        PutIndexTemplateRequest putIndexTemplateRequest = indexTemplateRequestFactory.putIndexTemplateRequest(esPutIndexTemplateRequest);
+        PutIndexTemplateRequest putIndexTemplateRequest = requestFactory.putIndexTemplateRequest(esPutIndexTemplateRequest);
         return restTemplate.execute(client -> client.indices()
                 .putTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT)
                 .isAcknowledged());
@@ -251,7 +248,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
         IndexTemplatesExistRequest putIndexTemplateRequest =
-                indexTemplateRequestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
+                requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
         return restTemplate.execute(
                 client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
 
@@ -266,7 +263,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
             return null;
         }
 
-        GetIndexTemplatesRequest getIndexTemplatesRequest = indexTemplateRequestFactory.getIndexTemplatesRequest(getIndexTemplateRequest);
+        GetIndexTemplatesRequest getIndexTemplatesRequest = requestFactory.getIndexTemplatesRequest(getIndexTemplateRequest);
         GetIndexTemplatesResponse getIndexTemplatesResponse = restTemplate.execute(client -> client.indices().getIndexTemplate(getIndexTemplatesRequest, RequestOptions.DEFAULT));
 
         TemplateResponse templateResponse = ResponseConverter.getTemplateResponse(getIndexTemplatesResponse, getIndexTemplateRequest.templateName());
@@ -278,7 +275,7 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(deleteIndexTemplateRequest, "deleteTemplateIndexRequest must not be null");
 
-        DeleteIndexTemplateRequest request = indexTemplateRequestFactory.deleteIndexTemplateRequest(deleteIndexTemplateRequest);
+        DeleteIndexTemplateRequest request = requestFactory.deleteIndexTemplateRequest(deleteIndexTemplateRequest);
         return restTemplate
                 .execute(client -> client.indices()
                         .deleteTemplate(request, RequestOptions.DEFAULT)
