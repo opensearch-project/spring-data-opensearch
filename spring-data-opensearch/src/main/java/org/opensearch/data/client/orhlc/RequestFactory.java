@@ -1282,20 +1282,28 @@ class RequestFactory {
     // endregion
 
     // region helper functions
-    public static WriteRequest.RefreshPolicy toOpenSearchRefreshPolicy(RefreshPolicy refreshPolicy) {
-        switch (refreshPolicy) {
-            case IMMEDIATE:
-                return WriteRequest.RefreshPolicy.IMMEDIATE;
-            case WAIT_UNTIL:
-                return WriteRequest.RefreshPolicy.WAIT_UNTIL;
-            case NONE:
-            default:
-                return WriteRequest.RefreshPolicy.NONE;
+    @Nullable
+    private QueryBuilder getQuery(Query query) {
+        QueryBuilder opensearchQuery;
+
+        if (query instanceof NativeSearchQuery) {
+            NativeSearchQuery searchQuery = (NativeSearchQuery) query;
+            opensearchQuery = searchQuery.getQuery();
+        } else if (query instanceof CriteriaQuery) {
+            CriteriaQuery criteriaQuery = (CriteriaQuery) query;
+            opensearchQuery = new CriteriaQueryProcessor().createQuery(criteriaQuery.getCriteria());
+        } else if (query instanceof StringQuery) {
+            StringQuery stringQuery = (StringQuery) query;
+            opensearchQuery = wrapperQuery(stringQuery.getSource());
+        } else {
+            throw new IllegalArgumentException("unhandled Query implementation " + query.getClass().getName());
         }
+
+        return opensearchQuery;
     }
 
     @Nullable
-    public QueryBuilder getFilter(Query query) {
+    private QueryBuilder getFilter(Query query) {
         QueryBuilder opensearchFilter;
 
         if (query instanceof NativeSearchQuery) {
@@ -1314,24 +1322,16 @@ class RequestFactory {
         return opensearchFilter;
     }
 
-    @Nullable
-    public QueryBuilder getQuery(Query query) {
-        QueryBuilder opensearchQuery;
-
-        if (query instanceof NativeSearchQuery) {
-            NativeSearchQuery searchQuery = (NativeSearchQuery) query;
-            opensearchQuery = searchQuery.getQuery();
-        } else if (query instanceof CriteriaQuery) {
-            CriteriaQuery criteriaQuery = (CriteriaQuery) query;
-            opensearchQuery = new CriteriaQueryProcessor().createQuery(criteriaQuery.getCriteria());
-        } else if (query instanceof StringQuery) {
-            StringQuery stringQuery = (StringQuery) query;
-            opensearchQuery = wrapperQuery(stringQuery.getSource());
-        } else {
-            throw new IllegalArgumentException("unhandled Query implementation " + query.getClass().getName());
+    public static WriteRequest.RefreshPolicy toOpenSearchRefreshPolicy(RefreshPolicy refreshPolicy) {
+        switch (refreshPolicy) {
+            case IMMEDIATE:
+                return WriteRequest.RefreshPolicy.IMMEDIATE;
+            case WAIT_UNTIL:
+                return WriteRequest.RefreshPolicy.WAIT_UNTIL;
+            case NONE:
+            default:
+                return WriteRequest.RefreshPolicy.NONE;
         }
-
-        return opensearchQuery;
     }
 
     @Nullable
