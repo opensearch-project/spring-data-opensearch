@@ -213,10 +213,8 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
-        IndexTemplatesExistRequest putIndexTemplateRequest =
-                requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
-        return restTemplate.execute(
-                client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
+        IndexTemplatesExistRequest putIndexTemplateRequest = requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
+        return restTemplate.execute(client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
     }
 
     @Override
@@ -224,33 +222,64 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
 
         Assert.notNull(deleteTemplateRequest, "deleteTemplateRequest must not be null");
 
-        DeleteIndexTemplateRequest deleteIndexTemplateRequest =
-                requestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
-        return restTemplate.execute(client -> client.indices()
+        DeleteIndexTemplateRequest deleteIndexTemplateRequest = requestFactory.deleteIndexTemplateRequest(deleteTemplateRequest);
+        return restTemplate
+                .execute(client -> client.indices()
                 .deleteTemplate(deleteIndexTemplateRequest, RequestOptions.DEFAULT)
                 .isAcknowledged());
     }
 
     @Override
     public boolean putIndexTemplate(
-            org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
-        throw new UnsupportedOperationException("not implemented");
+            org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest esPutIndexTemplateRequest)
+    {
+
+        Assert.notNull(esPutIndexTemplateRequest, "putIndexTemplateRequest must not be null");
+
+        PutIndexTemplateRequest putIndexTemplateRequest = requestFactory.putIndexTemplateRequest(esPutIndexTemplateRequest);
+        return restTemplate.execute(client -> client.indices()
+                .putTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT)
+                .isAcknowledged());
     }
 
     @Override
     public boolean existsIndexTemplate(ExistsIndexTemplateRequest existsTemplateRequest) {
-        throw new UnsupportedOperationException("not implemented");
+
+        Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
+
+        IndexTemplatesExistRequest putIndexTemplateRequest =
+                requestFactory.indexTemplatesExistsRequest(existsTemplateRequest);
+        return restTemplate.execute(
+                client -> client.indices().existsTemplate(putIndexTemplateRequest, RequestOptions.DEFAULT));
+
     }
 
     @Override
     public List<TemplateResponse> getIndexTemplate(GetIndexTemplateRequest getIndexTemplateRequest) {
-        throw new UnsupportedOperationException("not implemented");
+
+        Assert.notNull(getIndexTemplateRequest, "getIndexTemplateRequest must not be null");
+
+        if (!existsIndexTemplate(new ExistsIndexTemplateRequest(getIndexTemplateRequest.templateName()))) {
+            return null;
+        }
+
+        GetIndexTemplatesRequest getIndexTemplatesRequest = requestFactory.getIndexTemplatesRequest(getIndexTemplateRequest);
+        GetIndexTemplatesResponse getIndexTemplatesResponse = restTemplate.execute(client -> client.indices().getIndexTemplate(getIndexTemplatesRequest, RequestOptions.DEFAULT));
+
+        TemplateResponse templateResponse = ResponseConverter.getTemplateResponse(getIndexTemplatesResponse, getIndexTemplateRequest.templateName());
+        return Collections.singletonList(templateResponse);
     }
 
     @Override
-    public boolean deleteIndexTemplate(
-            org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
-        throw new UnsupportedOperationException("not implemented");
+    public boolean deleteIndexTemplate(org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
+
+        Assert.notNull(deleteIndexTemplateRequest, "deleteTemplateIndexRequest must not be null");
+
+        DeleteIndexTemplateRequest request = requestFactory.deleteIndexTemplateRequest(deleteIndexTemplateRequest);
+        return restTemplate
+                .execute(client -> client.indices()
+                        .deleteTemplate(request, RequestOptions.DEFAULT)
+                        .isAcknowledged());
     }
 
     @Override

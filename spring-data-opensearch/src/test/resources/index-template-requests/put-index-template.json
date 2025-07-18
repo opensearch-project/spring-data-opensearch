@@ -1,0 +1,29 @@
+{
+  "index_patterns": [
+    "test-*"
+  ],
+  "settings": {
+    "index": {
+      "number_of_replicas": "2",
+      "number_of_shards": "3",
+      "refresh_interval": "7s",
+      "store": {
+        "type": "oops"
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "price": {
+        "type": "double"
+      }
+    }
+  },
+  "aliases": {
+    "alias1": {},
+    "alias2": {},
+    "alias3": {
+      "routing": "11"
+    }
+  }
+}

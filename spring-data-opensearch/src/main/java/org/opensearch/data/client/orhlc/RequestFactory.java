@@ -10,7 +10,7 @@
 package org.opensearch.data.client.orhlc;
 
 import static org.opensearch.common.unit.TimeValue.*;
-import static org.opensearch.index.query.QueryBuilders.*;
+import static org.opensearch.index.query.QueryBuilders.wrapperQuery;
 import static org.opensearch.index.reindex.RemoteInfo.*;
 import static org.opensearch.script.Script.*;
 import static org.springframework.util.CollectionUtils.*;
@@ -95,7 +95,9 @@ import org.springframework.data.elasticsearch.core.index.AliasAction;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
 import org.springframework.data.elasticsearch.core.index.DeleteTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.ExistsIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.ExistsTemplateRequest;
+import org.springframework.data.elasticsearch.core.index.GetIndexTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.GetTemplateRequest;
 import org.springframework.data.elasticsearch.core.index.PutTemplateRequest;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
@@ -348,41 +350,7 @@ class RequestFactory {
 
                 if (parametersAliases != null) {
                     for (String aliasName : parametersAliases) {
-                        Alias alias = new Alias(aliasName);
-
-                        if (parameters.getRouting() != null) {
-                            alias.routing(parameters.getRouting());
-                        }
-
-                        if (parameters.getIndexRouting() != null) {
-                            alias.indexRouting(parameters.getIndexRouting());
-                        }
-
-                        if (parameters.getSearchRouting() != null) {
-                            alias.searchRouting(parameters.getSearchRouting());
-                        }
-
-                        if (parameters.getHidden() != null) {
-                            alias.isHidden(parameters.getHidden());
-                        }
-
-                        if (parameters.getWriteIndex() != null) {
-                            alias.writeIndex(parameters.getWriteIndex());
-                        }
-
-                        Query filterQuery = parameters.getFilterQuery();
-
-                        if (filterQuery != null) {
-                            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
-                            QueryBuilder queryBuilder = getFilter(filterQuery);
-
-                            if (queryBuilder == null) {
-                                queryBuilder = getQuery(filterQuery);
-                            }
-
-                            alias.filter(queryBuilder);
-                        }
-
+                        Alias alias = createAndConfigureAlias(aliasName, parameters);
                         request.alias(alias);
                     }
                 }
@@ -402,6 +370,41 @@ class RequestFactory {
 
     public DeleteIndexTemplateRequest deleteIndexTemplateRequest(DeleteTemplateRequest deleteTemplateRequest) {
         return new DeleteIndexTemplateRequest(deleteTemplateRequest.getTemplateName());
+    }
+
+    public PutIndexTemplateRequest putIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest putIndexTemplateRequest) {
+        PutIndexTemplateRequest request = new PutIndexTemplateRequest(putIndexTemplateRequest.name())
+                .patterns(Arrays.asList(putIndexTemplateRequest.indexPatterns()));
+
+        if (putIndexTemplateRequest.settings() != null) {
+            request.settings(putIndexTemplateRequest.settings());
+        }
+
+        if (putIndexTemplateRequest.mapping() != null) {
+            request.mapping(putIndexTemplateRequest.mapping());
+        }
+
+        AliasActions aliasActions = putIndexTemplateRequest.aliasActions();
+
+        if (aliasActions == null) {
+            return request;
+        }
+
+        aliasActions.getActions().forEach(aliasAction -> {
+            AliasActionParameters parameters = aliasAction.getParameters();
+            String[] parametersAliases = parameters.getAliases();
+
+            if (parametersAliases == null) {
+                return;
+            }
+
+            for (String aliasName : parametersAliases) {
+                Alias alias = createAndConfigureAlias(aliasName, parameters);
+                request.alias(alias);
+            }
+        });
+
+        return request;
     }
 
     public org.opensearch.index.reindex.ReindexRequest reindexRequest(ReindexRequest reindexRequest) {
@@ -455,7 +458,7 @@ class RequestFactory {
                             remote.getConnectTimeout() == null
                                     ? DEFAULT_CONNECT_TIMEOUT
                                     : timeValueSeconds(
-                                            remote.getConnectTimeout().getSeconds()))); //
+                                    remote.getConnectTimeout().getSeconds()))); //
         }
 
         final Slice slice = source.getSlice();
@@ -528,6 +531,61 @@ class RequestFactory {
         // endregion
         return request;
     }
+
+    private Alias createAndConfigureAlias(String aliasName, AliasActionParameters parameters) {
+        Alias alias = new Alias(aliasName);
+
+        // noinspection DuplicatedCode
+        if (parameters.getRouting() != null) {
+            alias.routing(parameters.getRouting());
+        }
+
+        if (parameters.getIndexRouting() != null) {
+            alias.indexRouting(parameters.getIndexRouting());
+        }
+
+        if (parameters.getSearchRouting() != null) {
+            alias.searchRouting(parameters.getSearchRouting());
+        }
+
+        if (parameters.getHidden() != null) {
+            alias.isHidden(parameters.getHidden());
+        }
+
+        if (parameters.getWriteIndex() != null) {
+            alias.writeIndex(parameters.getWriteIndex());
+        }
+
+        // noinspection DuplicatedCode
+        Query filterQuery = parameters.getFilterQuery();
+
+        if (filterQuery != null) {
+            elasticsearchConverter.updateQuery(filterQuery, parameters.getFilterQueryClass());
+            QueryBuilder queryBuilder = getFilter(filterQuery);
+
+            if (queryBuilder == null) {
+                queryBuilder = getQuery(filterQuery);
+            }
+
+            alias.filter(queryBuilder);
+        }
+
+        return alias;
+    }
+
+
+    public GetIndexTemplatesRequest getIndexTemplatesRequest(GetIndexTemplateRequest getTemplateRequest) {
+        return new GetIndexTemplatesRequest(getTemplateRequest.templateName());
+    }
+
+    public IndexTemplatesExistRequest indexTemplatesExistsRequest(ExistsIndexTemplateRequest existsTemplateRequest) {
+        return new IndexTemplatesExistRequest(existsTemplateRequest.templateName());
+    }
+
+    public DeleteIndexTemplateRequest deleteIndexTemplateRequest(org.springframework.data.elasticsearch.core.index.DeleteIndexTemplateRequest deleteTemplateRequest) {
+        return new DeleteIndexTemplateRequest(deleteTemplateRequest.templateName());
+    }
+
 
     // endregion
 
@@ -1240,8 +1298,7 @@ class RequestFactory {
             StringQuery stringQuery = (StringQuery) query;
             opensearchQuery = wrapperQuery(stringQuery.getSource());
         } else {
-            throw new IllegalArgumentException(
-                    "unhandled Query implementation " + query.getClass().getName());
+            throw new IllegalArgumentException("unhandled Query implementation " + query.getClass().getName());
         }
 
         return opensearchQuery;
