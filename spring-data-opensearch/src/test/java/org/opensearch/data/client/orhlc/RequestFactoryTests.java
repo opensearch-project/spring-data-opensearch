@@ -13,6 +13,7 @@ import static org.opensearch.index.query.QueryBuilders.*;
 import static org.skyscreamer.jsonassert.JSONAssert.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -28,6 +29,7 @@ import org.opensearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.update.UpdateRequest;
+import org.opensearch.client.indices.PutIndexTemplateRequest;
 import org.opensearch.common.lucene.search.function.CombineFunction;
 import org.opensearch.common.lucene.search.function.FunctionScoreQuery;
 import org.opensearch.common.xcontent.XContentHelper;
@@ -40,6 +42,7 @@ import org.opensearch.index.query.functionscore.GaussDecayFunctionBuilder;
 import org.opensearch.index.reindex.DeleteByQueryRequest;
 import org.opensearch.search.fetch.subphase.FetchSourceContext;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +55,7 @@ import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.data.elasticsearch.core.index.AliasAction;
 import org.springframework.data.elasticsearch.core.index.AliasActionParameters;
 import org.springframework.data.elasticsearch.core.index.AliasActions;
+import org.springframework.data.elasticsearch.core.index.Settings;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 import org.springframework.data.elasticsearch.core.query.*;
@@ -59,6 +63,7 @@ import org.springframework.data.elasticsearch.core.query.RescorerQuery.ScoreMode
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.reindex.Remote;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StreamUtils;
 
 class RequestFactoryTests {
 
@@ -517,7 +522,44 @@ class RequestFactoryTests {
         assertEquals(expected, json, false);
     }
 
+    @Test
+    void shouldCreatePutIndexTemplateRequest() throws JSONException, IOException {
+        var esSettingsDocument = org.springframework.data.elasticsearch.core.document.Document.create();
+        esSettingsDocument.put("index.number_of_replicas", 2);
+        esSettingsDocument.put("index.number_of_shards", 3);
+        esSettingsDocument.put("index.refresh_interval", "7s");
+        esSettingsDocument.put("index.store.type", "oops");
+        var mappings = org.springframework.data.elasticsearch.core.document.Document.parse(
+                "{\"properties\":{\"price\":{\"type\":\"double\"}}}");
+        AliasActions aliasActions = new AliasActions(
+                new AliasAction.Add(AliasActionParameters.builderForTemplate()
+                        .withAliases("alias1", "alias2")
+                        .build()),
+                new AliasAction.Add(AliasActionParameters.builderForTemplate()
+                        .withAliases("alias3")
+                        .withRouting("11")
+                        .build()));
+        Settings settings = new Settings();
+        settings.put("index.number_of_replicas", 2);
+        settings.put("index.number_of_shards", 3);
+        settings.put("index.refresh_interval", "7s");
+        settings.put("index.store.type", "oops");
+        var request = org.springframework.data.elasticsearch.core.index.PutIndexTemplateRequest.builder()
+                .withName("test-template")
+                .withIndexPatterns("test-*")
+                .withSettings(settings)
+                .withMapping(mappings) //
+                .withAliasActions(aliasActions) //
+                .build();
 
+        PutIndexTemplateRequest actualPutIndexTemplateRequest = requestFactory.putIndexTemplateRequest(request);
+
+        String actualRequestJson = requestToString(actualPutIndexTemplateRequest);
+        String expectedRequestJson = StreamUtils.copyToString(
+                new ClassPathResource("index-template-requests/put-index-template.json").getInputStream(),
+                StandardCharsets.UTF_8);
+        assertEquals(expectedRequestJson, actualRequestJson, false);
+    }
 
     @Test // DATAES-247
     @DisplayName("should set op_type INDEX if not specified")
