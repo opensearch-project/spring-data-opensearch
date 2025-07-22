@@ -899,13 +899,9 @@ class RequestFactory {
             sourceBuilder.seqNoAndPrimaryTerm(true);
         }
 
-        if (query.getPageable().isPaged()) {
-            sourceBuilder.from((int) query.getPageable().getOffset());
-            sourceBuilder.size(query.getPageable().getPageSize());
-        } else {
-            sourceBuilder.from(0);
-            sourceBuilder.size(INDEX_MAX_RESULT_WINDOW);
-        }
+        sourceBuilder
+            .from((int) (query.getPageable().isPaged() ? query.getPageable().getOffset() : 0))
+            .size(query.getRequestSize());
 
         if (query.getSourceFilter() != null) {
             sourceBuilder.fetchSource(getFetchSourceContext(query));
