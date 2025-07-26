@@ -259,9 +259,9 @@ public class DocumentAdaptersUnitTests {
 
         SearchDocument searchDocument = DocumentAdapters.from(searchHit);
 
-        List<String> matchedQueries = searchDocument.getMatchedQueries();
+        Map<String, Double> matchedQueries = searchDocument.getMatchedQueries();
         assertThat(matchedQueries).isNotNull();
         assertThat(matchedQueries).hasSize(2);
-        assertThat(matchedQueries).isEqualTo(Arrays.asList("query1", "query2"));
+        assertThat(matchedQueries).isEqualTo(Map.of("query1", Double.NaN, "query2", Double.NaN));
     }
 }
