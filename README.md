@@ -24,7 +24,7 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 
 ### OpenSearch 3.x / 2.x client libraries
 
-| Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client   | Spring Framework | Spring Boot     | ClientJDK Version     |
+| Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client   | Spring Framework | Spring Boot     | JDK    |
 |---------------------------|------------------------|----------------------------|-------------------|---------------------|------------------|----------------|-----------------------|
 | 2025.0                    | 2.0.x                  | 5.5.x                      | 2.x / 3.x         | 3.0.x and above     | 6.2.x            | 3.5.x          | 21+                   |
 | 2025.0                    | 1.8.x                  | 5.5.x                      | 1.x / 2.x / 3.x   | 2.10.x and above    | 6.2.x            | 3.5.x          | 17+                   |
