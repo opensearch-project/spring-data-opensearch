@@ -22,23 +22,22 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 
 ### Compatibility Matrix
 
-| Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client | Spring Framework | Spring Boot   |
-|---------------------------|------------------------|---------------------------|-------------------|-------------------|------------------|---------------|
-| 2025.0                    | 2.0.x                  | 5.5.x                     | 2.x / 3.x         | 3.0.x and above   | 6.2.x            | 3.5.x         |
-| 2025.0                    | 1.8.x                  | 5.5.x                     | 1.x / 2.x / 3.x   | 2.10.x and above  | 6.2.x            | 3.5.x         |
-| 2025.0                    | 1.7.x                  | 5.5.x                     | 1.x / 2.x / 3.x   | 2.10.x and above  | 6.2.x            | 3.5.x         |
-| 2024.1                    | 1.6.x                  | 5.4.x                     | 1.x / 2.x         | 2.10.x and above  | 6.2.x            | 3.4.x         |
-| 2024.0                    | 1.5.x                  | 5.3.x                     | 1.x / 2.x         | 2.10.x and above  | 6.1.x            | 3.2.x / 3.3.x |
-| 2023.1 (Vaughan)          | 1.4.x                  | 5.2.x                     | 1.x / 2.x         | 2.10.x and above  | 6.1.x            | 3.2.x         |
-| 2023.1 (Vaughan)          | 1.3.x                  | 5.2.x                     | 1.x / 2.x         | 2.7.x and above   | 6.1.x            | 3.2.x         |
-| 2023.0 (Ullman)           | 1.2.x                  | 5.1.x                     | 1.x / 2.x         | 2.7.x and above   | 6.0.x            | 3.1.x         |
-| 2022.0 (Turing)           | 1.1.x                  | 5.0.x                     | 1.x / 2.x         | 2.7.x and above   | 6.0.x            | 3.0.x         |
-| 2022.0 (Turing)           | 1.0.x                  | 5.0.x                     | 1.x / 2.x         | 1.x / 2.6.x       | 6.0.x            | 3.0.x         |
-| 2022.0 (Turing)           | 0.2.0                  | 5.0.x                     | 1.x / 2.x         | 1.x / 2.x         | 6.0.x            | 3.0.x         |
-| 2022.0 (Turing)           | 0.1.0                  | 5.0.x                     | 1.x / 2.x         | 1.x / 2.x         | 6.0.x            | 3.0.x         |
-
 ### OpenSearch 3.x / 2.x client libraries
 
+| Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client   | Spring Framework | Spring Boot     | JDK    |
+|---------------------------|------------------------|----------------------------|-------------------|---------------------|------------------|----------------|-----------------------|
+| 2025.0                    | 2.0.x                  | 5.5.x                      | 2.x / 3.x         | 3.0.x and above     | 6.2.x            | 3.5.x          | 21+                   |
+| 2025.0                    | 1.8.x                  | 5.5.x                      | 1.x / 2.x / 3.x   | 2.10.x and above    | 6.2.x            | 3.5.x          | 17+                   |
+| 2025.0                    | 1.7.x                  | 5.5.x                      | 1.x / 2.x / 3.x   | 2.10.x and above    | 6.2.x            | 3.5.x          | 17+                   |
+| 2024.1                    | 1.6.x                  | 5.4.x                      | 1.x / 2.x         | 2.10.x and above    | 6.2.x            | 3.4.x          | 17+                   |
+| 2024.0                    | 1.5.x                  | 5.3.x                      | 1.x / 2.x         | 2.10.x and above    | 6.1.x            | 3.2.x / 3.3.x  | 17+                   |
+| 2023.1 (Vaughan)          | 1.4.x                  | 5.2.x                      | 1.x / 2.x         | 2.10.x and above    | 6.1.x            | 3.2.x          | 17+                   |
+| 2023.1 (Vaughan)          | 1.3.x                  | 5.2.x                      | 1.x / 2.x         | 2.7.x and above     | 6.1.x            | 3.2.x          | 17+                   |
+| 2023.0 (Ullman)           | 1.2.x                  | 5.1.x                      | 1.x / 2.x         | 2.7.x and above     | 6.0.x            | 3.1.x          | 17+                   |
+| 2022.0 (Turing)           | 1.1.x                  | 5.0.x                      | 1.x / 2.x         | 2.7.x and above     | 6.0.x            | 3.0.x          | 17+                   |
+| 2022.0 (Turing)           | 1.0.x                  | 5.0.x                      | 1.x / 2.x         | 1.x / 2.6.x         | 6.0.x            | 3.0.x          | 17+                   |
+| 2022.0 (Turing)           | 0.2.0                  | 5.0.x                      | 1.x / 2.x         | 1.x / 2.x           | 6.0.x            | 3.0.x          | 17+                   |
+| 2022.0 (Turing)           | 0.1.0                  | 5.0.x                      | 1.x / 2.x         | 1.x / 2.x           | 6.0.x            | 3.0.x          | 17+                   |
 
 Spring Data OpenSearch provides the possibility to use either `RestHighLevelCLient` or [OpenSearchClient](https://github.com/opensearch-project/opensearch-java) to connect to OpenSearch clusters. 
 
