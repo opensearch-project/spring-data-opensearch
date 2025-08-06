@@ -139,7 +139,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>2.25.0</version>
+	<version>3.1.0</version>
 </dependency>
 ```
 
