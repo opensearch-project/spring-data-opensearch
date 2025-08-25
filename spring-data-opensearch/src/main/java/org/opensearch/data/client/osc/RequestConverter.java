@@ -1425,6 +1425,10 @@ class RequestConverter {
                 h.preference(query.getPreference());
             }
 
+            if (query.getIndicesOptions() != null) {
+                addMultiSearchIndicesOptions(h, query.getIndicesOptions());
+            }
+
             return h;
         };
     }
@@ -1595,6 +1599,32 @@ class RequestConverter {
                 case IGNORE_THROTTLED -> builder.ignoreThrottled(true);
                 // the following ones aren't supported by the builder
                 case FORBID_ALIASES_TO_MULTIPLE_INDICES, FORBID_CLOSED_INDICES, IGNORE_ALIASES -> {
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER
+                                .warn(String.format("indices option %s is not supported by the Elasticsearch client.", option.name()));
+                    }
+                }
+            }
+        });
+
+        builder.expandWildcards(indicesOptions.getExpandWildcards().stream()
+                .map(wildcardStates -> switch (wildcardStates) {
+                    case OPEN -> ExpandWildcard.Open;
+                    case CLOSED -> ExpandWildcard.Closed;
+                    case HIDDEN -> ExpandWildcard.Hidden;
+                    case ALL -> ExpandWildcard.All;
+                    case NONE -> ExpandWildcard.None;
+                }).collect(Collectors.toList()));
+    }
+
+    private void addMultiSearchIndicesOptions(MultisearchHeader.Builder builder, IndicesOptions indicesOptions) {
+
+        indicesOptions.getOptions().forEach(option -> {
+            switch (option) {
+                case ALLOW_NO_INDICES -> builder.allowNoIndices(true);
+                case IGNORE_UNAVAILABLE -> builder.ignoreUnavailable(true);
+                // the following ones aren't supported by the builder
+                case IGNORE_THROTTLED, FORBID_ALIASES_TO_MULTIPLE_INDICES, FORBID_CLOSED_INDICES, IGNORE_ALIASES -> {
                     if (LOGGER.isWarnEnabled()) {
                         LOGGER
                                 .warn(String.format("indices option %s is not supported by the Elasticsearch client.", option.name()));

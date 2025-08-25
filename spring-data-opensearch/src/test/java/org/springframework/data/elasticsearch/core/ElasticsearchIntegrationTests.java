@@ -1724,6 +1724,23 @@ public abstract class ElasticsearchIntegrationTests {
 	}
 
 	@Test
+	public void shouldTakeIntoAccountIndicesOptionsForMultiSearch() {
+
+		Query query = getBuilderWithMatchAllQuery()
+				.withIndicesOptions(IndicesOptions.LENIENT_EXPAND_OPEN)
+				.build();
+
+		List<SearchHits<Void>> searchHits = operations.multiSearch(List.of(query), Void.class,
+				IndexCoordinates.of("not-existing-index"));
+
+		assertThat(searchHits).hasSize(1)
+				.first()
+				.satisfies(hit -> {
+					assertThat(hit.getTotalHits()).isZero();
+				});
+	}
+
+	@Test
 	public void shouldIndexDocumentForSpecifiedSource() {
 
 		// given
