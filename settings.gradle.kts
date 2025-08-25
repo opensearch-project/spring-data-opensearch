@@ -58,7 +58,7 @@ dependencyResolutionManagement {
     create("pluginLibs") {
       version("spotless", "6.25.0")
       version("editorconfig", "0.0.3")
-      version("release", "3.0.2")
+      version("release", "3.1.0")
       plugin("editorconfig", "org.ec4j.editorconfig").versionRef("editorconfig")
       plugin("spotless", "com.diffplug.spotless").versionRef("spotless")
       plugin("release", "net.researchgate.release").versionRef("release")
