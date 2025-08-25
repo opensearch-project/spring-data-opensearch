@@ -56,7 +56,7 @@ class OpenSearchRestClientConfigurations {
         }
 
         @Bean
-        RestClientBuilderCustomizer defaultRestClientBuilderCustomizer(OpenSearchProperties properties, ObjectProvider<SslBundles> sslBundles) {
+        RestClientBuilderCustomizer defaultOpensearchRestClientBuilderCustomizer(OpenSearchProperties properties, ObjectProvider<SslBundles> sslBundles) {
             return new DefaultRestClientBuilderCustomizer(properties, this.connectionDetails, sslBundles);
         }
 
