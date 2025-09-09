@@ -1328,11 +1328,8 @@ class RequestConverter {
                                     .timeout(timeStringMs(query.getTimeout())) //
                             ;
 
-                            if (query.getPageable().isPaged()) {
-                                bb //
-                                        .from((int) query.getPageable().getOffset()) //
-                                        .size(query.getPageable().getPageSize());
-                            }
+                            bb.from((int) (query.getPageable().isPaged() ? query.getPageable().getOffset() : 0))
+                                .size(query.getRequestSize());
 
                             if (!isEmpty(query.getFields())) {
                                 bb.fields(fb -> {
@@ -1483,13 +1480,9 @@ class RequestConverter {
             builder.seqNoPrimaryTerm(true);
         }
 
-        if (query.getPageable().isPaged()) {
-            builder //
-                    .from((int) query.getPageable().getOffset()) //
-                    .size(query.getPageable().getPageSize());
-        } else {
-            builder.from(0).size(INDEX_MAX_RESULT_WINDOW);
-        }
+        builder
+            .from((int) (query.getPageable().isPaged() ? query.getPageable().getOffset() : 0))
+            .size(query.getRequestSize());
 
         if (!isEmpty(query.getFields())) {
             var fieldAndFormats = query.getFields().stream().map(field -> FieldAndFormat.of(b -> b.field(field))).toList();
