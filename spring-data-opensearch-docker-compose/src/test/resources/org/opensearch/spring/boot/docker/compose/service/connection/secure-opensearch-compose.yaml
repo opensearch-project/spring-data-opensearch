@@ -1,6 +1,6 @@
 services:
   opensearch:
-    image: opensearchproject/opensearch:3.1.0
+    image: opensearchproject/opensearch:3.2.0
     ports:
       - '9200'
     healthcheck:
