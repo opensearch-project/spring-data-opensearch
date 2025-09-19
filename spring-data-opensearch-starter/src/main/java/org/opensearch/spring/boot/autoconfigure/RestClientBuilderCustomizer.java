@@ -15,7 +15,7 @@ import org.opensearch.client.RestClientBuilder;
  * {@link org.opensearch.client.RestClient} via a {@link RestClientBuilder} whilst
  * retaining default auto-configuration.
  *
- * Adaptation of the {@link org.springframework.boot.autoconfigure.elasticsearch.RestClientBuilderCustomizer} to
+ * Adaptation of the {@link org.springframework.boot.elasticsearch.autoconfigure.Rest5ClientBuilderCustomizer} to
  * the needs of OpenSearch.
  */
 @FunctionalInterface

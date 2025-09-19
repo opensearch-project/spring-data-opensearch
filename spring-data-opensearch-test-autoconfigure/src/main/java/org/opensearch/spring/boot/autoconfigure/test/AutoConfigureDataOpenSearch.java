@@ -12,7 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
+import org.springframework.boot.data.elasticsearch.autoconfigure.ElasticsearchDataAutoConfiguration;
 
 /**
  * {@link ImportAutoConfiguration Auto-configuration imports} for typical Data OpenSearch tests.
