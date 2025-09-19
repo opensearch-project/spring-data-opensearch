@@ -51,7 +51,7 @@ class SecureOpenSearchDockerComposeConnectionDetailsFactoryTest {
         try (InputStream input = response.getEntity().getContent()) {
             JsonNode result = new ObjectMapper().readTree(input);
             assertThat(result.path("version").path("number").asText())
-                    .isEqualTo("3.1.0");
+                    .isEqualTo("3.2.0");
         }
     }
 

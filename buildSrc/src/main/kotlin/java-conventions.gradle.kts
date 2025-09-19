@@ -139,7 +139,10 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
 
   shouldRunAfter(tasks.test)
   jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
-  
+
+  testClassesDirs = sourceSets["test"].output.classesDirs
+  classpath = sourceSets["test"].runtimeClasspath
+
   systemProperty("sde.integration-test.environment", "opensearch")
 }
 
