@@ -1394,6 +1394,12 @@ class RequestConverter {
                             query.getScriptedFields().forEach(scriptedField -> bb.scriptFields(scriptedField.getFieldName(),
                                     sf -> sf.script(getScript(scriptedField.getScriptData()))));
 
+                            if (query.getTrackTotalHits() != null) {
+                                bb.trackTotalHits(th -> th.enabled(query.getTrackTotalHits()));
+                            } else if (query.getTrackTotalHitsUpTo() != null) {
+                                bb.trackTotalHits(th -> th.count(query.getTrackTotalHitsUpTo()));
+                            }
+
                             if (query instanceof NativeQuery nativeQuery) {
                                 prepareNativeSearch(nativeQuery, bb);
                             }

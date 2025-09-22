@@ -17,11 +17,14 @@ package org.opensearch.data.client.osc;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch._types.Refresh;
+import org.opensearch.client.opensearch.core.msearch.RequestItem;
+import org.opensearch.client.opensearch.core.search.TrackHits;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -84,6 +87,77 @@ class RequestConverterTest {
             null);
 
         assertThat(deleteByQueryRequest.refresh()).isEqualTo(Refresh.True);
+    }
+
+
+    @Test // #542
+    @DisplayName("should set track_total_hits to true on searchMsearchRequest")
+    void shouldSetTrackTotalTrueOnMultiSearch() {
+        var query = new NativeQueryBuilder()
+                .withQuery(Queries.matchAllQuery().toQuery())
+                .withTrackTotalHits(true)
+                .build();
+
+        var multiSearchQueryParameters = new ArrayList<OpenSearchTemplate.MultiSearchQueryParameter>();
+        multiSearchQueryParameters.add(new OpenSearchTemplate.MultiSearchQueryParameter(query, SampleEntity.class, IndexCoordinates.of("foo")));
+
+        var searchRequest = requestConverter.searchMsearchRequest(multiSearchQueryParameters, null);
+
+        List<RequestItem> searches = searchRequest.searches();
+        assertThat(searches).hasSize(1);
+
+        TrackHits trackTotalHits = searches.getFirst().body().trackTotalHits();
+        assertThat(trackTotalHits).isNotNull();
+        assertThat(trackTotalHits.isCount()).isFalse();
+        assertThat(trackTotalHits.isEnabled()).isTrue();
+        assertThat(trackTotalHits.enabled()).isTrue();
+    }
+
+    @Test // #542
+    @DisplayName("should set track_total_hits to false on searchMsearchRequest")
+    void shouldSetTrackTotalFalseOnMultiSearch() {
+        var query = new NativeQueryBuilder()
+                .withQuery(Queries.matchAllQuery().toQuery())
+                .withTrackTotalHits(false)
+                .build();
+
+        var multiSearchQueryParameters = new ArrayList<OpenSearchTemplate.MultiSearchQueryParameter>();
+        multiSearchQueryParameters.add(new OpenSearchTemplate.MultiSearchQueryParameter(query, SampleEntity.class, IndexCoordinates.of("foo")));
+
+        var searchRequest = requestConverter.searchMsearchRequest(multiSearchQueryParameters, null);
+
+        List<RequestItem> searches = searchRequest.searches();
+        assertThat(searches).hasSize(1);
+
+        TrackHits trackTotalHits = searches.getFirst().body().trackTotalHits();
+        assertThat(trackTotalHits).isNotNull();
+        assertThat(trackTotalHits.isCount()).isFalse();
+        assertThat(trackTotalHits.isEnabled()).isTrue();
+        assertThat(trackTotalHits.enabled()).isFalse();
+    }
+
+    @Test // #542
+    @DisplayName("should set track_total_hits to count value on searchMsearchRequest")
+    void shouldSetTrackTotalCountValueOnMultiSearch() {
+        int countValue = 5000;
+        var query = new NativeQueryBuilder()
+                .withQuery(Queries.matchAllQuery().toQuery())
+                .withTrackTotalHitsUpTo(countValue)
+                .build();
+
+        var multiSearchQueryParameters = new ArrayList<OpenSearchTemplate.MultiSearchQueryParameter>();
+        multiSearchQueryParameters.add(new OpenSearchTemplate.MultiSearchQueryParameter(query, SampleEntity.class, IndexCoordinates.of("foo")));
+
+        var searchRequest = requestConverter.searchMsearchRequest(multiSearchQueryParameters, null);
+
+        List<RequestItem> searches = searchRequest.searches();
+        assertThat(searches).hasSize(1);
+
+        TrackHits trackTotalHits = searches.getFirst().body().trackTotalHits();
+        assertThat(trackTotalHits).isNotNull();
+        assertThat(trackTotalHits.isEnabled()).isFalse();
+        assertThat(trackTotalHits.isCount()).isTrue();
+        assertThat(trackTotalHits.count()).isEqualTo(countValue);
     }
 
     @Document(indexName = "does-not-matter")
