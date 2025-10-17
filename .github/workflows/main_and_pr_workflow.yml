@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java-version }}
-          distribution: 'oracle'
+          distribution: 'temurin'
           cache: gradle
       - name: Assemble with Gradle
         run: ./gradlew assemble
@@ -35,8 +35,8 @@ jobs:
           - { opensearch-version: 2.19.2, java-version: 25 }
           - { opensearch-version: 3.0.0,  java-version: 21 }
           - { opensearch-version: 3.0.0,  java-version: 25 }
-          - { opensearch-version: 3.2.0,  java-version: 21 }
-          - { opensearch-version: 3.2.0,  java-version: 25 }
+          - { opensearch-version: 3.3.0,  java-version: 21 }
+          - { opensearch-version: 3.3.0,  java-version: 25 }
         runs-on: [ubuntu-latest]
     name: Check on ${{ matrix.runs-on }} with JDK ${{ matrix.entry.java-version }} against OpenSearch ${{ matrix.entry.opensearch-version }}
     runs-on: ${{ matrix.runs-on }}
@@ -47,7 +47,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.entry.java-version }}
-          distribution: 'oracle'
+          distribution: 'temurin'
           cache: gradle
       - name: Check with Gradle
         run: ./gradlew check -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
