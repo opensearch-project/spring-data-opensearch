@@ -32,7 +32,7 @@ dependencyResolutionManagement {
       library("boot-test", "org.springframework.boot", "spring-boot-test").versionRef("spring-boot")
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
-      library("projectreactor", "io.projectreactor:reactor-test:3.7.11")
+      library("projectreactor", "io.projectreactor:reactor-test:3.7.12")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
