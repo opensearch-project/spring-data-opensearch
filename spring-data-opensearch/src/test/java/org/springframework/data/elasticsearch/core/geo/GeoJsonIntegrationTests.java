@@ -16,6 +16,7 @@
 package org.springframework.data.elasticsearch.core.geo;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 
@@ -23,8 +24,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.opensearch.OpenSearchException;
+import org.opensearch.OpenSearchStatusException;
+import org.opensearch.data.client.EnabledIfOpenSearchVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.UncategorizedElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -115,7 +120,7 @@ public abstract class GeoJsonIntegrationTests {
 		));
 		GeoJsonPolygon geoJsonPolygon = GeoJsonPolygon
 				.of(new Point(12, 34), new Point(56, 78), new Point(90, 12), new Point(12, 34))
-				.withInnerRing(new Point(21, 43), new Point(65, 87), new Point(9, 21), new Point(21, 43));
+				.withInnerRing(new Point(21, 43), new Point(65, 57), new Point(19, 34), new Point(21, 43));
 		GeoJsonMultiPolygon geoJsonMultiPolygon = GeoJsonMultiPolygon
 				.of(Arrays.asList(GeoJsonPolygon.of(new Point(12, 34), new Point(56, 78), new Point(90, 12), new Point(12, 34)),
 						GeoJsonPolygon.of(new Point(21, 43), new Point(65, 87), new Point(9, 21), new Point(21, 43))));
@@ -146,6 +151,48 @@ public abstract class GeoJsonIntegrationTests {
 
 		assertThat(result).isEqualTo(entity);
 	}
+	
+	// region tests
+    @Test // DATAES-930
+    @DisplayName("should not write illegal GeoJson properties")
+    @EnabledIfOpenSearchVersion(onOrAfter = "3.3.0", reason = "https://github.com/apache/lucene/pull/14974")
+    void shouldNotWriteIllegalGeoJsonProperties() {
+
+        GeoJsonMultiLineString multiLineString = GeoJsonMultiLineString.of(Arrays.asList( //
+                GeoJsonLineString.of(new Point(12, 34), new Point(56, 78)), //
+                GeoJsonLineString.of(new Point(90, 12), new Point(34, 56)) //
+        ));
+        GeoJsonPolygon geoJsonPolygon = GeoJsonPolygon
+                .of(new Point(12, 34), new Point(56, 78), new Point(90, 12), new Point(12, 34))
+                .withInnerRing(new Point(21, 43), new Point(65, 87), new Point(9, 21), new Point(21, 43));
+        GeoJsonMultiPolygon geoJsonMultiPolygon = GeoJsonMultiPolygon
+                .of(Arrays.asList(GeoJsonPolygon.of(new Point(12, 34), new Point(56, 78), new Point(90, 12), new Point(12, 34)),
+                        GeoJsonPolygon.of(new Point(21, 43), new Point(65, 87), new Point(9, 21), new Point(21, 43))));
+        GeoJsonGeometryCollection geoJsonGeometryCollection = GeoJsonGeometryCollection
+                .of(Arrays.asList(GeoJsonPoint.of(12, 34), GeoJsonPolygon
+                        .of(GeoJsonLineString.of(new Point(12, 34), new Point(56, 78), new Point(90, 12), new Point(12, 34)))));
+
+        GeoJsonEntity entity = new GeoJsonEntity();
+        entity.setId("42");
+        entity.setPoint1(GeoJsonPoint.of(12, 34));
+        entity.setPoint2(GeoJsonPoint.of(56, 78));
+        entity.setMultiPoint1(GeoJsonMultiPoint.of(new Point(12, 34), new Point(56, 78), new Point(90, 12)));
+        entity.setMultiPoint2(GeoJsonMultiPoint.of(new Point(90, 12), new Point(56, 78), new Point(12, 34)));
+        entity.setLineString1(GeoJsonLineString.of(new Point(12, 34), new Point(56, 78), new Point(90, 12)));
+        entity.setLineString2(GeoJsonLineString.of(new Point(90, 12), new Point(56, 78), new Point(12, 34)));
+        entity.setMultiLineString1(multiLineString);
+        entity.setMultiLineString2(multiLineString);
+        entity.setPolygon1(geoJsonPolygon);
+        entity.setPolygon2(geoJsonPolygon);
+        entity.setMultiPolygon1(geoJsonMultiPolygon);
+        entity.setMultiPolygon2(geoJsonMultiPolygon);
+        entity.setGeometryCollection1(geoJsonGeometryCollection);
+        entity.setGeometryCollection2(geoJsonGeometryCollection);
+
+        final UncategorizedElasticsearchException ex = assertThrows(UncategorizedElasticsearchException.class, 
+                () -> operations.save(entity));
+        assertThat(ex.getMessage()).contains("mapper_parsing_exception");
+    }
 
 	@Test // DATAES-931
 	@DisplayName("should find intersecting objects with Criteria query")

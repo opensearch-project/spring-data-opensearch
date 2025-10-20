@@ -8,18 +8,18 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "5.13.1")
-      version("launcher", "1.13.1")
+      version("jupiter", "6.0.0")
+      version("launcher", "6.0.0")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
       library("junit-platform-launcher", "org.junit.platform", "junit-platform-launcher").versionRef("launcher")
     }
 
     create("springLibs") {
-      version("spring", "6.2.11")
+      version("spring", "6.2.12")
       version("spring-boot", "3.5.5")
-      library("data-commons", "org.springframework.data:spring-data-commons:3.5.4")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.4")
+      library("data-commons", "org.springframework.data:spring-data-commons:3.5.5")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:5.5.5")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
@@ -37,7 +37,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "3.2.0")
+      version("opensearch", "3.3.0")
       library("java-client", "org.opensearch.client:opensearch-java:3.2.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
