@@ -76,11 +76,11 @@ versionCatalogs
   }
 
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.21.1")
-  testImplementation("org.testcontainers:junit-jupiter:1.21.1")
-  testImplementation("org.mockito:mockito-junit-jupiter:5.18.0")
-  testImplementation("org.assertj:assertj-core:3.27.3")
-  testImplementation("ch.qos.logback:logback-classic:1.5.19")
+  testImplementation("org.testcontainers:testcontainers:2.0.1")
+  testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.1")
+  testImplementation("org.mockito:mockito-junit-jupiter:5.20.0")
+  testImplementation("org.assertj:assertj-core:3.27.4")
+  testImplementation("ch.qos.logback:logback-classic:1.5.20")
 }
 
 java {
