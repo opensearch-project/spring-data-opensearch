@@ -11,7 +11,7 @@ package org.opensearch.data.client.core.index;
 
 import java.util.List;
 import java.util.Map;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.opensearch.data.client.junit.jupiter.OpenSearchRestTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,19 +38,19 @@ public class MappingBuilderORHLCIntegrationTests extends MappingBuilderIntegrati
         }
     }
 
-    @Ignore
+    @Disabled
     @Override
     public void shouldWriteDenseVectorFieldMapping() {
         // see please https://github.com/opensearch-project/OpenSearch/pull/3659
     }
 
-    @Ignore
+    @Disabled
     @Override
     public void shouldWriteRuntimeFields() {
         // Not supported by OpenSearch
     }
 
-    @Ignore
+    @Disabled
     @Override
     public void shouldWriteWildcardFieldMapping() {
         // Not supported by OpenSearch

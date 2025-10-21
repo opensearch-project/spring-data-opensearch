@@ -42,7 +42,7 @@ dependencyResolutionManagement {
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
       library("sniffer", "org.opensearch.client", "opensearch-rest-client-sniffer").versionRef("opensearch")
-      library("testcontainers", "org.opensearch:opensearch-testcontainers:3.0.2")
+      library("testcontainers", "org.opensearch:opensearch-testcontainers:4.0.0")
     }
     
     create("jacksonLibs") {
