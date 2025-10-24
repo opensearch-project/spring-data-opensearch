@@ -7,9 +7,9 @@ package org.opensearch.data.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
+import org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration;
 
-@SpringBootApplication(exclude = ElasticsearchDataAutoConfiguration.class)
+@SpringBootApplication(exclude = DataElasticsearchAutoConfiguration.class)
 public class MarketplaceApplication {
     public static void main(String[] args) {
         SpringApplication.run(MarketplaceConfiguration.class, args);
