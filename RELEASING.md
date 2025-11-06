@@ -41,4 +41,4 @@ The release process is standard across repositories in this org and is run by a 
 1. Increment "version" in [version.properties](./version.properties) to the next iteration, e.g. v2.1.1. See [example](https://github.com/opensearch-project/spring-data-opensearch/pull/75).
 
 ## Snapshot Builds
-The [snapshots builds](https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/org/opensearch/client/spring-data-opensearch/) are published to sonatype using [publish-snapshots.yml](./.github/workflows/publish-snapshots.yml) workflow. Each `push` event to the main branch triggers this workflow.
+The [snapshots builds](https://ci.opensearch.org/ci/dbc/snapshots/maven/org/opensearch/client/spring-data-opensearch/) are published to sonatype using [publish-snapshots.yml](./.github/workflows/publish-snapshots.yml) workflow. Each `push` event to the main branch triggers this workflow.
