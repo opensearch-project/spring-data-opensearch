@@ -111,11 +111,12 @@ tasks.test {
 publishing {
   repositories {
     if (version.toString().endsWith("SNAPSHOT")) {
-      maven("https://central.sonatype.com/repository/maven-snapshots/") {
+      maven(providers.environmentVariable("MAVEN_SNAPSHOTS_S3_REPO")) {
         name = "Snapshots"
-        credentials {
-            username = System.getenv("SONATYPE_USERNAME")
-            password = System.getenv("SONATYPE_PASSWORD")
+        credentials(AwsCredentials::class) {
+          accessKey = System.getenv("AWS_ACCESS_KEY_ID")
+          secretKey = System.getenv("AWS_SECRET_ACCESS_KEY")
+          sessionToken = System.getenv("AWS_SESSION_TOKEN")
         }
       }
     }
