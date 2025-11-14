@@ -776,14 +776,14 @@ class RequestConverter {
             scriptData.params().forEach((key, value) -> params.put(key, JsonData.of(value, jsonpMapper)));
         }
         return org.opensearch.client.opensearch._types.Script.of(sb -> {
-            if (scriptData.type() == ScriptType.INLINE) {
+            if (scriptData.script() != null) { /* inline */
                 sb.inline(is -> is //
                         .lang(fn -> fn.custom(scriptData.language())) //
                         .source(scriptData.script()) //
                         .params(params)); //
-            } else if (scriptData.type() == ScriptType.STORED) {
+            } else { /* stored */
                 sb.stored(ss -> ss //
-                        .id(scriptData.script()) //
+                        .id(scriptData.scriptName()) //
                         .params(params) //
                 );
             }
@@ -1121,14 +1121,15 @@ class RequestConverter {
                 }
 
                 uqb.script(sb -> {
-                    if (query.getScriptType() == ScriptType.INLINE) {
+                    // inline
+                    if (query.getScript() != null) {
                         sb.inline(is -> is //
                                 .lang(fn -> fn.custom(query.getLang())) //
                                 .source(query.getScript()) //
                                 .params(params)); //
-                    } else if (query.getScriptType() == ScriptType.STORED) {
+                    } else { /* stored */
                         sb.stored(ss -> ss //
-                                .id(query.getScript()) //
+                                .id(query.getScriptName()) //
                                 .params(params) //
                         );
                     }
@@ -2073,7 +2074,6 @@ class RequestConverter {
                     case INTERNAL -> VersionType.Internal;
                     case EXTERNAL -> VersionType.External;
                     case EXTERNAL_GTE -> VersionType.ExternalGte;
-                    case FORCE -> VersionType.Force;
                 };
             }
         }
