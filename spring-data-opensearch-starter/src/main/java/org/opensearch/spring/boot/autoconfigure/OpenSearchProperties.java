@@ -9,13 +9,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchProperties.Restclient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchProperties.Restclient;
 
 /**
  * OpenSearch client configuration properties.
  *
- * Adaptation of the {@link org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchProperties} to
+ * Adaptation of the {@link org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchProperties} to
  * the needs of OpenSearch.
  */
 @ConfigurationProperties("opensearch")

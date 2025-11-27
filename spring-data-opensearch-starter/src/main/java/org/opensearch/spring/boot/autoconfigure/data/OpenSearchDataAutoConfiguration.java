@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for Spring Data's OpenSearch support.
  *
- * Adaptation of the {@link org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration} to
+ * Adaptation of the {@link org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration} to
  * the needs of OpenSearch.
  */
 @AutoConfiguration(after = {OpenSearchClientAutoConfiguration.class, OpenSearchRestClientAutoConfiguration.class})

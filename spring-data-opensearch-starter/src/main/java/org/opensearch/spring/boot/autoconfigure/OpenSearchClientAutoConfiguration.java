@@ -13,13 +13,13 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.context.annotation.Import;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for OpenSearch's Java client.
  */
-@AutoConfiguration(after = { JsonbAutoConfiguration.class, OpenSearchRestClientAutoConfiguration.class })
+@AutoConfiguration(after = { OpenSearchRestClientAutoConfiguration.class },
+    afterName = { "org.springframework.boot.jsonb.autoconfigure.JsonbAutoConfiguration" })
 @ConditionalOnBean(RestClient.class)
 @ConditionalOnClass(OpenSearchClient.class)
 @Import({ JsonpMapperConfiguration.class, OpenSearchTransportConfiguration.class, OpenSearchClientConfiguration.class })

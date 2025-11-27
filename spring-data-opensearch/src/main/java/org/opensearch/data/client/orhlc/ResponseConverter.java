@@ -433,7 +433,7 @@ public class ResponseConverter {
      */
     public static ByQueryResponse.SearchFailure byQueryResponseSearchFailureOf(
             ScrollableHitSource.SearchFailure searchFailure) {
-        return ByQueryResponse.SearchFailure.builder() //
+        return ByQueryResponse.SearchFailure.builder(searchFailure.getReason()) //
                 .withReason(searchFailure.getReason()) //
                 .withIndex(searchFailure.getIndex()) //
                 .withNodeId(searchFailure.getNodeId()) //
