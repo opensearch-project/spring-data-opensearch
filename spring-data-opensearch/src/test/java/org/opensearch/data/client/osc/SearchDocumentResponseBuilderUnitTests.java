@@ -145,6 +145,7 @@ class SearchDocumentResponseBuilderUnitTests {
 
                                 )
                                 .status("fail")
+                                .primary(true)
                         )
                 ))
                 .build();
