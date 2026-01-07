@@ -50,7 +50,7 @@ By default, the `RestHighLevelCLient` is configured as the means to communicate 
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 </dependency>
 ```
 
@@ -70,7 +70,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -83,7 +83,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -105,7 +105,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -127,7 +127,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>2.0.4</version>
+	<version>3.0.0</version>
 	<scope>test</scope>
 	<exclusions>
 		<exclusion>
@@ -345,7 +345,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>2.0.4</version>
+  <version>3.0.0</version>
 </dependency>
 ```
 
@@ -372,7 +372,7 @@ Add the Gradle dependency:
 ```groovy
 dependencies {
   ...
-  implementation "org.opensearch.client:spring-data-opensearch:2.0.4"
+  implementation "org.opensearch.client:spring-data-opensearch:3.0.0"
   ...
 }
 ```
