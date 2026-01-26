@@ -79,8 +79,8 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers:2.0.3")
   testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.3")
   testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
-  testImplementation("org.assertj:assertj-core:3.27.4")
-  testImplementation("ch.qos.logback:logback-classic:1.5.22")
+  testImplementation("org.assertj:assertj-core:3.27.7")
+  testImplementation("ch.qos.logback:logback-classic:1.5.24")
 }
 
 java {
