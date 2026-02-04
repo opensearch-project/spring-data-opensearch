@@ -30,6 +30,7 @@ dependencies {
   }
   compileOnly(opensearchLibs.java.client)
   compileOnly(jakarta.json.bind)
+  annotationProcessor(springLibs.boot.configuration.processor)
   testImplementation(springLibs.test) {
     exclude("ch.qos.logback", "logback-classic")
   }
