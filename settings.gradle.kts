@@ -35,7 +35,7 @@ dependencyResolutionManagement {
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-test-cache", "org.springframework.boot", "spring-boot-cache-test").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
-      library("projectreactor", "io.projectreactor:reactor-test:3.8.2")
+      library("projectreactor", "io.projectreactor:reactor-test:3.8.3")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
