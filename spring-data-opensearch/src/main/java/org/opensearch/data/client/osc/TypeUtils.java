@@ -439,6 +439,11 @@ final class TypeUtils {
     }
 
     @Nullable
+    static Double toDouble(@Nullable Float value) {
+        return value != null ? value.doubleValue() : null;
+    }
+
+    @Nullable
     static Integer toInt(@Nullable Long value) {
         return value != null ? value.intValue() : null;
     }

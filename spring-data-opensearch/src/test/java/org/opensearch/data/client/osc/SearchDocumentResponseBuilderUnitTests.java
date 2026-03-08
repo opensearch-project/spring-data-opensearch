@@ -27,7 +27,7 @@ import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
-import org.opensearch.client.opensearch._types.ShardFailure;
+import org.opensearch.client.opensearch._types.ShardSearchFailure;
 import org.opensearch.client.opensearch._types.ShardStatistics;
 import org.opensearch.client.opensearch.core.search.HitsMetadata;
 import org.opensearch.client.opensearch.core.search.Suggest;
@@ -130,7 +130,7 @@ class SearchDocumentResponseBuilderUnitTests {
                 .skipped(0)
                 .failed(1)
                 .failures(List.of(
-                        ShardFailure.of(sfb -> sfb
+                        ShardSearchFailure.of(sfb -> sfb
                                 .index("test-index")
                                 .node("test-node")
                                 .shard(1)
@@ -144,8 +144,6 @@ class SearchDocumentResponseBuilderUnitTests {
                                         .type("reason-type")
 
                                 )
-                                .status("fail")
-                                .primary(true)
                         )
                 ))
                 .build();
