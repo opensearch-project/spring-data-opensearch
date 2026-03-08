@@ -30,7 +30,6 @@ jobs:
       fail-fast: false
       matrix:
         entry:
-          - { opensearch-version: 2.11.0, java-version: 21 }
           - { opensearch-version: 2.19.2, java-version: 21 }
           - { opensearch-version: 2.19.2, java-version: 25 }
           - { opensearch-version: 3.0.0,  java-version: 21 }

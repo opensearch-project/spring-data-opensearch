@@ -60,11 +60,12 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
     // (component templates)
     private final ClusterTemplate clusterTemplate;
     protected final ElasticsearchConverter elasticsearchConverter;
+    protected final MappingParametersCustomizer mappingParametersCustomizer;
     @Nullable protected final Class<?> boundClass;
     @Nullable protected final IndexCoordinates boundIndex;
 
     public IndicesTemplate(OpenSearchIndicesClient client, ClusterTemplate clusterTemplate,
-            ElasticsearchConverter elasticsearchConverter, Class<?> boundClass) {
+            ElasticsearchConverter elasticsearchConverter, MappingParametersCustomizer mappingParametersCustomizer, Class<?> boundClass) {
         super(client, elasticsearchConverter);
 
         Assert.notNull(clusterTemplate, "cluster must not be null");
@@ -73,13 +74,14 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
 
         this.clusterTemplate = clusterTemplate;
         this.elasticsearchConverter = elasticsearchConverter;
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
         this.boundClass = boundClass;
         this.boundIndex = null;
 
     }
 
-    public IndicesTemplate(OpenSearchIndicesClient client, ClusterTemplate clusterTemplate,
-                                                 ElasticsearchConverter elasticsearchConverter, IndexCoordinates boundIndex) {
+    public IndicesTemplate(OpenSearchIndicesClient client, ClusterTemplate clusterTemplate, ElasticsearchConverter elasticsearchConverter,
+            MappingParametersCustomizer mappingParametersCustomizer, IndexCoordinates boundIndex) {
         super(client, elasticsearchConverter);
 
         Assert.notNull(clusterTemplate, "cluster must not be null");
@@ -88,6 +90,7 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
 
         this.clusterTemplate = clusterTemplate;
         this.elasticsearchConverter = elasticsearchConverter;
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
         this.boundClass = null;
         this.boundIndex = boundIndex;
 
@@ -206,7 +209,7 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
 
         // build mapping from field annotations
         try {
-            String mapping = new MappingBuilder(elasticsearchConverter).buildPropertyMapping(clazz);
+            String mapping = new MappingBuilder(elasticsearchConverter, mappingParametersCustomizer).buildPropertyMapping(clazz);
             return Document.parse(mapping);
         } catch (Exception e) {
             throw new UncategorizedElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);

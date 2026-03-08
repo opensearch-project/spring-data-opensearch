@@ -15,6 +15,7 @@
 
 package org.springframework.data.elasticsearch.core;
 
+import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.springframework.data.elasticsearch.config.ElasticsearchConfigurationSupport;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
@@ -43,6 +44,6 @@ public abstract class MappingContextBaseTests {
 	}
 
 	final protected MappingBuilder getMappingBuilder() {
-		return new MappingBuilder(elasticsearchConverter.get());
+		return new MappingBuilder(elasticsearchConverter.get(), new OpenSearchMappingParametersCustomizer());
 	}
 }

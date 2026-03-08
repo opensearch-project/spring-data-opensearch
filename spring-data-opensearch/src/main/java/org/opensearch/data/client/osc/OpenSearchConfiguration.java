@@ -23,11 +23,13 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.TransportOptions;
 import org.opensearch.client.transport.rest_client.RestClientOptions;
+import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.config.ElasticsearchConfigurationSupport;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.util.Assert;
 
 /**
@@ -101,9 +103,9 @@ public abstract class OpenSearchConfiguration extends ElasticsearchConfiguration
      */
     @Bean(name = { "elasticsearchOperations", "elasticsearchTemplate", "opensearchOperations", "opensearchTemplate" })
     public ElasticsearchOperations opensearchOperations(ElasticsearchConverter elasticsearchConverter,
-            OpenSearchClient elasticsearchClient) {
+            OpenSearchClient elasticsearchClient, MappingParametersCustomizer opensearchMappingParametersCustomizer) {
 
-        OpenSearchTemplate template = new OpenSearchTemplate(elasticsearchClient, elasticsearchConverter);
+        OpenSearchTemplate template = new OpenSearchTemplate(elasticsearchClient, elasticsearchConverter, opensearchMappingParametersCustomizer);
         template.setRefreshPolicy(refreshPolicy());
 
         return template;
@@ -118,6 +120,11 @@ public abstract class OpenSearchConfiguration extends ElasticsearchConfiguration
     @Bean
     public JsonpMapper jsonpMapper() {
         return new JacksonJsonpMapper();
+    }
+
+    @Bean
+    public MappingParametersCustomizer opensearchMappingParametersCustomizer() {
+        return new OpenSearchMappingParametersCustomizer();
     }
 
     /**

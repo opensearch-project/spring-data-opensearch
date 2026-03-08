@@ -68,13 +68,13 @@ class RestIndexTemplate extends AbstractIndexTemplate implements IndexOperations
     protected final RequestFactory requestFactory;
 
     public RestIndexTemplate(OpenSearchRestTemplate restTemplate, Class<?> boundClass) {
-        super(restTemplate.getElasticsearchConverter(), boundClass);
+        super(restTemplate.getElasticsearchConverter(), restTemplate.getMappingParametersCustomizer(), boundClass);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);
     }
 
     public RestIndexTemplate(OpenSearchRestTemplate restTemplate, IndexCoordinates boundIndex) {
-        super(restTemplate.getElasticsearchConverter(), boundIndex);
+        super(restTemplate.getElasticsearchConverter(), restTemplate.getMappingParametersCustomizer(), boundIndex);
         this.restTemplate = restTemplate;
         requestFactory = new RequestFactory(elasticsearchConverter);
     }

@@ -45,6 +45,7 @@ import org.opensearch.action.update.UpdateRequest;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestHighLevelClient;
 import org.opensearch.common.unit.TimeValue;
+import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.MoreLikeThisQueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
@@ -63,6 +64,7 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
@@ -90,6 +92,7 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
 
     private final RestHighLevelClient client;
     private final OpenSearchExceptionTranslator exceptionTranslator = new OpenSearchExceptionTranslator();
+    private final MappingParametersCustomizer mappingParametersCustomizer;
     protected RequestFactory requestFactory;
 
     // region _initialization
@@ -99,27 +102,33 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
 
         this.client = client;
         requestFactory = new RequestFactory(this.elasticsearchConverter);
+        mappingParametersCustomizer = new OpenSearchMappingParametersCustomizer();
     }
 
-    public OpenSearchRestTemplate(RestHighLevelClient client, ElasticsearchConverter opensearchConverter) {
+    public OpenSearchRestTemplate(RestHighLevelClient client, ElasticsearchConverter opensearchConverter, MappingParametersCustomizer mappingParametersCustomizer) {
 
         super(opensearchConverter);
 
         Assert.notNull(client, "Client must not be null!");
 
         this.client = client;
-        requestFactory = new RequestFactory(this.elasticsearchConverter);
+        this.requestFactory = new RequestFactory(this.elasticsearchConverter);
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
     }
 
     @Override
     protected AbstractElasticsearchTemplate doCopy() {
-        OpenSearchRestTemplate copy = new OpenSearchRestTemplate(client, elasticsearchConverter);
+        OpenSearchRestTemplate copy = new OpenSearchRestTemplate(client, elasticsearchConverter, mappingParametersCustomizer);
         copy.requestFactory = this.requestFactory;
         return copy;
     }
 
     public RequestFactory getRequestFactory() {
         return requestFactory;
+    }
+
+    public MappingParametersCustomizer getMappingParametersCustomizer() {
+        return mappingParametersCustomizer;
     }
 
     // endregion

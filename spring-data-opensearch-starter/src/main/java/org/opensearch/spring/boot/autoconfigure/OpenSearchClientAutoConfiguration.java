@@ -8,6 +8,7 @@ import org.opensearch.client.RestClient;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchClientConfigurations.JsonpMapperConfiguration;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchClientConfigurations.OpenSearchClientConfiguration;
+import org.opensearch.spring.boot.autoconfigure.OpenSearchClientConfigurations.OpenSearchMappingParametersCustomizerConfiguration;
 import org.opensearch.spring.boot.autoconfigure.OpenSearchClientConfigurations.OpenSearchTransportConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -22,6 +23,6 @@ import org.springframework.context.annotation.Import;
     afterName = { "org.springframework.boot.jsonb.autoconfigure.JsonbAutoConfiguration" })
 @ConditionalOnBean(RestClient.class)
 @ConditionalOnClass(OpenSearchClient.class)
-@Import({ JsonpMapperConfiguration.class, OpenSearchTransportConfiguration.class, OpenSearchClientConfiguration.class })
+@Import({ JsonpMapperConfiguration.class, OpenSearchTransportConfiguration.class, OpenSearchClientConfiguration.class, OpenSearchMappingParametersCustomizerConfiguration.class })
 public class OpenSearchClientAutoConfiguration {
 }

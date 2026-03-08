@@ -37,6 +37,7 @@ import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.opensearch.core.msearch.MultiSearchResponseItem;
 import org.opensearch.client.opensearch.core.search.SearchResult;
 import org.opensearch.client.transport.Version;
+import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.client.UnsupportedBackendOperation;
@@ -50,6 +51,7 @@ import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.document.SearchDocumentResponse;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
@@ -88,6 +90,7 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     private final ResponseConverter responseConverter;
     private final JsonpMapper jsonpMapper;
     private final OpenSearchExceptionTranslator exceptionTranslator;
+    private final MappingParametersCustomizer mappingParametersCustomizer;
 
     // region _initialization
     public OpenSearchTemplate(OpenSearchClient client) {
@@ -99,35 +102,37 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
         requestConverter = new RequestConverter(elasticsearchConverter, jsonpMapper);
         responseConverter = new ResponseConverter(jsonpMapper);
         exceptionTranslator = new OpenSearchExceptionTranslator(jsonpMapper);
+        mappingParametersCustomizer = new OpenSearchMappingParametersCustomizer();
     }
 
-    public OpenSearchTemplate(OpenSearchClient client, ElasticsearchConverter elasticsearchConverter) {
+    public OpenSearchTemplate(OpenSearchClient client, ElasticsearchConverter elasticsearchConverter, MappingParametersCustomizer mappingParametersCustomizer) {
         super(elasticsearchConverter);
 
         Assert.notNull(client, "client must not be null");
 
         this.client = client;
         this.jsonpMapper = client._transport().jsonpMapper();
-        requestConverter = new RequestConverter(elasticsearchConverter, jsonpMapper);
-        responseConverter = new ResponseConverter(jsonpMapper);
-        exceptionTranslator = new OpenSearchExceptionTranslator(jsonpMapper);
+        this.requestConverter = new RequestConverter(elasticsearchConverter, jsonpMapper);
+        this.responseConverter = new ResponseConverter(jsonpMapper);
+        this.exceptionTranslator = new OpenSearchExceptionTranslator(jsonpMapper);
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
     }
 
     @Override
     protected AbstractElasticsearchTemplate doCopy() {
-        return new OpenSearchTemplate(client, elasticsearchConverter);
+        return new OpenSearchTemplate(client, elasticsearchConverter, mappingParametersCustomizer);
     }
     // endregion
 
     // region child templates
     @Override
     public IndexOperations indexOps(Class<?> clazz) {
-        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, clazz);
+        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, clazz);
     }
 
     @Override
     public IndexOperations indexOps(IndexCoordinates index) {
-        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, index);
+        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, index);
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnectionInfo;
 
 /**
@@ -72,9 +73,9 @@ public class OpenSearchRestTemplateConfiguration extends AbstractOpenSearchConfi
 
     @Override
     public ElasticsearchOperations elasticsearchOperations(
-            ElasticsearchConverter elasticsearchConverter, RestHighLevelClient elasticsearchClient) {
+            ElasticsearchConverter elasticsearchConverter, RestHighLevelClient elasticsearchClient, MappingParametersCustomizer opensearchMappingParametersCustomizer) {
 
-        OpenSearchRestTemplate template = new OpenSearchRestTemplate(elasticsearchClient, elasticsearchConverter) {
+        OpenSearchRestTemplate template = new OpenSearchRestTemplate(elasticsearchClient, elasticsearchConverter, opensearchMappingParametersCustomizer) {
             @Override
             public <T> T execute(ClientCallback<T> callback) {
                 try {

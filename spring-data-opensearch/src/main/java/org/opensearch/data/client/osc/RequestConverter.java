@@ -1839,8 +1839,9 @@ class RequestConverter {
         } else if (query instanceof StringQuery) {
             esQuery = Queries.wrapperQueryAsQuery(((StringQuery) query).getSource());
         } else if (query instanceof NativeQuery nativeQuery) {
-
-            if (nativeQuery.getQuery() != null) {
+            if (nativeQuery.getKnnQuery() != null) {
+                esQuery = nativeQuery.getKnnQuery().toQuery();
+            } else if (nativeQuery.getQuery() != null) {
                 esQuery = nativeQuery.getQuery();
             } else if (nativeQuery.getSpringDataQuery() != null) {
                 esQuery = getQuery(nativeQuery.getSpringDataQuery(), clazz);

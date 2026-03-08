@@ -173,7 +173,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // DATAES-991
 	@DisplayName("should write correct TermVector values")
-	public void shouldWriteCorrectTermVectorValues() {
+	void shouldWriteCorrectTermVectorValues() {
 
 		IndexOperations indexOps = operations.indexOps(TermVectorFieldEntity.class);
 		indexOps.createWithMapping();
@@ -189,7 +189,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // #1700
 	@DisplayName("should write dense_vector field mapping")
-	public void shouldWriteDenseVectorFieldMapping() {
+	void shouldWriteDenseVectorFieldMapping() {
 
 		IndexOperations indexOps = operations.indexOps(DenseVectorEntity.class);
 		indexOps.createWithMapping();
@@ -197,7 +197,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // #1370
 	@DisplayName("should write mapping for disabled entity")
-	public void shouldWriteMappingForDisabledEntity() {
+	void shouldWriteMappingForDisabledEntity() {
 
 		IndexOperations indexOps = operations.indexOps(DisabledMappingEntity.class);
 		indexOps.createWithMapping();
@@ -205,7 +205,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // #1370
 	@DisplayName("should write mapping for disabled property")
-	public void shouldWriteMappingForDisabledProperty() {
+	void shouldWriteMappingForDisabledProperty() {
 
 		IndexOperations indexOps = operations.indexOps(DisabledMappingProperty.class);
 		indexOps.createWithMapping();
@@ -213,15 +213,41 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // #1767
 	@DisplayName("should write dynamic mapping annotations")
-	public void shouldWriteDynamicMappingAnnotations() {
+	void shouldWriteDynamicMappingAnnotations() {
 
 		IndexOperations indexOps = operations.indexOps(DynamicMappingAnnotationEntity.class);
 		indexOps.createWithMapping();
+		
+		var mapping = indexOps.getMapping();
+        var dynamic = mapping.get("dynamic");
+        if (dynamic instanceof String s) {
+            assertThat(dynamic).isEqualTo("false");
+        } else {
+            assertThat(mapping.get("dynamic")).isEqualTo(false);
+        }
 	}
+	
+	@Test // #2478
+    @DisplayName("should write dynamic mapping annotations on put")
+	void shouldWriteDynamicMappingAnnotationsOnPut() {
+
+        IndexOperations indexOps = operations.indexOps(DynamicMappingAnnotationEntity.class);
+        indexOps.create();
+
+        indexOps.putMapping();
+
+        var mapping = indexOps.getMapping();
+        var dynamic = mapping.get("dynamic");
+        if (dynamic instanceof String s) {
+            assertThat(dynamic).isEqualTo("false");
+        } else {
+            assertThat(mapping.get("dynamic")).isEqualTo(false);
+        }
+    }
 
 	@Test // #1871
 	@DisplayName("should write dynamic mapping")
-	public void shouldWriteDynamicMapping() {
+	void shouldWriteDynamicMapping() {
 
 		IndexOperations indexOps = operations.indexOps(DynamicMappingEntity.class);
 		indexOps.createWithMapping();
@@ -229,7 +255,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 
 	@Test // #638
 	@DisplayName("should write dynamic detection values")
-	public void shouldWriteDynamicDetectionValues() {
+	void shouldWriteDynamicDetectionValues() {
 
 		IndexOperations indexOps = operations.indexOps(DynamicDetectionMapping.class);
 		indexOps.createWithMapping();
@@ -239,16 +265,36 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 	@DisplayName("should write runtime fields")
 	public void shouldWriteRuntimeFields() {
 
-		IndexOperations indexOps = operations.indexOps(RuntimeFieldEntity.class);
+		IndexOperations indexOps = operations.indexOps(DerivedFieldEntity.class);
 		indexOps.createWithMapping();
 	}
 
 	@Test // #796
 	@DisplayName("should write source excludes")
-	public void shouldWriteSourceExcludes() {
+	void shouldWriteSourceExcludes() {
 
 		IndexOperations indexOps = operations.indexOps(ExcludedFieldEntity.class);
 		indexOps.createWithMapping();
+	}
+
+	@Test // #2502
+	@DisplayName(" should write mapping with field name with dots")
+	void shouldWriteMappingWithFieldNameWithDots() {
+
+		IndexOperations indexOps = operations.indexOps(FieldNameDotsEntity.class);
+		indexOps.createWithMapping();
+	}
+
+	@Test // #2659
+	@DisplayName("should write correct mapping for dense vector property")
+	void shouldWriteCorrectMappingForDenseVectorProperty() {
+		operations.indexOps(SimilarityEntity.class).createWithMapping();
+	}
+
+	@Test // #2845
+	@DisplayName("should write mapping with field aliases")
+	void shouldWriteMappingWithFieldAliases() {
+		operations.indexOps(FieldAliasEntity.class).createWithMapping();
 	}
 
 	// region Entities
@@ -697,7 +743,7 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Nullable
 		@Id private String id;
 		@Nullable
-		@Field(type = Dense_Vector, dims = 3) private float[] dense_vector;
+		@Field(type = Dense_Vector, dims = 3, mappedTypeName = "knn_vector") private float[] dense_vector;
 
 		@Nullable
 		public String getId() {
@@ -754,9 +800,6 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Field(type = FieldType.Object, dynamic = Dynamic.STRICT) //
 		private Map<String, Object> objectStrict;
 		@Nullable
-		@Field(type = FieldType.Object, dynamic = Dynamic.RUNTIME) //
-		private Map<String, Object> objectRuntime;
-		@Nullable
 		@Field(type = FieldType.Nested) //
 		private List<Map<String, Object>> nestedObjectInherit;
 		@Nullable
@@ -768,9 +811,6 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Nullable
 		@Field(type = FieldType.Nested, dynamic = Dynamic.STRICT) //
 		private List<Map<String, Object>> nestedObjectStrict;
-		@Nullable
-		@Field(type = FieldType.Nested, dynamic = Dynamic.RUNTIME) //
-		private List<Map<String, Object>> nestedObjectRuntime;
 	}
 
 	@Document(indexName = "#{@indexNameProvider.indexName()}")
@@ -782,8 +822,8 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 	}
 
 	@Document(indexName = "#{@indexNameProvider.indexName()}")
-	@Mapping(runtimeFieldsPath = "/mappings/runtime-fields.json")
-	private static class RuntimeFieldEntity {
+	@Mapping(runtimeFieldsPath = "/mappings/derived-fields.json")
+	private static class DerivedFieldEntity {
 		@Id
 		@Nullable private String id;
 		@Field(type = Date, format = DateFormat.epoch_millis, name = "@timestamp")
@@ -870,6 +910,40 @@ public abstract class MappingBuilderIntegrationTests extends MappingContextBaseT
 		@Field(type = FieldType.Rank_Features) String rankFeaturesField;
 		@Nullable
 		@Field(type = FieldType.Wildcard) String wildcardField;
+	    @Nullable
+	    @Field(type = FieldType.Dense_Vector, dims = 1, mappedTypeName = "knn_vector") String denseVectorField;
+
 	}
+	
+	@Document(indexName = "#{@indexNameProvider.indexName()}")
+    private static class FieldNameDotsEntity {
+        @Id
+        @Nullable private String id;
+        @Nullable
+        @Field(name = "dotted.field", type = Text) private String dottedField;
+    }
+
+    @Document(indexName = "#{@indexNameProvider.indexName()}")
+    static class SimilarityEntity {
+        @Nullable
+        @Id private String id;
+
+        @Field(type = FieldType.Dense_Vector, dims = 42, mappedTypeName = "knn_vector",
+                knnSimilarity = KnnSimilarity.COSINE) private double[] denseVector;
+    }
+
+    @Mapping(aliases = {
+            @MappingAlias(name = "someAlly", path = "someText"),
+            @MappingAlias(name = "otherAlly", path = "otherText")
+    })
+    @Document(indexName = "#{@indexNameProvider.indexName()}")
+    private static class FieldAliasEntity {
+        @Id
+        @Nullable private String id;
+        @Nullable
+        @Field(type = Text) private String someText;
+        @Nullable
+        @Field(type = Text) private String otherText;
+    }
 	// endregion
 }

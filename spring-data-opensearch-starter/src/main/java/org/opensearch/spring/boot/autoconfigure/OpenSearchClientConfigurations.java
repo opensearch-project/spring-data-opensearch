@@ -15,6 +15,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.rest_client.RestClientOptions;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
+import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -66,6 +67,15 @@ class OpenSearchClientConfigurations {
         @ConditionalOnMissingBean
         OpenSearchClient opensearchClient(OpenSearchTransport transport) {
             return new OpenSearchClient(transport);
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class OpenSearchMappingParametersCustomizerConfiguration {
+        @Bean
+        @ConditionalOnMissingBean
+        OpenSearchMappingParametersCustomizer opensearchMappingParametersCustomizer() {
+            return new OpenSearchMappingParametersCustomizer();
         }
     }
 }
