@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.opensearch.client.json.JsonpMapper;
-import org.opensearch.client.opensearch._types.ShardFailure;
+import org.opensearch.client.opensearch._types.ShardSearchFailure;
 import org.opensearch.client.opensearch._types.ShardStatistics;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch.core.SearchResponse;
@@ -168,9 +168,9 @@ class SearchDocumentResponseBuilder {
     }
 
     private static SearchShardStatistics shardsFrom(ShardStatistics shards) {
-        List<ShardFailure> failures = shards.failures();
+        List<ShardSearchFailure> failures = shards.failures();
         List<SearchShardStatistics.Failure> searchFailures = failures.stream().map(f -> SearchShardStatistics.Failure
-                .of(f.index(), f.node(), f.status(), f.shard(), null, ResponseConverter.toErrorCause(f.reason()))).toList();
+                .of(f.index(), f.node(), null, f.shard(), null, ResponseConverter.toErrorCause(f.reason()))).toList();
         return SearchShardStatistics.of(shards.failed(), shards.successful(), shards.total(), shards.skipped(),
                 searchFailures);
     }
@@ -269,7 +269,7 @@ class SearchDocumentResponseBuilder {
 
                 // response from the new client does not have a doc and shardindex as the ScoreDoc from the old client responses
 
-                options.add(new CompletionSuggestion.Entry.Option<>(optionES.text(), null, optionES.score(),
+                options.add(new CompletionSuggestion.Entry.Option<>(optionES.text(), null, TypeUtils.toDouble(optionES.score()),
                         optionES.collateMatch() != null ? optionES.collateMatch() : false, contexts,
                         new ScoreDoc(optionES.score(), null, null), searchDocument,
                         hitEntity));
