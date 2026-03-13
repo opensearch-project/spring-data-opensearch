@@ -5,7 +5,6 @@
 
 package org.opensearch.spring.boot.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.spi.JsonProvider;
 import org.opensearch.client.RestClient;
@@ -23,6 +22,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import tools.jackson.databind.ObjectMapper;
 
 class OpenSearchClientConfigurations {
     @Import({ JacksonJsonpMapperConfiguration.class, JsonbJsonpMapperConfiguration.class })

@@ -9,11 +9,7 @@
 
 package org.opensearch.data.client.orhlc;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +27,7 @@ import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.get.MultiGetItemResponse;
 import org.opensearch.action.get.MultiGetResponse;
 import org.opensearch.common.document.DocumentField;
+import org.opensearch.common.xcontent.XObjectWriteContext;
 import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.core.common.text.Text;
 import org.opensearch.index.get.GetResult;
@@ -46,6 +43,10 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonEncoding;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.json.JsonFactory;
 
 /**
  * Utility class to adapt {@link org.opensearch.action.get.GetResponse},
@@ -482,23 +483,23 @@ public final class DocumentAdapters {
             JsonFactory nodeFactory = new JsonFactory();
             try {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                JsonGenerator generator = nodeFactory.createGenerator(stream, JsonEncoding.UTF8);
+                JsonGenerator generator = nodeFactory.createGenerator(XObjectWriteContext.create(false), stream, JsonEncoding.UTF8);
                 generator.writeStartObject();
                 for (DocumentField value : documentFields) {
                     if (value.getValues().size() > 1) {
-                        generator.writeArrayFieldStart(value.getName());
+                        generator.writeArrayPropertyStart(value.getName());
                         for (Object val : value.getValues()) {
-                            generator.writeObject(val);
+                            generator.writePOJO(val);
                         }
                         generator.writeEndArray();
                     } else {
-                        generator.writeObjectField(value.getName(), value.getValue());
+                        generator.writePOJOProperty(value.getName(), value.getValue());
                     }
                 }
                 generator.writeEndObject();
                 generator.flush();
                 return new String(stream.toByteArray(), StandardCharsets.UTF_8);
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 throw new MappingException("Cannot render JSON", e);
             }
         }
