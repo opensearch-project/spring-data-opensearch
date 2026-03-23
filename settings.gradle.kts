@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 
     create("springLibs") {
       version("spring", "7.0.6")
-      version("spring-boot", "4.0.3")
+      version("spring-boot", "4.0.5")
       library("data-commons", "org.springframework.data:spring-data-commons:4.0.4")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.4")
       library("web", "org.springframework", "spring-web").versionRef("spring")
@@ -49,7 +49,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.20.1")
+      version("jackson", "2.21.2")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
