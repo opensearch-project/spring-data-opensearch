@@ -42,3 +42,12 @@ docker run -p 9200:9200 -e "discovery.type=single-node" -e OPENSEARCH_INITIAL_AD
    - Fetch all products: `curl 'http://localhost:8080/marketplace/search'`
    - Search products by name: `curl 'http://localhost:8080/marketplace/search?name=pillow'`
    - Search products by name and price greater than: `curl 'http://localhost:8080/marketplace/search?name=pillow&price=35.0'`
+
+## Building as Native Image
+
+This example can be built as a [GraalVM](https://www.graalvm.org/) native image for fast startup and low memory usage.
+You can run build and run the native image using Gradle:
+
+```shell
+./gradlew :spring-data-opensearch-examples:spring-boot-java-client-gradle:nativeRun
+```
