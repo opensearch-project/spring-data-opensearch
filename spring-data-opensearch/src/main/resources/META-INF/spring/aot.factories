@@ -1,0 +1,3 @@
+org.springframework.aot.hint.RuntimeHintsRegistrar=\
+  org.opensearch.data.aot.SpringDataOpenSearchRuntimeHints,\
+  org.opensearch.data.aot.OpenSearchClientRuntimeHints
