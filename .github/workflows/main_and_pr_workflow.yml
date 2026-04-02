@@ -51,3 +51,15 @@ jobs:
           cache: gradle
       - name: Check with Gradle
         run: ./gradlew check -Psde.testcontainers.image-version=${{ matrix.entry.opensearch-version }}
+
+  check-native-image:
+    name: Check that Spring AOT and GraalVM native image work by compiling the example
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build example as native image
+        run: ./gradlew :spring-data-opensearch-examples:spring-boot-java-client-gradle:nativeCompile

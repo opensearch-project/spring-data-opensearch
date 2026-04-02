@@ -8,6 +8,7 @@ plugins {
   alias(pluginLibs.plugins.spotless)
   alias(pluginLibs.plugins.editorconfig)
   id("java-conventions")
+  id("org.graalvm.buildtools.native") version "0.11.5"
 }
 
 buildscript {
@@ -52,6 +53,14 @@ dependencies {
 }
 
 description = "Spring Data OpenSearch Java Client Spring Boot Example Project"
+
+graalvmNative {
+  binaries {
+    named("main") {
+      sharedLibrary.set(false)
+    }
+  }
+}
 
 spotless {
   java {
