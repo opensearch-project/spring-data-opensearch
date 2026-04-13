@@ -54,7 +54,7 @@ dependencies {
   testImplementation("org.apache.xbean:xbean-asm9-shaded:4.30")
   testImplementation("io.specto:hoverfly-java-junit5:0.20.2")
   testImplementation("org.skyscreamer:jsonassert:1.5.3")
-  testImplementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+  testImplementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
   testImplementation(springLibs.web)
   testImplementation(springLibs.test) {
     exclude("ch.qos.logback", "logback-classic")
