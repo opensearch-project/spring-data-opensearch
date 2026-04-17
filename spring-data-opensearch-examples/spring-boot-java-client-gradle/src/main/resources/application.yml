@@ -6,7 +6,7 @@
 opensearch:
   uris: https://localhost:9200
   username: admin
-  password: admin
+  password: "reallyStrong123!"
 
 spring:
   jackson:

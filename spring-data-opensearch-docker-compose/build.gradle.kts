@@ -6,6 +6,7 @@
 plugins {
   alias(pluginLibs.plugins.spotless)
   alias(pluginLibs.plugins.editorconfig)
+  `java-library`
   id("java-conventions")
 }
 

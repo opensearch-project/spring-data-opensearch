@@ -8,6 +8,7 @@ plugins {
   alias(pluginLibs.plugins.spotless)
   alias(pluginLibs.plugins.editorconfig)
   id("java-conventions")
+  id("org.graalvm.buildtools.native") version "0.11.5"
 }
 
 buildscript {
@@ -18,10 +19,10 @@ buildscript {
 }
 
 dependencies {
-  api(project(":spring-data-opensearch")) {
+  implementation(project(":spring-data-opensearch")) {
     exclude("org.opensearch.client", "opensearch-rest-high-level-client")
   }
-  api(project(":spring-data-opensearch-starter")) {
+  implementation(project(":spring-data-opensearch-starter")) {
     exclude("org.opensearch.client", "opensearch-rest-high-level-client")
   }
   implementation(springLibs.boot.web)
