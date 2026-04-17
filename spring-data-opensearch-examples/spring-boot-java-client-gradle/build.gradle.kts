@@ -19,10 +19,10 @@ buildscript {
 }
 
 dependencies {
-  api(project(":spring-data-opensearch")) {
+  implementation(project(":spring-data-opensearch")) {
     exclude("org.opensearch.client", "opensearch-rest-high-level-client")
   }
-  api(project(":spring-data-opensearch-starter")) {
+  implementation(project(":spring-data-opensearch-starter")) {
     exclude("org.opensearch.client", "opensearch-rest-high-level-client")
   }
   implementation(springLibs.boot.web)
@@ -53,14 +53,6 @@ dependencies {
 }
 
 description = "Spring Data OpenSearch Java Client Spring Boot Example Project"
-
-graalvmNative {
-  binaries {
-    named("main") {
-      sharedLibrary.set(false)
-    }
-  }
-}
 
 spotless {
   java {
