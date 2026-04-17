@@ -18,8 +18,8 @@ buildscript {
 }
 
 dependencies {
-  api(project(":spring-data-opensearch"))
-  api(project(":spring-data-opensearch-starter"))
+  implementation(project(":spring-data-opensearch"))
+  implementation(project(":spring-data-opensearch-starter"))
   implementation(springLibs.boot.web)
   implementation(jacksonLibs.core)
   implementation(jacksonLibs.databind)

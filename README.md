@@ -192,6 +192,17 @@ public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
 }
 ```
 
+## Spring AOT Support
+
+Spring Data OpenSearch supports [Spring Ahead of Time Optimizations](https://docs.spring.io/spring-framework/reference/core/aot.html)
+when using the new `OpenSearchClient`, enabling fast startup times and reduced memory footprint.
+
+The OpenSearch `RestHighLevelClient` is not supported for AOT.
+
+### Example
+
+See [spring-boot-java-client-gradle](spring-data-opensearch-examples/spring-boot-java-client-gradle) for a complete native image example.
+
 ### Using the OpenSearch RestClient
 
 Spring Data OpenSearch operates upon an OpenSearch client that is connected to a single OpenSearch node or a cluster. Although the OpenSearch Client can be used directly to work with the cluster, applications using Spring Data Elasticsearch normally use the higher level abstractions of `ElasticsearchOperations` and repositories (please consult [official Spring Data Elasticsearch documentation](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)). Use the builder to provide cluster addresses, set default `HttpHeaders` or enable SSL.
