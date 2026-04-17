@@ -9,7 +9,6 @@ import java.util.Properties
 
 plugins {
   `java`
-  `java-library`
   `version-catalog`
   `maven-publish`
   jacoco
