@@ -4,8 +4,9 @@
  */
 package org.opensearch.data.aot;
 
-import java.util.Arrays;
+import static org.springframework.data.elasticsearch.aot.ElasticsearchAotPredicates.isReactorPresent;
 
+import java.util.Arrays;
 import org.opensearch.data.client.osc.EntityAsMap;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
@@ -19,8 +20,6 @@ import org.springframework.data.elasticsearch.core.event.ReactiveAfterConvertCal
 import org.springframework.data.elasticsearch.core.event.ReactiveAfterLoadCallback;
 import org.springframework.data.elasticsearch.core.event.ReactiveAfterSaveCallback;
 import org.springframework.data.elasticsearch.core.event.ReactiveBeforeConvertCallback;
-
-import static org.springframework.data.elasticsearch.aot.ElasticsearchAotPredicates.isReactorPresent;
 
 /**
  * Runtime hints for Spring Data OpenSearch core functionality.
