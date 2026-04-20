@@ -65,18 +65,18 @@ jobs:
           patch="0"
           is_major_bump=false
           is_minor_bump=false
-          
+
           if [[ "${GITHUB_REF}" =~ ^refs/heads/([0-9]+)\.x$ ]]; then
             is_minor_indev_branch=true
             major="${BASH_REMATCH[1]}"
           fi
-          
+
           if [[ "${GITHUB_REF}" =~ ^refs/heads/([0-9]+)\.([0-9]+)$ ]]; then
             is_patch_indev_branch=true
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
           fi
-          
+
           if [[ "${GITHUB_REF}" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             is_version_tag=true
             major="${BASH_REMATCH[1]}"
@@ -91,7 +91,7 @@ jobs:
               fi
             fi
           fi
-          
+
           {
             echo "is_minor_indev_branch=${is_minor_indev_branch}"
             echo "is_patch_indev_branch=${is_patch_indev_branch}"
@@ -115,15 +115,6 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Create ${{ env.patch_indev_branch_name }} Branch
-        if: false && env.is_minor_bump == 'true'
-        uses: peterjgrainger/action-create-branch@v4.0.0
-        with:
-          branch: ${{ env.patch_indev_branch_name }}
-          sha: ${{ github.sha }}
-        env:
-          GITHUB_TOKEN: ${{ steps.github_app_token.outputs.token }}
 
       - name: Create ${{ env.minor_indev_branch_name }} Branch
         if: env.is_major_bump == 'true'
