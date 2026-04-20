@@ -1,0 +1,28 @@
+name: Backport
+on:
+  pull_request_target:
+    types:
+      - closed
+      - labeled
+
+jobs:
+  backport:
+    if: ${{ contains(github.event.label.name, 'backport') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    name: Backport
+    steps:
+      - name: GitHub App token
+        id: github_app_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Backport
+        uses: VachaShah/backport@v2.2.0
+        with:
+          github_token: ${{ steps.github_app_token.outputs.token }}
+          head_template: backport/backport-<%= number %>-to-<%= base %>
