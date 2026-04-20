@@ -1,0 +1,47 @@
+name: Create Version Bump Pull Request
+
+inputs:
+  branch:
+    description: 'Branch to bump version on'
+    required: true
+    type: string
+  version:
+    description: 'Version to bump to'
+    required: true
+    type: string
+  token:
+    description: 'GitHub Token'
+    required: true
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout ${{ inputs.branch }}
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.branch }}
+        path: client
+
+    - name: Bump Version To ${{ inputs.version }}
+      shell: bash -eo pipefail {0}
+      run: bash .ci/bump-version.sh "$VERSION"
+      working-directory: client
+      env:
+        VERSION: ${{ inputs.version }}
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        token: ${{ inputs.token }}
+        path: client
+        base: ${{ inputs.branch }}
+        branch: 'bump-version/${{ inputs.branch }}'
+        commit-message: Bump version to ${{ inputs.version }}
+        signoff: true
+        delete-branch: true
+        labels: |
+          autocut
+        title: '[AUTO] Bump version on `${{ inputs.branch }}` to `${{ inputs.version }}`'
+        body: |
+          Bumping version on `${{ inputs.branch }}` to `${{ inputs.version }}`.

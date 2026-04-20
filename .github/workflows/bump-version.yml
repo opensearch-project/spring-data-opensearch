@@ -1,0 +1,159 @@
+name: Bump Version
+
+on:
+  create:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to bump version on'
+        required: true
+      version:
+        description: 'Version to bump to'
+        required: true
+
+jobs:
+  bump-version-manual:
+    name: Bump Version (Manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: github_app_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout .github/actions directory
+        uses: actions/checkout@v6
+        with:
+          path: gh
+          sparse-checkout: |
+            .github/actions
+          sparse-checkout-cone-mode: false
+
+      - name: Bump Version On ${{ inputs.branch }} Branch
+        uses: ./gh/.github/actions/create-version-bump-pr
+        with:
+          branch: ${{ inputs.branch }}
+          version: ${{ inputs.version }}
+          token: ${{ steps.github_app_token.outputs.token }}
+
+  bump-version-auto:
+    name: Bump Version On New Git Ref
+    if: github.event_name == 'create' && github.repository == 'opensearch-project/spring-data-opensearch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout .github/actions directory
+        uses: actions/checkout@v6
+        with:
+          path: gh
+          sparse-checkout: |
+            .github/actions
+          sparse-checkout-cone-mode: false
+
+      - name: Determine Git Ref Type
+        id: type
+        run: |
+          echo "Determining type of Git ref: ${GITHUB_REF}"
+
+          is_minor_indev_branch=false
+          is_patch_indev_branch=false
+          is_version_tag=false
+          major="0"
+          minor="0"
+          patch="0"
+          is_major_bump=false
+          is_minor_bump=false
+          
+          if [[ "${GITHUB_REF}" =~ ^refs/heads/([0-9]+)\.x$ ]]; then
+            is_minor_indev_branch=true
+            major="${BASH_REMATCH[1]}"
+          fi
+          
+          if [[ "${GITHUB_REF}" =~ ^refs/heads/([0-9]+)\.([0-9]+)$ ]]; then
+            is_patch_indev_branch=true
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+          fi
+          
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            is_version_tag=true
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+            patch="${BASH_REMATCH[3]}"
+
+            if [[ "${patch}" == "0" ]]; then
+              is_minor_bump=true
+
+              if [[ "${minor}" == "0" ]]; then
+                is_major_bump=true
+              fi
+            fi
+          fi
+          
+          {
+            echo "is_minor_indev_branch=${is_minor_indev_branch}"
+            echo "is_patch_indev_branch=${is_patch_indev_branch}"
+            echo "is_version_tag=${is_version_tag}"
+            echo "major=${major}"
+            echo "minor=${minor}"
+            echo "patch=${patch}"
+            echo "next_major_version=$((major + 1)).0.0"
+            echo "next_minor_version=${major}.$((minor + 1)).0"
+            echo "next_patch_version=${major}.${minor}.$((patch + 1))"
+            echo "minor_indev_branch_name=${major}.x"
+            echo "patch_indev_branch_name=${major}.${minor}"
+            echo "is_major_bump=${is_major_bump}"
+            echo "is_minor_bump=${is_minor_bump}"
+          } | tee -a "${GITHUB_ENV}"
+
+      - name: Generate GitHub App Token
+        id: github_app_token
+        uses: actions/create-github-app-token@v3
+        if: env.is_version_tag == 'true' || env.is_patch_indev_branch == 'true' || env.is_minor_indev_branch == 'true'
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Create ${{ env.patch_indev_branch_name }} Branch
+        if: false && env.is_minor_bump == 'true'
+        uses: peterjgrainger/action-create-branch@v4.0.0
+        with:
+          branch: ${{ env.patch_indev_branch_name }}
+          sha: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ steps.github_app_token.outputs.token }}
+
+      - name: Create ${{ env.minor_indev_branch_name }} Branch
+        if: env.is_major_bump == 'true'
+        uses: peterjgrainger/action-create-branch@v4.0.0
+        with:
+          branch: ${{ env.minor_indev_branch_name }}
+          sha: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ steps.github_app_token.outputs.token }}
+
+      - name: Bump Version On ${{ env.patch_indev_branch_name }} Branch
+        if: env.is_patch_indev_branch == 'true' || (env.is_version_tag == 'true' && env.patch > 0)
+        uses: ./gh/.github/actions/create-version-bump-pr
+        with:
+          branch: ${{ env.patch_indev_branch_name }}
+          version: ${{ env.next_patch_version }}
+          token: ${{ steps.github_app_token.outputs.token }}
+
+      - name: Bump Version On ${{ env.minor_indev_branch_name }} Branch
+        if: env.is_minor_indev_branch == 'true' || env.is_minor_bump == 'true'
+        uses: ./gh/.github/actions/create-version-bump-pr
+        with:
+          branch: ${{ env.minor_indev_branch_name }}
+          version: ${{ env.next_minor_version }}
+          token: ${{ steps.github_app_token.outputs.token }}
+
+      - name: Bump Version On main Branch
+        if: env.is_major_bump == 'true'
+        uses: ./gh/.github/actions/create-version-bump-pr
+        with:
+          branch: main
+          version: ${{ env.next_major_version }}
+          token: ${{ steps.github_app_token.outputs.token }}
