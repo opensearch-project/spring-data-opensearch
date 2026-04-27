@@ -41,7 +41,7 @@ dependencies {
 
   testImplementation(springLibs.projectreactor)
   testImplementation(opensearchLibs.java.client)
-  testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
+  testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0")
   testImplementation("org.slf4j:log4j-over-slf4j:2.0.17")
   testImplementation("org.apache.logging.log4j:log4j-core:2.25.4")
   testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.25.4")
