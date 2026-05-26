@@ -22,6 +22,8 @@ dependencies {
   api(project(":spring-data-opensearch"))
   api(springLibs.boot.data.elasticsearch)
   api(springLibs.boot.elasticsearch)
+  // todo tlongo
+  implementation("org.springframework.boot:spring-boot-starter-actuator:4.0.6")
   implementation(opensearchLibs.client) {
     exclude("commons-logging", "commons-logging")
     exclude("org.slf4j", "slf4j-api")
@@ -36,6 +38,7 @@ dependencies {
     exclude("ch.qos.logback", "logback-classic")
   }
   testImplementation(springLibs.boot.test)
+//  testImplementation(springLibs.boot.starter.actuator)
   testImplementation(opensearchLibs.testcontainers)
   testImplementation(jacksonLibs.core)
   testImplementation(jacksonLibs.databind)

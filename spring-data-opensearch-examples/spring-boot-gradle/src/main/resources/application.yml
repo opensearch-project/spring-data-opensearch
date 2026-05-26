@@ -6,9 +6,16 @@
 opensearch:
   uris: https://localhost:9200
   username: admin
-  password: admin
+  password: _Onetwothree88!
 
 spring:
+  elasticsearch:
+    restclient:
+      uris: "https://localhost:9200"
   jackson:
     serialization:
       INDENT_OUTPUT: true
+management:
+  health:
+    elasticsearch:
+      enabled: false
