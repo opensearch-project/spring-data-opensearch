@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for Spring Data's OpenSearch support.
@@ -31,7 +32,7 @@ import org.springframework.context.annotation.Import;
 public class OpenSearchDataAutoConfiguration {
 
     @Bean
-    @ConditionalOnBean(OpenSearchRestTemplate.class)
+    @ConditionalOnBean(ElasticsearchOperations.class)
     @ConditionalOnMissingBean
     OpenSearchHealthIndicator openSearchHealthIndicator(OpenSearchRestTemplate template) {
         return new OpenSearchHealthIndicator(template);

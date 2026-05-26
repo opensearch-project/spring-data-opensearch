@@ -12,6 +12,7 @@ package org.opensearch.data.client.orhlc;
 import org.opensearch.client.RestHighLevelClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.config.ElasticsearchConfigurationSupport;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 
 /**
@@ -34,7 +35,7 @@ public abstract class AbstractOpenSearchConfiguration extends ElasticsearchConfi
      * @return never {@literal null}.
      */
     @Bean(name = {"elasticsearchOperations", "elasticsearchTemplate", "opensearchTemplate"})
-    public OpenSearchRestTemplate elasticsearchOperations(
+    public ElasticsearchOperations elasticsearchOperations(
             ElasticsearchConverter elasticsearchConverter, RestHighLevelClient opensearchClient) {
 
         OpenSearchRestTemplate template = new OpenSearchRestTemplate(opensearchClient, elasticsearchConverter);
