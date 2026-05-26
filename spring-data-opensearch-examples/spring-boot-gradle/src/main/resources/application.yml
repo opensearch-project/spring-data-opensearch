@@ -2,20 +2,13 @@
 # Copyright OpenSearch Contributors.
 # SPDX-License-Identifier: Apache-2.0
 #
- 
+
 opensearch:
   uris: https://localhost:9200
   username: admin
-  password: _Onetwothree88!
+  password: admin
 
 spring:
-  elasticsearch:
-    restclient:
-      uris: "https://localhost:9200"
   jackson:
     serialization:
       INDENT_OUTPUT: true
-management:
-  health:
-    elasticsearch:
-      enabled: false
