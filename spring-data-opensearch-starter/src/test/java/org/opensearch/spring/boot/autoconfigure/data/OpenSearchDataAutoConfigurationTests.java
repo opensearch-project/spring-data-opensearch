@@ -90,6 +90,13 @@ class OpenSearchDataAutoConfigurationTests {
         });
     }
 
+    @Test
+    void healthIndicatorCanBeDisabled() {
+        this.contextRunner
+                .withPropertyValues("management.health.opensearch.enabled=false")
+                .run((context) -> assertThat(context).doesNotHaveBean(OpenSearchHealthIndicator.class));
+    }
+
     @Configuration(proxyBeanMethods = false)
     static class CustomOpenSearchCustomConversions {
 
