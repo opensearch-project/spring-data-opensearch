@@ -8,17 +8,17 @@ rootProject.name = "spring-data-opensearch-parent"
 dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
-      version("jupiter", "6.0.3")
+      version("jupiter", "6.1.0")
       library("jupiter", "org.junit.jupiter", "junit-jupiter").versionRef("jupiter")
       library("jupiter-params", "org.junit.jupiter", "junit-jupiter-params").versionRef("jupiter")
       library("junit-platform-launcher", "org.junit.platform", "junit-platform-launcher").versionRef("jupiter")
     }
 
     create("springLibs") {
-      version("spring", "7.0.7")
+      version("spring", "7.0.8")
       version("spring-boot", "4.0.6")
-      library("data-commons", "org.springframework.data:spring-data-commons:4.0.5")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.5")
+      library("data-commons", "org.springframework.data:spring-data-commons:4.0.6")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.0.6")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
@@ -49,7 +49,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "2.21.3")
+      version("jackson", "2.22.0")
       library("core", "com.fasterxml.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "com.fasterxml.jackson.core", "jackson-databind").versionRef("jackson")
     }
