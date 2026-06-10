@@ -837,7 +837,7 @@ class RequestFactoryTests {
                 + //
                 "        \"query\":{\"match_all\":{}},\n"
                 + //
-                "        \"_source\":{\"includes\":[\"name\"],\"excludes\":[]},\n"
+                "        \"_source\":{\"includes\":[\"name\"]},\n"
                 + //
                 "        \"slice\":{\"id\":1,\"max\":20}\n"
                 + //
