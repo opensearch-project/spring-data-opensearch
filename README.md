@@ -26,7 +26,7 @@ The Spring Data OpenSearch follows the release model of the Spring Data Elastics
 
 | Spring Data Release Train | Spring Data OpenSearch | Spring Data Elasticsearch | OpenSearch Server | OpenSearch Client   | Spring Framework | Spring Boot     | JDK    |
 |---------------------------|------------------------|----------------------------|-------------------|---------------------|------------------|----------------|-----------------------|
-| 2025.1                    | 3.0.x                  | 6.0.x                     | 2.x / 3.x         | 3.0.x and above   | 7.0.x            | 4.0.x         | 21+                   |
+| 2025.1                    | 3.0.x                  | 6.0.x                      | 2.x / 3.x         | 3.0.x and above     | 7.0.x            | 4.0.x          | 21+                   |
 | 2025.0                    | 2.0.x                  | 5.5.x                      | 2.x / 3.x         | 3.0.x and above     | 6.2.x            | 3.5.x          | 21+                   |
 | 2025.0                    | 1.8.x                  | 5.5.x                      | 1.x / 2.x / 3.x   | 2.10.x and above    | 6.2.x            | 3.5.x          | 17+                   |
 | 2025.0                    | 1.7.x                  | 5.5.x                      | 1.x / 2.x / 3.x   | 2.10.x and above    | 6.2.x            | 3.5.x          | 17+                   |
@@ -50,7 +50,7 @@ By default, the `RestHighLevelCLient` is configured as the means to communicate 
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 </dependency>
 ```
 
@@ -70,7 +70,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 	<scope>test</scope>
 </dependency>
 ```
@@ -83,7 +83,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -95,7 +95,7 @@ To switch over to `OpenSearchClient`, the `opensearch-rest-high-level-client` de
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 </dependency>
 ```
 
@@ -105,7 +105,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-starter</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 	<exclusions>
 		<exclusion>
 			<groupId>org.opensearch.client</groupId>
@@ -117,7 +117,7 @@ To use Spring Boot 3.x auto configuration support:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 </dependency>
 ```
 
@@ -127,7 +127,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>spring-data-opensearch-test-autoconfigure</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 	<scope>test</scope>
 	<exclusions>
 		<exclusion>
@@ -140,7 +140,7 @@ To use Spring Boot 3.x auto configuration support for testing:
 <dependency>
 	<groupId>org.opensearch.client</groupId>
 	<artifactId>opensearch-java</artifactId>
-	<version>3.0.5</version>
+	<version>3.0.6</version>
 </dependency>
 ```
 
@@ -356,7 +356,7 @@ Add the Apache Maven dependency:
 <dependency>
   <groupId>org.opensearch.client</groupId>
   <artifactId>spring-data-opensearch</artifactId>
-  <version>3.0.5</version>
+  <version>3.0.6</version>
 </dependency>
 ```
 
