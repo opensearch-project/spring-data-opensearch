@@ -30,6 +30,8 @@ dependencies {
   }
   api(opensearchLibs.high.level.client) {
     exclude("commons-logging", "commons-logging")
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.dataformat", "*")
   }
   
   implementation(jacksonLibs.core)
@@ -37,10 +39,17 @@ dependencies {
   implementation(springLibs.context)
   implementation(springLibs.tx)
   compileOnly(springLibs.web)
-  compileOnly(opensearchLibs.java.client)
+  compileOnly(opensearchLibs.java.client) {
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.databind", "*")
+  }
 
   testImplementation(springLibs.projectreactor)
-  testImplementation(opensearchLibs.java.client)
+  testImplementation(opensearchLibs.java.client) {
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.databind", "*")
+  }
+  
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.0")
   testImplementation("org.slf4j:log4j-over-slf4j:2.0.18")
   testImplementation("org.apache.logging.log4j:log4j-core:2.26.0")

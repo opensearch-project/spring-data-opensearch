@@ -29,7 +29,10 @@ dependencies {
   implementation(jacksonLibs.core)
   implementation(jacksonLibs.databind)
   implementation(opensearchLibs.client)
-  implementation(opensearchLibs.java.client)
+  implementation(opensearchLibs.java.client) {
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.databind", "*")
+  }
   testImplementation(springLibs.test)
   testImplementation(springLibs.boot.test)
   testImplementation(springLibs.boot.test.autoconfigure)

@@ -29,7 +29,10 @@ dependencies {
   compileOnly(opensearchLibs.sniffer) {
     exclude("commons-logging", "commons-logging")
   }
-  compileOnly(opensearchLibs.java.client)
+  compileOnly(opensearchLibs.java.client) {
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.databind", "*")
+  }
   compileOnly(jakarta.json.bind)
   annotationProcessor(springLibs.boot.configuration.processor)
   testImplementation(springLibs.test) {
@@ -42,7 +45,10 @@ dependencies {
   testImplementation(opensearchLibs.sniffer) {
     exclude("commons-logging", "commons-logging")
   }
-  testImplementation(opensearchLibs.java.client)
+  testImplementation(opensearchLibs.java.client) {
+    exclude("com.fasterxml.jackson.core", "*")
+    exclude("com.fasterxml.jackson.databind", "*")
+  }
 }
 
 description = "Spring Data OpenSearch Spring Boot Starter"
