@@ -52,8 +52,8 @@ dependencies {
   
   testImplementation("jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0")
   testImplementation("org.slf4j:log4j-over-slf4j:2.0.18")
-  testImplementation("org.apache.logging.log4j:log4j-core:2.26.0")
-  testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.26.0")
+  testImplementation("org.apache.logging.log4j:log4j-core:2.26.1")
+  testImplementation("org.apache.logging.log4j:log4j-to-slf4j:2.26.1")
   testImplementation(opensearchLibs.testcontainers)
   testImplementation("org.apache.openwebbeans:openwebbeans-impl:4.0.3")
   testImplementation("org.apache.openwebbeans:openwebbeans-spi:4.0.3")
