@@ -16,6 +16,8 @@
 package org.opensearch.data.client.osc;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,8 @@ import org.springframework.lang.Nullable;
 
 /**
  * @author Peter-Josef Meisch
+ * @author Steven Pearce
+ * @author Tobias Günther
  */
 class RequestConverterTest {
 
@@ -167,4 +171,19 @@ class RequestConverterTest {
         @Nullable
         @Field(type = FieldType.Text) private String text;
     }
+
+    @Test
+    void getRouting() {
+
+        assertTrue(requestConverter.getRouting(null).isEmpty());
+
+        assertTrue(requestConverter.getRouting(null, null).isEmpty());
+        assertTrue(requestConverter.getRouting("", null).isEmpty());
+
+        assertEquals("1", requestConverter.getRouting("1", null).get());
+
+        assertEquals("5", requestConverter.getRouting(null, "5").get());
+
+    }
+
 }
