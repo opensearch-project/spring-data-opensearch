@@ -5,7 +5,7 @@ lib = library(identifier: 'jenkins@10.2.2', retriever: modernSCM([
 
 standardReleasePipelineWithGenericTrigger(
     overrideAgent: 'Jenkins-Agent-AL2023-X64-M54xlarge-Docker-Host',
-    overrideDockerImage: 'opensearchstaging/release-almalinux8-clients-v1',
+    overrideDockerImage: 'opensearchstaging/ci-runner:release-almalinux8-clients-v1',
     tokenIdCredential: 'jenkins-spring-data-opensearch-generic-webhook-token',
     causeString: 'A tag was cut on opensearch-project/spring-data-opensearch repository causing this workflow to run',
     downloadReleaseAsset: true,
