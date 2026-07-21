@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchCustomConversions;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 
 /**
  * OpenSearch REST High LeveL client configurations.
@@ -39,6 +40,13 @@ class OpenSearchRestHighLevelClientConfigurations {
         @Override
         public ElasticsearchCustomConversions elasticsearchCustomConversions() {
             return super.elasticsearchCustomConversions();
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        @Override
+        public MappingParametersCustomizer opensearchMappingParametersCustomizer() {
+            return super.opensearchMappingParametersCustomizer();
         }
     }
 }

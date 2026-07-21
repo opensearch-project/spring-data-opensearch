@@ -30,6 +30,7 @@ import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverte
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.AliasData;
 import org.springframework.data.elasticsearch.core.index.MappingBuilder;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.core.index.Settings;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
@@ -46,6 +47,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractIndexTemplate implements IndexOperations {
 
     protected final ElasticsearchConverter elasticsearchConverter;
+    protected final MappingParametersCustomizer mappingParametersCustomizer;
 
     @Nullable
     protected final Class<?> boundClass;
@@ -53,20 +55,22 @@ public abstract class AbstractIndexTemplate implements IndexOperations {
     @Nullable
     private final IndexCoordinates boundIndex;
 
-    public AbstractIndexTemplate(ElasticsearchConverter elasticsearchConverter, Class<?> boundClass) {
+    public AbstractIndexTemplate(ElasticsearchConverter elasticsearchConverter, MappingParametersCustomizer mappingParametersCustomizer, Class<?> boundClass) {
 
         Assert.notNull(boundClass, "boundClass may not be null");
 
         this.elasticsearchConverter = elasticsearchConverter;
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
         this.boundClass = boundClass;
         this.boundIndex = null;
     }
 
-    public AbstractIndexTemplate(ElasticsearchConverter elasticsearchConverter, IndexCoordinates boundIndex) {
+    public AbstractIndexTemplate(ElasticsearchConverter elasticsearchConverter, MappingParametersCustomizer mappingParametersCustomizer, IndexCoordinates boundIndex) {
 
         Assert.notNull(boundIndex, "boundIndex may not be null");
 
         this.elasticsearchConverter = elasticsearchConverter;
+        this.mappingParametersCustomizer = mappingParametersCustomizer;
         this.boundClass = null;
         this.boundIndex = boundIndex;
     }
@@ -216,7 +220,7 @@ public abstract class AbstractIndexTemplate implements IndexOperations {
 
         // build mapping from field annotations
         try {
-            String mapping = new MappingBuilder(elasticsearchConverter).buildPropertyMapping(clazz);
+            String mapping = new MappingBuilder(elasticsearchConverter, mappingParametersCustomizer).buildPropertyMapping(clazz);
             return Document.parse(mapping);
         } catch (Exception e) {
             throw new UncategorizedElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);

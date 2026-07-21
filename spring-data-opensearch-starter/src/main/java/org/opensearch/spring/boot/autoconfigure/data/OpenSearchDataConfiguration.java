@@ -23,6 +23,7 @@ import org.springframework.data.elasticsearch.core.ReactiveElasticsearchOperatio
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchCustomConversions;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 
 /**
@@ -74,8 +75,8 @@ abstract class OpenSearchDataConfiguration {
         @Bean
         @ConditionalOnMissingBean(value = ElasticsearchOperations.class, name = { "elasticsearchTemplate", "opensearchTemplate" })
         @ConditionalOnBean(OpenSearchClient.class)
-        OpenSearchTemplate elasticsearchTemplate(OpenSearchClient client, ElasticsearchConverter converter) {
-            return new OpenSearchTemplate(client, converter);
+        OpenSearchTemplate elasticsearchTemplate(OpenSearchClient client, ElasticsearchConverter converter, MappingParametersCustomizer opensearchMappingParametersCustomizer) {
+            return new OpenSearchTemplate(client, converter, opensearchMappingParametersCustomizer);
         }
     }
 
