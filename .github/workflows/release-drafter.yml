@@ -11,6 +11,9 @@ jobs:
     if: github.repository == 'opensearch-project/spring-data-opensearch'
     name: Draft a release
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
