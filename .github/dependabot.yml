@@ -4,3 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - directory: /
+    package-ecosystem: github-actions
+    open-pull-requests-limit: 3
+    schedule:
+      interval: weekly
+    labels:
+      - "dependabot"
+      - "dependencies"
+      - "github-actions"
+      - "skip-changelog"
