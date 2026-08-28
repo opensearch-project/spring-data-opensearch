@@ -8,7 +8,7 @@ plugins {
   alias(pluginLibs.plugins.spotless)
   alias(pluginLibs.plugins.editorconfig)
   id("java-conventions")
-  id("org.graalvm.buildtools.native") version "1.1.4"
+  id("org.graalvm.buildtools.native") version "1.1.5"
 }
 
 buildscript {
