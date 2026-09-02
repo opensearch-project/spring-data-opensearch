@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.elasticsearch.core.index.MappingParametersCustomizer;
 import tools.jackson.databind.ObjectMapper;
 
 class OpenSearchClientConfigurations {
@@ -74,7 +75,7 @@ class OpenSearchClientConfigurations {
     static class OpenSearchMappingParametersCustomizerConfiguration {
         @Bean
         @ConditionalOnMissingBean
-        OpenSearchMappingParametersCustomizer opensearchMappingParametersCustomizer() {
+        MappingParametersCustomizer opensearchMappingParametersCustomizer() {
             return new OpenSearchMappingParametersCustomizer();
         }
     }
