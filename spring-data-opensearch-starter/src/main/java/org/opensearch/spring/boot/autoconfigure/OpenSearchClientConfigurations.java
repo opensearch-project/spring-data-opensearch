@@ -75,7 +75,7 @@ class OpenSearchClientConfigurations {
     static class OpenSearchMappingParametersCustomizerConfiguration {
         @Bean
         @ConditionalOnMissingBean(MappingParametersCustomizer.class)
-        OpenSearchMappingParametersCustomizer opensearchMappingParametersCustomizer() {
+        MappingParametersCustomizer opensearchMappingParametersCustomizer() {
             return new OpenSearchMappingParametersCustomizer();
         }
     }
