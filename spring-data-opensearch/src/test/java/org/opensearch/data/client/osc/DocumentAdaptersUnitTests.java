@@ -147,7 +147,7 @@ class DocumentAdaptersUnitTests {
         Hit<EntityAsMap> searchHit = new Hit.Builder<EntityAsMap>() //
                 .index("index") //
                 .id("42") //
-                .matchedQueries("query1", "query2") //
+                .matchedQueries(q -> q.names(List.of("query1", "query2"))) //
                 .build();
 
         SearchDocument searchDocument = DocumentAdapters.from(searchHit, jsonpMapper);
