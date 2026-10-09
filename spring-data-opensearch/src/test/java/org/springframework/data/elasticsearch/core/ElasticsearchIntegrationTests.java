@@ -619,6 +619,8 @@ public abstract class ElasticsearchIntegrationTests {
 	protected abstract Query getTermQuery(String field, String value);
 	
 	protected abstract DeleteQuery getDeleteQuery(Query query);
+	
+	protected abstract Query getAnyQuery(String field, Float value, Float... values);
 
 	@Test // DATAES-547
 	public void shouldDeleteAcrossIndexWhenNoMatchingDataPresent() {
@@ -1725,6 +1727,29 @@ public abstract class ElasticsearchIntegrationTests {
 		assertThat(searchHits1.getTotalHits()).isEqualTo(1L);
 		SearchHit<Book> searchHit1 = (SearchHit<Book>) searchHits1.getSearchHit(0);
 		assertThat(searchHit1.getContent().getClass()).isEqualTo(Book.class);
+	}
+	
+	@Test // SDO-799
+	public void shouldHandleOneOrMoreFailures() {
+
+		List<IndexQuery> indexQueries = new ArrayList<>();
+		indexQueries.add(buildIndex(SampleEntity.builder().id("1").message("ab").build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("2").message("bc").build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("3").message("ac").build()));
+		operations.bulkIndex(indexQueries, IndexCoordinates.of(indexNameProvider.indexName()));
+		List<Query> queries = new ArrayList<>();
+		queries.add(getTermQuery("message", "ab"));
+		// Should fail the search request since "message" is not vector field
+		queries.add(getAnyQuery("message", 1f));
+        queries.add(getTermQuery("message", "bc"));
+
+		List<SearchHits<SampleEntity>> searchHits = operations.multiSearch(queries, SampleEntity.class,
+				IndexCoordinates.of(indexNameProvider.indexName()));
+		assertThat(searchHits).hasSize(2);
+
+		for (SearchHits<SampleEntity> sampleEntity : searchHits) {
+			assertThat(sampleEntity.getTotalHits()).isEqualTo(1);
+		}
 	}
 
 	@Test

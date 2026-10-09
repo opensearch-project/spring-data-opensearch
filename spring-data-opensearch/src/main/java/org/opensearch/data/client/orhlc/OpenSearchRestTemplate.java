@@ -514,8 +514,15 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
         SearchDocumentResponseCallback<SearchHits<T>> callback = new ReadSearchDocumentResponseCallback<>(clazz, index);
         List<SearchHits<T>> res = new ArrayList<>(queries.size());
         for (int i = 0; i < queries.size(); i++) {
-            res.add(callback.doWith(
+            if (items[i].isFailure() == false) {
+                res.add(callback.doWith(
                     SearchDocumentResponseBuilder.from(items[i].getResponse(), getEntityCreator(documentCallback))));
+            } else {
+                final Exception exception = items[i].getFailure();
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("multisearch response contains failure", exception);
+                }
+            }
         }
         return res;
     }
@@ -549,8 +556,16 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
             SearchDocumentResponseCallback<SearchHits<?>> callback =
                     new ReadSearchDocumentResponseCallback<>(entityClass, index);
 
-            SearchResponse response = items[i].getResponse();
-            res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+
+            if (items[i].isFailure() == false) {
+                SearchResponse response = items[i].getResponse();
+                res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+            } else {
+                final Exception exception = items[i].getFailure();
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("multisearch response contains failure", exception);
+                }
+            }
         }
         return res;
     }
@@ -583,8 +598,15 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
             SearchDocumentResponseCallback<SearchHits<?>> callback =
                     new ReadSearchDocumentResponseCallback<>(entityClass, index);
 
-            SearchResponse response = items[i].getResponse();
-            res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+            if (items[i].isFailure() == false) {
+                SearchResponse response = items[i].getResponse();
+                res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+            } else {
+                final Exception exception = items[i].getFailure();
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("multisearch response contains failure", exception);
+                }
+            }
         }
         return res;
     }
@@ -621,8 +643,15 @@ public class OpenSearchRestTemplate extends AbstractElasticsearchTemplate implem
             SearchDocumentResponseCallback<SearchHits<?>> callback =
                     new ReadSearchDocumentResponseCallback<>(entityClass, index);
 
-            SearchResponse response = items[i].getResponse();
-            res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+            if (items[i].isFailure() == false) {
+                SearchResponse response = items[i].getResponse();
+                res.add(callback.doWith(SearchDocumentResponseBuilder.from(response, getEntityCreator(documentCallback))));
+            } else {
+                final Exception exception = items[i].getFailure();
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("multisearch response contains failure", exception);
+                }
+            }
         }
         return res;
     }
