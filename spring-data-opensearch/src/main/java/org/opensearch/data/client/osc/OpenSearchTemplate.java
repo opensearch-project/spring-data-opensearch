@@ -571,10 +571,10 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
         while (clazzIter.hasNext() && indexIter.hasNext()) {
             MultiSearchResponseItem<EntityAsMap> responseItem = responseIterator.next();
 
+            final Class clazz = clazzIter.next();
+            final IndexCoordinates index = indexIter.next();
             if (responseItem.isResult()) {
 
-                Class clazz = clazzIter.next();
-                IndexCoordinates index = indexIter.next();
                 ReadDocumentCallback<?> documentCallback = new ReadDocumentCallback<>(elasticsearchConverter, clazz,
                         index);
                 SearchDocumentResponseCallback<SearchHits<?>> callback = new ReadSearchDocumentResponseCallback<>(clazz,

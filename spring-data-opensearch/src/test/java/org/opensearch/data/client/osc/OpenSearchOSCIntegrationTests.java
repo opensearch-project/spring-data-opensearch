@@ -100,6 +100,11 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
     }
 
     @Override
+    protected Query getAnyQuery(String field, Float value, Float... values) {
+        return NativeQuery.builder().withKnnQuery(f -> f.field(field).vector(value, values).k(10)).build();
+    }
+
+    @Override
     protected DeleteQuery getDeleteQuery(Query query) {
         return DeleteQuery.builder(query).build();
     }
