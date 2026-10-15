@@ -79,6 +79,11 @@ public class OpenSearchORHLCIntegrationTests extends ElasticsearchIntegrationTes
     }
 
     @Override
+    protected Query getAnyQuery(String field, Float value, Float... values) {
+        return new NativeSearchQueryBuilder().withQuery(QueryBuilders.geoBoundingBoxQuery(field).setCorners(value, value, 0, 0)).build();
+    }
+
+    @Override
     protected DeleteQuery getDeleteQuery(Query query) {
         return DeleteQuery.builder(query).setExpandWildcards(EnumSet.of(IndicesOptions.WildcardStates.OPEN)).build();
     }

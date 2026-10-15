@@ -25,6 +25,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.JsonData;
+import org.opensearch.client.opensearch._types.CoordsGeoBounds;
 import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
 import org.opensearch.client.opensearch._types.query_dsl.FunctionBoostMode;
@@ -97,6 +98,14 @@ public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests
     @Override
     protected Query getTermQuery(String field, String value) {
         return NativeQuery.builder().withQuery(termQueryAsQuery(field, value)).build();
+    }
+
+    @Override
+    protected Query getAnyQuery(String field, Float value, Float... values) {
+        return NativeQuery.builder().withQuery(org.opensearch.client.opensearch._types.query_dsl.QueryBuilders
+                .geoBoundingBox().field(field).boundingBox(b -> b.coords(
+                        CoordsGeoBounds.builder().top(value).left(value).bottom(0).right(0).build())).build().toQuery())
+                            .build();
     }
 
     @Override
