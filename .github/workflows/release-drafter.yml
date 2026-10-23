@@ -30,7 +30,7 @@ jobs:
           issue-body: "Please approve or deny the release of spring-data-opensearch **TAG**: ${{ github.ref_name }}  **COMMIT**: ${{ github.sha }} **VERSION** : ${{ steps.get_data.outputs.version }} "
           exclude-workflow-initiator-as-approver: true
       - name: Set up JDK 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v3
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v3
         with:
           java-version: 21
           distribution: 'temurin'
