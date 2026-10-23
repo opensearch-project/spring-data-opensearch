@@ -15,10 +15,10 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "7.0.9")
-      version("spring-boot", "4.1.1")
-      library("data-commons", "org.springframework.data:spring-data-commons:4.1.1")
-      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.1.1")
+      version("spring", "7.0.10")
+      version("spring-boot", "4.1.2")
+      library("data-commons", "org.springframework.data:spring-data-commons:4.1.2")
+      library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.1.2")
       library("web", "org.springframework", "spring-web").versionRef("spring")
       library("webflux", "org.springframework", "spring-webflux").versionRef("spring")
       library("context", "org.springframework", "spring-context").versionRef("spring")
@@ -35,12 +35,12 @@ dependencyResolutionManagement {
       library("boot-test-autoconfigure", "org.springframework.boot", "spring-boot-test-autoconfigure").versionRef("spring-boot")
       library("boot-test-cache", "org.springframework.boot", "spring-boot-cache-test").versionRef("spring-boot")
       library("boot-testcontainers", "org.springframework.boot", "spring-boot-testcontainers").versionRef("spring-boot")
-      library("projectreactor", "io.projectreactor:reactor-test:3.8.7")
+      library("projectreactor", "io.projectreactor:reactor-test:3.8.8")
       plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
     }
     
     create("opensearchLibs") {
-      version("opensearch", "3.8.0")
+      version("opensearch", "3.9.0")
       library("java-client", "org.opensearch.client:opensearch-java:3.10.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
@@ -49,7 +49,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "3.2.2")
+      version("jackson", "3.2.4")
       library("core", "tools.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "tools.jackson.core", "jackson-databind").versionRef("jackson")
     }
