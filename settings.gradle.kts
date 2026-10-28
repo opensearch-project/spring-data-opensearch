@@ -49,7 +49,7 @@ dependencyResolutionManagement {
     }
     
     create("jacksonLibs") {
-      version("jackson", "3.2.2")
+      version("jackson", "3.2.4")
       library("core", "tools.jackson.core", "jackson-core").versionRef("jackson")
       library("databind", "tools.jackson.core", "jackson-databind").versionRef("jackson")
     }
