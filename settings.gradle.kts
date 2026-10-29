@@ -15,7 +15,7 @@ dependencyResolutionManagement {
     }
 
     create("springLibs") {
-      version("spring", "7.0.9")
+      version("spring", "7.0.10")
       version("spring-boot", "4.1.2")
       library("data-commons", "org.springframework.data:spring-data-commons:4.1.2")
       library("data-elasticsearch", "org.springframework.data:spring-data-elasticsearch:6.1.2")
@@ -40,7 +40,7 @@ dependencyResolutionManagement {
     }
     
     create("opensearchLibs") {
-      version("opensearch", "3.8.0")
+      version("opensearch", "3.9.0")
       library("java-client", "org.opensearch.client:opensearch-java:3.10.0")
       library("client", "org.opensearch.client", "opensearch-rest-client").versionRef("opensearch")
       library("high-level-client", "org.opensearch.client", "opensearch-rest-high-level-client").versionRef("opensearch")
