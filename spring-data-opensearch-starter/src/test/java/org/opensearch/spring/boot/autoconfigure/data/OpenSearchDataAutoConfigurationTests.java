@@ -29,9 +29,6 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
 
 /**
  * Tests for {@link OpenSearchDataAutoConfiguration}.
- *
- * Adaptation of the {@link org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfigurationTests} to
- * the needs of OpenSearch.
  */
 class OpenSearchDataAutoConfigurationTests {
 
@@ -46,6 +43,7 @@ class OpenSearchDataAutoConfigurationTests {
     void defaultRestBeansRegistered() {
         this.contextRunner.run((context) -> assertThat(context)
                 .hasSingleBean(OpenSearchRestTemplate.class)
+                .hasSingleBean(OpenSearchHealthIndicator.class)
                 .hasSingleBean(ElasticsearchConverter.class)
                 .hasSingleBean(ElasticsearchCustomConversions.class));
     }
@@ -90,6 +88,13 @@ class OpenSearchDataAutoConfigurationTests {
             SimpleElasticsearchMappingContext mappingContext = context.getBean(SimpleElasticsearchMappingContext.class);
             assertThat(mappingContext.hasPersistentEntityFor(Product.class)).isTrue();
         });
+    }
+
+    @Test
+    void healthIndicatorCanBeDisabled() {
+        this.contextRunner
+                .withPropertyValues("management.health.opensearch.enabled=false")
+                .run((context) -> assertThat(context).doesNotHaveBean(OpenSearchHealthIndicator.class));
     }
 
     @Configuration(proxyBeanMethods = false)

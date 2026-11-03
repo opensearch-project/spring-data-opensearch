@@ -26,6 +26,7 @@ dependencyResolutionManagement {
       library("test", "org.springframework", "spring-test").versionRef("spring")
       library("boot-web", "org.springframework.boot", "spring-boot-starter-web").versionRef("spring-boot")
       library("boot-webflux", "org.springframework.boot", "spring-boot-starter-webflux").versionRef("spring-boot")
+      library("boot-starter-actuator", "org.springframework.boot", "spring-boot-starter-actuator").versionRef("spring-boot")
       library("boot-autoconfigure", "org.springframework.boot", "spring-boot-autoconfigure").versionRef("spring-boot")
       library("boot-configuration-processor", "org.springframework.boot", "spring-boot-configuration-processor").versionRef("spring-boot")
       library("boot-docker-compose", "org.springframework.boot", "spring-boot-docker-compose").versionRef("spring-boot")
