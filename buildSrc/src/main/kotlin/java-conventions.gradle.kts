@@ -125,7 +125,7 @@ publishing {
   }
 }
 
-val properties = project.properties
+val properties = mapOf("project" to project)
 tasks.withType<ProcessResources> {
   filesMatching("**/testcontainers-opensearch.properties") {
     expand(properties)

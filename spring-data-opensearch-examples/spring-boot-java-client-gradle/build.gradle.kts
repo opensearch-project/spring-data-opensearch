@@ -59,7 +59,7 @@ spotless {
     target("src/main/java/**/*.java", "src/test/java/org/opensearch/**/*.java")
 
     trimTrailingWhitespace()
-    indentWithSpaces()
+    leadingTabsToSpaces()
     endWithNewline()
 
     removeUnusedImports()

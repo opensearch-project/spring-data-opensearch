@@ -12,6 +12,7 @@ plugins {
   `test-report-aggregation`
   `jacoco-report-aggregation`
   alias(pluginLibs.plugins.release)
+  alias(pluginLibs.plugins.spotless) apply false
 }
 
 buildscript {
