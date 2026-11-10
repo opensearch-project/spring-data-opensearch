@@ -15,12 +15,17 @@
  */
 package org.opensearch.data.client.osc;
 
+import io.micrometer.observation.ObservationRegistry;
 import java.io.IOException;
+import java.util.function.Supplier;
 import org.opensearch.client.ApiClient;
 import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.cluster.OpenSearchClusterClient;
 import org.opensearch.client.transport.Transport;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -31,12 +36,45 @@ import org.springframework.util.Assert;
  * @author Peter-Josef Meisch
  * @since 4.4
  */
-public abstract class ChildTemplate<T extends Transport, CLIENT extends ApiClient<T, CLIENT>> {
+public abstract class ChildTemplate<T extends Transport, CLIENT extends ApiClient<T, CLIENT>> implements ApplicationContextAware {
 
+    private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
+    @Nullable private OpenSearchObservationConvention observationConvention;
+    @Nullable private Supplier<OpenSearchObservationSupport> observationSupportFactory;
     protected final CLIENT client;
     protected final RequestConverter requestConverter;
     protected final ResponseConverter responseConverter;
     protected final OpenSearchExceptionTranslator exceptionTranslator;
+
+    public void setObservationRegistry(final ObservationRegistry observationRegistry) {
+        Assert.notNull(observationRegistry, "observationRegistry must not be null");
+        this.observationRegistry = observationRegistry;
+    }
+
+    public void setObservationConvention(@Nullable final OpenSearchObservationConvention observationConvention) {
+        this.observationConvention = observationConvention;
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) {
+        if (observationRegistry == ObservationRegistry.NOOP) {
+            applicationContext.getBeanProvider(ObservationRegistry.class).ifAvailable(this::setObservationRegistry);
+        }
+        if (observationConvention == null) {
+            applicationContext.getBeanProvider(OpenSearchObservationConvention.class).ifAvailable(this::setObservationConvention);
+        }
+    }
+
+    OpenSearchObservationSupport observations() {
+        if (observationSupportFactory != null) {
+            return observationSupportFactory.get();
+        }
+        return new OpenSearchObservationSupport(observationRegistry, observationConvention);
+    }
+
+    void setObservationSupportFactory(final Supplier<OpenSearchObservationSupport> factory) {
+        this.observationSupportFactory = factory;
+    }
 
     public ChildTemplate(CLIENT client, ElasticsearchConverter elasticsearchConverter) {
         this.client = client;
