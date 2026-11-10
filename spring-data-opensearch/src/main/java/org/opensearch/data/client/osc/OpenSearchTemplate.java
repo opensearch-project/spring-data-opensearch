@@ -380,7 +380,7 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        return observe(OpenSearchOperationName.REINDEX, null, () -> {
+        return observe(OpenSearchOperationName.REINDEX, reindexRequest.getSource().getIndexes(), () -> {
             final var reindexRequestES = requestConverter.reindex(reindexRequest,
                     true);
             final var reindexResponse = execute(
@@ -392,7 +392,9 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     @Override
     public String submitReindex(final ReindexRequest reindexRequest) {
 
-        return observe(OpenSearchOperationName.SUBMIT_REINDEX, null, () -> {
+        Assert.notNull(reindexRequest, "reindexRequest must not be null");
+
+        return observe(OpenSearchOperationName.SUBMIT_REINDEX, reindexRequest.getSource().getIndexes(), () -> {
             final var reindexRequestES = requestConverter.reindex(reindexRequest,
                     false);
             final var reindexResponse = execute(

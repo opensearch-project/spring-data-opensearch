@@ -291,7 +291,7 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        return observeMono(OpenSearchOperationName.REINDEX, null, Mono.defer(() -> {
+        return observeMono(OpenSearchOperationName.REINDEX, reindexRequest.getSource().getIndexes(), Mono.defer(() -> {
             final var reindexRequestES = requestConverter.reindex(reindexRequest,
                     true);
 
@@ -305,7 +305,7 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        return observeMono(OpenSearchOperationName.SUBMIT_REINDEX, null, Mono.defer(() -> {
+        return observeMono(OpenSearchOperationName.SUBMIT_REINDEX, reindexRequest.getSource().getIndexes(), Mono.defer(() -> {
             final var reindexRequestES = requestConverter.reindex(reindexRequest,
                     false);
 
