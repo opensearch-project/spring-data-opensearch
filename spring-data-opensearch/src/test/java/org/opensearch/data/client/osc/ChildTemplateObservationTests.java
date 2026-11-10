@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
@@ -20,8 +21,10 @@ import org.opensearch.client.opensearch.indices.ExistsRequest;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 import reactor.core.publisher.Mono;
@@ -165,5 +168,23 @@ class ChildTemplateObservationTests {
         reactiveTemplate.setObservationRegistry(recorder.registry);
         StepVerifier.create(reactiveTemplate.indexOps(INDEX).exists()).thenCancel().verify();
         recorder.assertOperations(OpenSearchOperationName.INDEX_EXISTS);
+    }
+
+    @Test
+    void reactiveMappingFailureIsTranslatedAndObserved() {
+        final var failure = new RuntimeException("mapping failure", new IOException("connection closed"));
+        when(reactiveClient.indices().putMapping(any(org.opensearch.client.opensearch.indices.PutMappingRequest.class)))
+                .thenReturn(Mono.error(failure));
+        reactiveTemplate.setObservationRegistry(recorder.registry);
+        final var mapping = reactiveTemplate.indexOps(INDEX).putMapping(Mono.just(Document.create()));
+        assertThat(recorder.started).isEmpty();
+
+        StepVerifier.create(mapping)
+                .expectErrorSatisfies(error -> assertThat(error)
+                        .isInstanceOf(DataAccessResourceFailureException.class).hasCause(failure))
+                .verify();
+
+        recorder.assertOperations(OpenSearchOperationName.INDEX_PUT_MAPPING);
+        assertThat(recorder.stopped.getFirst().getError()).isInstanceOf(DataAccessResourceFailureException.class);
     }
 }

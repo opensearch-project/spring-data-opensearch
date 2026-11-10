@@ -220,7 +220,7 @@ public class ReactiveIndicesTemplate
         return observations().mono(OpenSearchOperationName.INDEX_PUT_MAPPING, getIndexCoordinates(), () -> {
             final var putMappingResponse = mapping
                     .map(document -> requestConverter.indicesPutMappingRequest(getIndexCoordinates(), document)) //
-                    .flatMap(putMappingRequest -> Mono.from(client.putMapping(putMappingRequest)));
+                    .flatMap(putMappingRequest -> Mono.from(execute(client -> client.putMapping(putMappingRequest))));
             return putMappingResponse.map(PutMappingResponse::acknowledged);
         });
     }
