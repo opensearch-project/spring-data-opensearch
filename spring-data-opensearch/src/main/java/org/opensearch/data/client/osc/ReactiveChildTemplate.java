@@ -9,13 +9,17 @@
 
 package org.opensearch.data.client.osc;
 
+import io.micrometer.observation.Observation;
 import org.opensearch.client.ApiClient;
 import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.transport.Transport;
 import org.reactivestreams.Publisher;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * base class for a reactive template that uses on of the {@link ReactiveOpenSearchClient}'s child clients.
@@ -26,6 +30,17 @@ public class ReactiveChildTemplate<T extends Transport, CLIENT extends ApiClient
     protected final RequestConverter requestConverter;
     protected final ResponseConverter responseConverter;
     protected final OpenSearchExceptionTranslator exceptionTranslator;
+    ReactiveOpenSearchObservationSupport observationSupport = (operation, index, batchSize) -> Observation.NOOP;
+
+    protected <RESULT> Mono<RESULT> observeMono(final OpenSearchOperationName operation,
+            @Nullable final IndexCoordinates index, final Mono<RESULT> mono) {
+        return observationSupport.observeMono(operation, index, null, mono);
+    }
+
+    protected <RESULT> Flux<RESULT> observeFlux(final OpenSearchOperationName operation,
+            @Nullable final IndexCoordinates index, final Flux<RESULT> flux) {
+        return observationSupport.observeFlux(operation, index, null, flux);
+    }
 
     public ReactiveChildTemplate(CLIENT client, ElasticsearchConverter elasticsearchConverter) {
         this.client = client;
