@@ -284,6 +284,13 @@ class OpenSearchObservationIntegrationTests {
             recorder.assertOperations(OpenSearchOperationName.PUT_SCRIPT, OpenSearchOperationName.GET_SCRIPT,
                     OpenSearchOperationName.DELETE_SCRIPT, OpenSearchOperationName.OPEN_POINT_IN_TIME,
                     OpenSearchOperationName.CLOSE_POINT_IN_TIME, OpenSearchOperationName.REINDEX, OpenSearchOperationName.SUBMIT_REINDEX);
+            assertThat(recorder.stopped)
+                    .filteredOn(context -> context.getOperationName() == OpenSearchOperationName.REINDEX
+                            || context.getOperationName() == OpenSearchOperationName.SUBMIT_REINDEX)
+                    .hasSize(2).allSatisfy(context -> {
+                        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo(index.getIndexName());
+                        assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
+                    });
             recorder.clear();
             StepVerifier.create(reactiveTemplate.putScript(script)).expectNext(true).verifyComplete();
             storedScriptExists = true;
@@ -294,6 +301,13 @@ class OpenSearchObservationIntegrationTests {
             StepVerifier.create(reactiveTemplate.submitReindex(request)).expectNextCount(1).verifyComplete();
             recorder.assertOperations(OpenSearchOperationName.PUT_SCRIPT, OpenSearchOperationName.GET_SCRIPT,
                     OpenSearchOperationName.DELETE_SCRIPT, OpenSearchOperationName.REINDEX, OpenSearchOperationName.SUBMIT_REINDEX);
+            assertThat(recorder.stopped)
+                    .filteredOn(context -> context.getOperationName() == OpenSearchOperationName.REINDEX
+                            || context.getOperationName() == OpenSearchOperationName.SUBMIT_REINDEX)
+                    .hasSize(2).allSatisfy(context -> {
+                        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo(index.getIndexName());
+                        assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
+                    });
         } finally {
             if (storedScriptExists) {
                 template.deleteScript(name);

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.ExistsRequest;
@@ -114,8 +115,40 @@ class OpenSearchTemplateObservationTests {
                 .thenReturn(ReindexResponse.of(response -> response.task("node:1")));
         assertThat(template.submitReindex(reindex())).isEqualTo("node:1");
         recorder.assertOperations(OpenSearchOperationName.SUBMIT_REINDEX);
+        assertThat(recorder.stopped.getFirst().getIndexName()).isEqualTo(INDEX.getIndexName());
         verify(client).reindex(argThat((org.opensearch.client.opensearch.core.ReindexRequest request) ->
                 Boolean.FALSE.equals(request.waitForCompletion())));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void reindexFailuresRecordSourceIndicesOnlyInTraces(final boolean submission) {
+        final var failure = new IllegalStateException("reindex failure");
+        final var failing = new OpenSearchTemplate(client, converter, new OpenSearchMappingParametersCustomizer()) {
+            @Override
+            public <T> T execute(final ClientCallback<T> callback) {
+                throw failure;
+            }
+        };
+        failing.setObservationRegistry(recorder.registry);
+        final var source = IndexCoordinates.of("source-one", "source-two");
+        final var request = ReindexRequest.builder(source, IndexCoordinates.of("target")).build();
+
+        assertThatThrownBy(() -> {
+            if (submission) {
+                failing.submitReindex(request);
+            } else {
+                failing.reindex(request);
+            }
+        }).isSameAs(failure);
+
+        recorder.assertOperations(submission ? OpenSearchOperationName.SUBMIT_REINDEX : OpenSearchOperationName.REINDEX);
+        final var context = recorder.stopped.getFirst();
+        assertThat(context.getIndexCoordinates()).isSameAs(source);
+        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo("source-one,source-two");
+        assertThat(context.getLowCardinalityKeyValues()).hasSize(1);
+        assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
+        assertThat(context.getError()).isSameAs(failure);
     }
 
     @ParameterizedTest

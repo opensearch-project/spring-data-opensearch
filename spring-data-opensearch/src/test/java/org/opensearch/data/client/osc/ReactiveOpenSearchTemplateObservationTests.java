@@ -14,6 +14,8 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
@@ -180,5 +182,29 @@ class ReactiveOpenSearchTemplateObservationTests {
         StepVerifier.create(template.submitReindex(OpenSearchTemplateObservationTests.reindex()))
                 .expectNext("node:1").verifyComplete();
         recorder.assertOperations(OpenSearchOperationName.SUBMIT_REINDEX);
+        assertThat(recorder.stopped.getFirst().getIndexName()).isEqualTo(INDEX.getIndexName());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { false, true })
+    void reindexFailuresRecordSourceIndicesOnlyInTraces(final boolean submission) {
+        final var failure = new IllegalStateException("reindex failure");
+        when(client.reindex(any(org.opensearch.client.opensearch.core.ReindexRequest.class)))
+                .thenReturn(Mono.error(failure));
+        final var source = IndexCoordinates.of("source-one", "source-two");
+        final var request = org.springframework.data.elasticsearch.core.reindex.ReindexRequest
+                .builder(source, IndexCoordinates.of("target")).build();
+        final var publisher = submission ? template.submitReindex(request) : template.reindex(request);
+        assertThat(recorder.started).isEmpty();
+
+        StepVerifier.create(publisher).expectError().verify();
+
+        recorder.assertOperations(submission ? OpenSearchOperationName.SUBMIT_REINDEX : OpenSearchOperationName.REINDEX);
+        final var context = recorder.stopped.getFirst();
+        assertThat(context.getIndexCoordinates()).isSameAs(source);
+        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo("source-one,source-two");
+        assertThat(context.getLowCardinalityKeyValues()).hasSize(1);
+        assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
+        assertThat(context.getError()).isNotNull();
     }
 }

@@ -43,6 +43,7 @@ Reactive observations start for each subscription and stop on completion, error,
 They use the caller observation from the Reactor context as their parent.
 Reactive bulk saves preserve streaming and record the batch size.
 For `submitReindex`, the observation measures submission, not completion of the background task.
+Reindex observations include the source index names only in traces.
 Index and cluster templates inherit the parent configuration.
 Copies made with `withRouting` or `withRefreshPolicy` retain it.
 
