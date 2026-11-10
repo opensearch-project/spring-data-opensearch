@@ -16,26 +16,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.opensearch.client.opensearch._types.AcknowledgedResponseBase;
-import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.CreateIndexResponse;
-import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
 import org.opensearch.client.opensearch.indices.DeleteTemplateResponse;
-import org.opensearch.client.opensearch.indices.ExistsRequest;
 import org.opensearch.client.opensearch.indices.GetAliasRequest;
 import org.opensearch.client.opensearch.indices.GetAliasResponse;
-import org.opensearch.client.opensearch.indices.GetIndexRequest;
-import org.opensearch.client.opensearch.indices.GetIndicesSettingsRequest;
-import org.opensearch.client.opensearch.indices.GetIndicesSettingsResponse;
-import org.opensearch.client.opensearch.indices.GetMappingRequest;
-import org.opensearch.client.opensearch.indices.GetMappingResponse;
-import org.opensearch.client.opensearch.indices.GetTemplateResponse;
 import org.opensearch.client.opensearch.indices.PutIndexTemplateResponse;
 import org.opensearch.client.opensearch.indices.PutMappingResponse;
 import org.opensearch.client.opensearch.indices.PutTemplateResponse;
-import org.opensearch.client.opensearch.indices.RefreshRequest;
-import org.opensearch.client.opensearch.indices.UpdateAliasesRequest;
-import org.opensearch.client.opensearch.indices.UpdateAliasesResponse;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -151,48 +139,54 @@ public class ReactiveIndicesTemplate
                 doCreate(getIndexCoordinates(), settings, mapping))); //
     }
 
-    private Mono<Boolean> doCreate(IndexCoordinates indexCoordinates, Map<String, Object> settings,
-            @Nullable Document mapping) {
-        Set<Alias> aliases = (boundClass != null) ? getAliasesFor(boundClass) : new HashSet<>();
-        CreateIndexSettings indexSettings = CreateIndexSettings.builder(indexCoordinates)
-                .withAliases(aliases)
-                .withSettings(settings)
-                .withMapping(mapping)
-                .build();
+    private Mono<Boolean> doCreate(final IndexCoordinates indexCoordinates, final Map<String, Object> settings,
+            @Nullable final Document mapping) {
+        return observations().mono(OpenSearchOperationName.INDEX_CREATE, indexCoordinates, () -> {
+            final var aliases = (boundClass != null) ? getAliasesFor(boundClass) : new HashSet<Alias>();
+            final var indexSettings = CreateIndexSettings.builder(indexCoordinates)
+                    .withAliases(aliases)
+                    .withSettings(settings)
+                    .withMapping(mapping)
+                    .build();
 
-        CreateIndexRequest createIndexRequest = requestConverter.indicesCreateRequest(indexSettings);
-        Mono<CreateIndexResponse> createIndexResponse = Mono.from(execute(client -> client.create(createIndexRequest)));
-        return createIndexResponse.map(CreateIndexResponse::acknowledged);
+            final var createIndexRequest = requestConverter.indicesCreateRequest(indexSettings);
+            final var createIndexResponse = Mono.from(execute(client -> client.create(createIndexRequest)));
+            return createIndexResponse.map(CreateIndexResponse::acknowledged);
+        });
     }
 
     @Override
     public Mono<Boolean> delete() {
-        return exists().flatMap(exists -> {
+        return observations().mono(OpenSearchOperationName.INDEX_DELETE, getIndexCoordinates(),
+                () -> doExists().flatMap(exists -> {
 
-            if (exists) {
-                DeleteIndexRequest deleteIndexRequest = requestConverter.indicesDeleteRequest(getIndexCoordinates());
-                return Mono.from(execute(client -> client.delete(deleteIndexRequest))) //
-                        .map(DeleteIndexResponse::acknowledged) //
-                        .onErrorResume(NoSuchIndexException.class, e -> Mono.just(false));
-            } else {
-                return Mono.just(false);
-            }
-        });
-
+                    if (exists) {
+                        final var deleteIndexRequest = requestConverter.indicesDeleteRequest(getIndexCoordinates());
+                        return Mono.from(execute(client -> client.delete(deleteIndexRequest))) //
+                                .map(DeleteIndexResponse::acknowledged) //
+                                .onErrorResume(NoSuchIndexException.class, e -> Mono.just(false));
+                    } else {
+                        return Mono.just(false);
+                    }
+                }));
     }
 
     @Override
     public Mono<Boolean> exists() {
+        return observations().mono(OpenSearchOperationName.INDEX_EXISTS, getIndexCoordinates(), this::doExists);
+    }
 
-        ExistsRequest existsRequest = requestConverter.indicesExistsRequest(getIndexCoordinates());
-        Mono<BooleanResponse> existsResponse = Mono.from(execute(client -> client.exists(existsRequest)));
-        return existsResponse.map(BooleanResponse::value);
+    private Mono<Boolean> doExists() {
+        final var existsRequest = requestConverter.indicesExistsRequest(getIndexCoordinates());
+        return Mono.from(execute(client -> client.exists(existsRequest))).map(BooleanResponse::value);
     }
 
     @Override
     public Mono<Void> refresh() {
-        RefreshRequest refreshRequest = requestConverter.indicesRefreshRequest(getIndexCoordinates());
-        return Mono.from(execute(client -> client.refresh(refreshRequest))).then();
+        return observations().mono(OpenSearchOperationName.INDEX_REFRESH, getIndexCoordinates(), () -> {
+            final var refreshRequest = requestConverter.indicesRefreshRequest(getIndexCoordinates());
+            return Mono.from(execute(client -> client.refresh(refreshRequest))).then();
+        });
     }
 
     @Override
@@ -219,23 +213,27 @@ public class ReactiveIndicesTemplate
     }
 
     @Override
-    public Mono<Boolean> putMapping(Mono<Document> mapping) {
+    public Mono<Boolean> putMapping(final Mono<Document> mapping) {
 
         Assert.notNull(mapping, "mapping must not be null");
 
-        Mono<PutMappingResponse> putMappingResponse = mapping
-                .map(document -> requestConverter.indicesPutMappingRequest(getIndexCoordinates(), document)) //
-                .flatMap(putMappingRequest -> Mono.from(client.putMapping(putMappingRequest)));
-        return putMappingResponse.map(PutMappingResponse::acknowledged);
+        return observations().mono(OpenSearchOperationName.INDEX_PUT_MAPPING, getIndexCoordinates(), () -> {
+            final var putMappingResponse = mapping
+                    .map(document -> requestConverter.indicesPutMappingRequest(getIndexCoordinates(), document)) //
+                    .flatMap(putMappingRequest -> Mono.from(client.putMapping(putMappingRequest)));
+            return putMappingResponse.map(PutMappingResponse::acknowledged);
+        });
     }
 
     @Override
     public Mono<Document> getMapping() {
 
-        IndexCoordinates indexCoordinates = getIndexCoordinates();
-        GetMappingRequest getMappingRequest = requestConverter.indicesGetMappingRequest(indexCoordinates);
-        Mono<GetMappingResponse> getMappingResponse = Mono.from(execute(client -> client.getMapping(getMappingRequest)));
-        return getMappingResponse.map(response -> responseConverter.indicesGetMapping(response, indexCoordinates));
+        return observations().mono(OpenSearchOperationName.INDEX_GET_MAPPING, getIndexCoordinates(), () -> {
+            final var indexCoordinates = getIndexCoordinates();
+            final var getMappingRequest = requestConverter.indicesGetMappingRequest(indexCoordinates);
+            final var getMappingResponse = Mono.from(execute(client -> client.getMapping(getMappingRequest)));
+            return getMappingResponse.map(response -> responseConverter.indicesGetMapping(response, indexCoordinates));
+        });
     }
 
     @Override
@@ -258,35 +256,42 @@ public class ReactiveIndicesTemplate
     }
 
     @Override
-    public Mono<Settings> getSettings(boolean includeDefaults) {
+    public Mono<Settings> getSettings(final boolean includeDefaults) {
 
-        GetIndicesSettingsRequest getSettingsRequest = requestConverter.indicesGetSettingsRequest(getIndexCoordinates(),
-                includeDefaults);
-        Mono<GetIndicesSettingsResponse> getSettingsResponse = Mono
-                .from(execute(client -> client.getSettings(getSettingsRequest)));
-        return getSettingsResponse
-                .map(response -> responseConverter.indicesGetSettings(response, getIndexCoordinates().getIndexName()));
+        return observations().mono(OpenSearchOperationName.INDEX_GET_SETTINGS, getIndexCoordinates(), () -> {
+            final var getSettingsRequest = requestConverter.indicesGetSettingsRequest(getIndexCoordinates(),
+                    includeDefaults);
+            final var getSettingsResponse = Mono
+                    .from(execute(client -> client.getSettings(getSettingsRequest)));
+            return getSettingsResponse
+                    .map(response -> responseConverter.indicesGetSettings(response, getIndexCoordinates().getIndexName()));
+        });
     }
 
     @Override
-    public Mono<Boolean> alias(AliasActions aliasActions) {
+    public Mono<Boolean> alias(final AliasActions aliasActions) {
 
         Assert.notNull(aliasActions, "aliasActions must not be null");
 
-        UpdateAliasesRequest updateAliasesRequest = requestConverter.indicesUpdateAliasesRequest(aliasActions);
-        Mono<UpdateAliasesResponse> updateAliasesResponse = Mono
-                .from(execute(client -> client.updateAliases(updateAliasesRequest)));
-        return updateAliasesResponse.map(AcknowledgedResponseBase::acknowledged);
+        return observations().mono(OpenSearchOperationName.INDEX_ALIAS, null, () -> {
+            final var updateAliasesRequest = requestConverter.indicesUpdateAliasesRequest(aliasActions);
+            final var updateAliasesResponse = Mono
+                    .from(execute(client -> client.updateAliases(updateAliasesRequest)));
+            return updateAliasesResponse.map(AcknowledgedResponseBase::acknowledged);
+        });
     }
 
     @Override
-    public Mono<Map<String, Set<AliasData>>> getAliases(String... aliasNames) {
-        return getAliases(aliasNames, null);
+    public Mono<Map<String, Set<AliasData>>> getAliases(final String... aliasNames) {
+        return observations().mono(OpenSearchOperationName.INDEX_GET_ALIASES, null,
+                () -> getAliases(aliasNames, null));
     }
 
     @Override
-    public Mono<Map<String, Set<AliasData>>> getAliasesForIndex(String... indexNames) {
-        return getAliases(null, indexNames);
+    public Mono<Map<String, Set<AliasData>>> getAliasesForIndex(final String... indexNames) {
+        Assert.notNull(indexNames, "indexNames must not be null");
+        return observations().mono(OpenSearchOperationName.INDEX_GET_ALIASES,
+                indexNames.length == 0 ? null : IndexCoordinates.of(indexNames), () -> getAliases(null, indexNames));
     }
 
     private Mono<Map<String, Set<AliasData>>> getAliases(@Nullable String[] aliasNames, @Nullable String[] indexNames) {
@@ -297,160 +302,186 @@ public class ReactiveIndicesTemplate
     }
 
     @Override
-    public Mono<Boolean> putTemplate(PutTemplateRequest putTemplateRequest) {
+    public Mono<Boolean> putTemplate(final PutTemplateRequest putTemplateRequest) {
 
         Assert.notNull(putTemplateRequest, "putTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.PutTemplateRequest putTemplateRequestES = requestConverter
-                .indicesPutTemplateRequest(putTemplateRequest);
-        Mono<PutTemplateResponse> putTemplateResponse = Mono
-                .from(execute(client -> client.putTemplate(putTemplateRequestES)));
-        return putTemplateResponse.map(PutTemplateResponse::acknowledged);
-    }
-
-    @Override
-    public Mono<Boolean> putComponentTemplate(PutComponentTemplateRequest putComponentTemplateRequest) {
-
-        Assert.notNull(putComponentTemplateRequest, "putComponentTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.cluster.PutComponentTemplateRequest putComponentTemplateRequestES = requestConverter
-                .clusterPutComponentTemplateRequest(putComponentTemplateRequest);
-        return Mono.from(clusterTemplate.execute(client -> client.putComponentTemplate(putComponentTemplateRequestES)))
-                .map(AcknowledgedResponseBase::acknowledged);
-    }
-
-    @Override
-    public Flux<TemplateResponse> getComponentTemplate(GetComponentTemplateRequest getComponentTemplateRequest) {
-
-        Assert.notNull(getComponentTemplateRequest, "getComponentTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.cluster.GetComponentTemplateRequest getComponentTemplateRequestES = requestConverter
-                .clusterGetComponentTemplateRequest(getComponentTemplateRequest);
-        return Flux.from(clusterTemplate.execute(client -> client.getComponentTemplate(getComponentTemplateRequestES)))
-                .flatMapIterable(responseConverter::clusterGetComponentTemplates);
-    }
-
-    @Override
-    public Mono<Boolean> existsComponentTemplate(ExistsComponentTemplateRequest existsComponentTemplateRequest) {
-
-        Assert.notNull(existsComponentTemplateRequest, "existsComponentTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.cluster.ExistsComponentTemplateRequest existsComponentTemplateRequestES = requestConverter
-                .clusterExistsComponentTemplateRequest(existsComponentTemplateRequest);
-
-        return Mono
-                .from(clusterTemplate.execute(client -> client.existsComponentTemplate(existsComponentTemplateRequestES)))
-                .map(BooleanResponse::value);
-    }
-
-    @Override
-    public Mono<Boolean> deleteComponentTemplate(DeleteComponentTemplateRequest deleteComponentTemplateRequest) {
-
-        Assert.notNull(deleteComponentTemplateRequest, "deleteComponentTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.cluster.DeleteComponentTemplateRequest deleteComponentTemplateRequestES = requestConverter
-                .clusterDeleteComponentTemplateRequest(deleteComponentTemplateRequest);
-        return Mono
-                .from(clusterTemplate.execute(client -> client.deleteComponentTemplate(deleteComponentTemplateRequestES)))
-                .map(AcknowledgedResponseBase::acknowledged);
-    }
-
-    @Override
-    public Mono<Boolean> putIndexTemplate(PutIndexTemplateRequest putIndexTemplateRequest) {
-
-        Assert.notNull(putIndexTemplateRequest, "putIndexTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.indices.PutIndexTemplateRequest putIndexTemplateRequestES = requestConverter
-                .indicesPutIndexTemplateRequest(putIndexTemplateRequest);
-
-        return Mono.from(execute(client -> client.putIndexTemplate(putIndexTemplateRequestES)))
-                .map(PutIndexTemplateResponse::acknowledged);
-    }
-
-    @Override
-    public Mono<Boolean> existsIndexTemplate(ExistsIndexTemplateRequest existsIndexTemplateRequest) {
-
-        Assert.notNull(existsIndexTemplateRequest, "existsIndexTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.indices.ExistsIndexTemplateRequest existsIndexTemplateRequestES = requestConverter
-                .indicesExistsIndexTemplateRequest(existsIndexTemplateRequest);
-        return Mono.from(execute(client -> client.existsIndexTemplate(existsIndexTemplateRequestES)))
-                .map(BooleanResponse::value);
-    }
-
-    @Override
-    public Flux<TemplateResponse> getIndexTemplate(GetIndexTemplateRequest getIndexTemplateRequest) {
-
-        Assert.notNull(getIndexTemplateRequest, "getIndexTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.indices.GetIndexTemplateRequest getIndexTemplateRequestES = requestConverter
-                .indicesGetIndexTemplateRequest(getIndexTemplateRequest);
-        return Mono.from(execute(client -> client.getIndexTemplate(getIndexTemplateRequestES)))
-                .flatMapIterable(responseConverter::getIndexTemplates);
-    }
-
-    @Override
-    public Mono<Boolean> deleteIndexTemplate(DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
-
-        Assert.notNull(deleteIndexTemplateRequest, "deleteIndexTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.indices.DeleteIndexTemplateRequest deleteIndexTemplateRequestES = requestConverter
-                .indicesDeleteIndexTemplateRequest(deleteIndexTemplateRequest);
-        return Mono.from(execute(client -> client.deleteIndexTemplate(deleteIndexTemplateRequestES)))
-                .map(AcknowledgedResponseBase::acknowledged);
-    }
-
-    @Override
-    public Mono<TemplateData> getTemplate(GetTemplateRequest getTemplateRequest) {
-
-        Assert.notNull(getTemplateRequest, "getTemplateRequest must not be null");
-
-        org.opensearch.client.opensearch.indices.GetTemplateRequest getTemplateRequestES = requestConverter
-                .indicesGetTemplateRequest(getTemplateRequest);
-        Mono<GetTemplateResponse> getTemplateResponse = Mono
-                .from(execute(client -> client.getTemplate(getTemplateRequestES)));
-
-        return getTemplateResponse.flatMap(response -> {
-            if (response != null) {
-                TemplateData templateData = responseConverter.indicesGetTemplateData(response,
-                        getTemplateRequest.getTemplateName());
-                if (templateData != null) {
-                    return Mono.just(templateData);
-                }
-            }
-            return Mono.empty();
+        return observations().mono(OpenSearchOperationName.INDEX_PUT_TEMPLATE, null, () -> {
+            final var putTemplateRequestES = requestConverter
+                    .indicesPutTemplateRequest(putTemplateRequest);
+            final var putTemplateResponse = Mono
+                    .from(execute(client -> client.putTemplate(putTemplateRequestES)));
+            return putTemplateResponse.map(PutTemplateResponse::acknowledged);
         });
     }
 
     @Override
-    public Mono<Boolean> existsTemplate(ExistsTemplateRequest existsTemplateRequest) {
+    public Mono<Boolean> putComponentTemplate(final PutComponentTemplateRequest putComponentTemplateRequest) {
+
+        Assert.notNull(putComponentTemplateRequest, "putComponentTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_PUT_COMPONENT_TEMPLATE, null, () -> {
+            final var putComponentTemplateRequestES = requestConverter
+                    .clusterPutComponentTemplateRequest(putComponentTemplateRequest);
+            return Mono.from(clusterTemplate.execute(client -> client.putComponentTemplate(putComponentTemplateRequestES)))
+                    .map(AcknowledgedResponseBase::acknowledged);
+        });
+    }
+
+    @Override
+    public Flux<TemplateResponse> getComponentTemplate(final GetComponentTemplateRequest getComponentTemplateRequest) {
+
+        Assert.notNull(getComponentTemplateRequest, "getComponentTemplateRequest must not be null");
+
+        return observations().flux(OpenSearchOperationName.INDEX_GET_COMPONENT_TEMPLATE, null, null, () -> {
+            final var getComponentTemplateRequestES = requestConverter
+                    .clusterGetComponentTemplateRequest(getComponentTemplateRequest);
+            return Flux.from(clusterTemplate.execute(client -> client.getComponentTemplate(getComponentTemplateRequestES)))
+                    .flatMapIterable(responseConverter::clusterGetComponentTemplates);
+        });
+    }
+
+    @Override
+    public Mono<Boolean> existsComponentTemplate(final ExistsComponentTemplateRequest existsComponentTemplateRequest) {
+
+        Assert.notNull(existsComponentTemplateRequest, "existsComponentTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_EXISTS_COMPONENT_TEMPLATE, null, () -> {
+            final var existsComponentTemplateRequestES = requestConverter
+                    .clusterExistsComponentTemplateRequest(existsComponentTemplateRequest);
+
+            return Mono
+                    .from(clusterTemplate.execute(client -> client.existsComponentTemplate(existsComponentTemplateRequestES)))
+                    .map(BooleanResponse::value);
+        });
+    }
+
+    @Override
+    public Mono<Boolean> deleteComponentTemplate(final DeleteComponentTemplateRequest deleteComponentTemplateRequest) {
+
+        Assert.notNull(deleteComponentTemplateRequest, "deleteComponentTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_DELETE_COMPONENT_TEMPLATE, null, () -> {
+            final var deleteComponentTemplateRequestES = requestConverter
+                    .clusterDeleteComponentTemplateRequest(deleteComponentTemplateRequest);
+            return Mono
+                    .from(clusterTemplate.execute(client -> client.deleteComponentTemplate(deleteComponentTemplateRequestES)))
+                    .map(AcknowledgedResponseBase::acknowledged);
+        });
+    }
+
+    @Override
+    public Mono<Boolean> putIndexTemplate(final PutIndexTemplateRequest putIndexTemplateRequest) {
+
+        Assert.notNull(putIndexTemplateRequest, "putIndexTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_PUT_INDEX_TEMPLATE, null, () -> {
+            final var putIndexTemplateRequestES = requestConverter
+                    .indicesPutIndexTemplateRequest(putIndexTemplateRequest);
+
+            return Mono.from(execute(client -> client.putIndexTemplate(putIndexTemplateRequestES)))
+                    .map(PutIndexTemplateResponse::acknowledged);
+        });
+    }
+
+    @Override
+    public Mono<Boolean> existsIndexTemplate(final ExistsIndexTemplateRequest existsIndexTemplateRequest) {
+
+        Assert.notNull(existsIndexTemplateRequest, "existsIndexTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_EXISTS_INDEX_TEMPLATE, null, () -> {
+            final var existsIndexTemplateRequestES = requestConverter
+                    .indicesExistsIndexTemplateRequest(existsIndexTemplateRequest);
+            return Mono.from(execute(client -> client.existsIndexTemplate(existsIndexTemplateRequestES)))
+                    .map(BooleanResponse::value);
+        });
+    }
+
+    @Override
+    public Flux<TemplateResponse> getIndexTemplate(final GetIndexTemplateRequest getIndexTemplateRequest) {
+
+        Assert.notNull(getIndexTemplateRequest, "getIndexTemplateRequest must not be null");
+
+        return observations().flux(OpenSearchOperationName.INDEX_GET_INDEX_TEMPLATE, null, null, () -> {
+            final var getIndexTemplateRequestES = requestConverter
+                    .indicesGetIndexTemplateRequest(getIndexTemplateRequest);
+            return Mono.from(execute(client -> client.getIndexTemplate(getIndexTemplateRequestES)))
+                    .flatMapIterable(responseConverter::getIndexTemplates);
+        });
+    }
+
+    @Override
+    public Mono<Boolean> deleteIndexTemplate(final DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
+
+        Assert.notNull(deleteIndexTemplateRequest, "deleteIndexTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_DELETE_INDEX_TEMPLATE, null, () -> {
+            final var deleteIndexTemplateRequestES = requestConverter
+                    .indicesDeleteIndexTemplateRequest(deleteIndexTemplateRequest);
+            return Mono.from(execute(client -> client.deleteIndexTemplate(deleteIndexTemplateRequestES)))
+                    .map(AcknowledgedResponseBase::acknowledged);
+        });
+    }
+
+    @Override
+    public Mono<TemplateData> getTemplate(final GetTemplateRequest getTemplateRequest) {
+
+        Assert.notNull(getTemplateRequest, "getTemplateRequest must not be null");
+
+        return observations().mono(OpenSearchOperationName.INDEX_GET_TEMPLATE, null, () -> {
+            final var getTemplateRequestES = requestConverter
+                    .indicesGetTemplateRequest(getTemplateRequest);
+            final var getTemplateResponse = Mono
+                    .from(execute(client -> client.getTemplate(getTemplateRequestES)));
+
+            return getTemplateResponse.flatMap(response -> {
+                if (response != null) {
+                    final var templateData = responseConverter.indicesGetTemplateData(response,
+                            getTemplateRequest.getTemplateName());
+                    if (templateData != null) {
+                        return Mono.just(templateData);
+                    }
+                }
+                return Mono.empty();
+            });
+        });
+    }
+
+    @Override
+    public Mono<Boolean> existsTemplate(final ExistsTemplateRequest existsTemplateRequest) {
 
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.ExistsTemplateRequest existsTemplateRequestES = requestConverter
-                .indicesExistsTemplateRequest(existsTemplateRequest);
-        return Mono.from(execute(client -> client.existsTemplate(existsTemplateRequestES))).map(BooleanResponse::value);
+        return observations().mono(OpenSearchOperationName.INDEX_EXISTS_TEMPLATE, null, () -> {
+            final var existsTemplateRequestES = requestConverter
+                    .indicesExistsTemplateRequest(existsTemplateRequest);
+            return Mono.from(execute(client -> client.existsTemplate(existsTemplateRequestES))).map(BooleanResponse::value);
+        });
     }
 
     @Override
-    public Mono<Boolean> deleteTemplate(DeleteTemplateRequest deleteTemplateRequest) {
+    public Mono<Boolean> deleteTemplate(final DeleteTemplateRequest deleteTemplateRequest) {
 
         Assert.notNull(deleteTemplateRequest, "deleteTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.DeleteTemplateRequest deleteTemplateRequestES = requestConverter
-                .indicesDeleteTemplateRequest(deleteTemplateRequest);
-        return Mono.from(execute(client -> client.deleteTemplate(deleteTemplateRequestES)))
-                .map(DeleteTemplateResponse::acknowledged);
+        return observations().mono(OpenSearchOperationName.INDEX_DELETE_TEMPLATE, null, () -> {
+            final var deleteTemplateRequestES = requestConverter
+                    .indicesDeleteTemplateRequest(deleteTemplateRequest);
+            return Mono.from(execute(client -> client.deleteTemplate(deleteTemplateRequestES)))
+                    .map(DeleteTemplateResponse::acknowledged);
+        });
     }
 
     @Override
-    public Flux<IndexInformation> getInformation(IndexCoordinates index) {
+    public Flux<IndexInformation> getInformation(final IndexCoordinates index) {
 
-        GetIndexRequest request = requestConverter.indicesGetIndexRequest(index);
+        return observations().flux(OpenSearchOperationName.INDEX_GET_INFORMATION, index, null, () -> {
+            final var request = requestConverter.indicesGetIndexRequest(index);
 
-        return Mono.from(execute(client -> client.get(request))) //
-                .map(responseConverter::indicesGetIndexInformations) //
-                .flatMapMany(Flux::fromIterable);
+            return Mono.from(execute(client -> client.get(request))) //
+                    .map(responseConverter::indicesGetIndexInformations) //
+                    .flatMapMany(Flux::fromIterable);
+        });
     }
 
     @Override

@@ -16,6 +16,68 @@ Includes integrated object mapping between documents and POJOs.
 * Automatic implementation of `Repository` interfaces including support for custom search methods.
 * CDI support for repositories
 
+## Observations for OpenSearch operations
+
+An observation records an operation for metrics and tracing.
+The OSC `OpenSearchTemplate` and `ReactiveOpenSearchTemplate` use the observation name `spring.data.opensearch.command`.
+They discover an `ObservationRegistry` bean from the application context.
+Spring Boot applications can use the registry configured by Actuator.
+Without a registry, the templates use `ObservationRegistry.NOOP` and do not record observations.
+For templates that you construct directly, call `setObservationRegistry(registry)`.
+
+The default convention includes `spring.data.operation` in metrics and traces.
+It includes `spring.data.collection` and `spring.data.batch.size` only in traces.
+These high-cardinality values can vary without creating a metric series for each index or batch size.
+The contextual name includes the operation and its index, when available.
+
+The templates observe these supported operations:
+
+* Document saves, indexing, reads, multi-get, existence checks, deletes, updates, counts, and bulk operations.
+* Searches, multi-search, and response-based reactive searches, including `searchForPage`, `searchForHits`, and aggregations.
+* Scroll requests, point-in-time operations, reindex requests, and stored scripts.
+* Index creation, deletion, existence checks, mappings, settings reads, aliases, and index or component templates.
+* Cluster health and version requests.
+
+Imperative `searchForStream` records each scroll request, not the lifetime of the iterator.
+Reactive observations start for each subscription and stop on completion, error, or cancellation.
+They use the caller observation from the Reactor context as their parent.
+Reactive bulk saves preserve streaming and record the batch size.
+For `submitReindex`, the observation measures submission, not completion of the background task.
+Index and cluster templates inherit the parent configuration.
+Copies made with `withRouting` or `withRefreshPolicy` retain it.
+
+To customize names or tags, register an `OpenSearchObservationConvention` bean.
+For direct construction, call `setObservationConvention(convention)`.
+For example, this convention adds a bounded application-specific metric tag:
+
+```java
+@Bean
+OpenSearchObservationConvention openSearchObservationConvention() {
+    return new DefaultOpenSearchObservationConvention() {
+        @Override
+        public KeyValues getLowCardinalityKeyValues(final OpenSearchObservationContext context) {
+            return super.getLowCardinalityKeyValues(context).and("application.component", "catalog");
+        }
+    };
+}
+```
+
+The example uses types from `org.opensearch.data.client.osc` and `io.micrometer.common.KeyValues`.
+Do not add index names to metric tags unless the number of distinct names stays small.
+Unbounded tag values can exhaust the capacity of a metrics backend.
+
+This support requires no snapshot dependency.
+With Spring Data Elasticsearch 6.1.2, the inherited reactive `exists(String, Class<?>)` overload bypasses the observation.
+Use `exists(String, IndexCoordinates)` to record that operation.
+Reactive repository `existsById` already uses that overload.
+The class-based overload will inherit the upstream fix after a dependency update.
+This project does not add a local workaround.
+
+Legacy ORHLC templates and native `opensearch-java` transport instrumentation are outside this support.
+SQL search and reactive `updateByQuery` remain unsupported.
+Local mapping and settings generation do not send requests and do not create observations.
+Raw `execute` callbacks do not create template observations.
+
 ## About OpenSearch versions and clients
 
 The Spring Data OpenSearch follows the release model of the Spring Data Elasticsearch / Spring Boot projects.
@@ -527,4 +589,3 @@ Copyright OpenSearch Contributors. See [NOTICE](NOTICE.txt) for details.
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
-

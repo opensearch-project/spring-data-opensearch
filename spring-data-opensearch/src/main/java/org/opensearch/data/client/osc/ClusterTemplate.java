@@ -15,8 +15,6 @@
  */
 package org.opensearch.data.client.osc;
 
-import org.opensearch.client.opensearch.cluster.HealthRequest;
-import org.opensearch.client.opensearch.cluster.HealthResponse;
 import org.opensearch.client.opensearch.cluster.OpenSearchClusterClient;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.springframework.data.elasticsearch.core.cluster.ClusterHealth;
@@ -39,9 +37,11 @@ public class ClusterTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
     @Override
     public ClusterHealth health() {
 
-        HealthRequest healthRequest = requestConverter.clusterHealthRequest();
-        HealthResponse healthResponse = execute(client -> client.health(healthRequest));
-        return responseConverter.clusterHealth(healthResponse);
+        return observations().observe(OpenSearchOperationName.CLUSTER_HEALTH, null, () -> {
+            final var healthRequest = requestConverter.clusterHealthRequest();
+            final var healthResponse = execute(client -> client.health(healthRequest));
+            return responseConverter.clusterHealth(healthResponse);
+        });
     }
 
 }
