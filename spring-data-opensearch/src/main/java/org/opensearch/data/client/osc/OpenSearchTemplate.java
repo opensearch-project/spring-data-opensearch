@@ -303,12 +303,18 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public List<IndexedObjectInformation> doBulkOperation(List<?> queries, BulkOptions bulkOptions,
-            IndexCoordinates index) {
+    public List<IndexedObjectInformation> doBulkOperation(final List<?> queries, final BulkOptions bulkOptions,
+            final IndexCoordinates index) {
 
-        BulkRequest bulkRequest = requestConverter.documentBulkRequest(queries, bulkOptions, index, refreshPolicy);
-        BulkResponse bulkResponse = execute(client -> client.bulk(bulkRequest));
-        List<IndexedObjectInformation> indexedObjectInformationList = checkForBulkOperationFailure(bulkResponse);
+        final var requests = requestConverter.documentBulkRequests(queries, bulkOptions, getBulkOptions(), index,
+                refreshPolicy);
+        final var items = new ArrayList<BulkResponseItem>();
+        for (final var request : requests) {
+            items.addAll(execute(client -> client.bulk(request)).items());
+        }
+        final var response = BulkResponse.of(builder -> builder.items(items).took(0)
+                .errors(items.stream().anyMatch(item -> item.error() != null)));
+        final var indexedObjectInformationList = checkForBulkOperationFailure(response);
         updateIndexedObjectsWithQueries(queries, indexedObjectInformationList);
         return indexedObjectInformationList;
     }
