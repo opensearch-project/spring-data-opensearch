@@ -132,20 +132,23 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
         return doCreate(getIndexCoordinates(), createSettings(), createMapping());
     }
 
-    protected boolean doCreate(IndexCoordinates indexCoordinates, Map<String, Object> settings,
-            @Nullable Document mapping) {
+    protected boolean doCreate(final IndexCoordinates indexCoordinates, final Map<String, Object> settings,
+            @Nullable final Document mapping) {
 
         Assert.notNull(indexCoordinates, "indexCoordinates must not be null");
         Assert.notNull(settings, "settings must not be null");
 
-        CreateIndexRequest createIndexRequest = requestConverter.indicesCreateRequest(indexCoordinates, settings, mapping);
-        CreateIndexResponse createIndexResponse = execute(client -> client.create(createIndexRequest));
-        return Boolean.TRUE.equals(createIndexResponse.acknowledged());
+        return observations().observe(OpenSearchOperationName.INDEX_CREATE, indexCoordinates, () -> {
+            final var createIndexRequest = requestConverter.indicesCreateRequest(indexCoordinates, settings, mapping);
+            final var createIndexResponse = execute(client -> client.create(createIndexRequest));
+            return Boolean.TRUE.equals(createIndexResponse.acknowledged());
+        });
     }
 
     @Override
     public boolean delete() {
-        return doDelete(getIndexCoordinates());
+        return observations().observe(OpenSearchOperationName.INDEX_DELETE, getIndexCoordinates(),
+                () -> doDelete(getIndexCoordinates()));
     }
 
     private boolean doDelete(IndexCoordinates indexCoordinates) {
@@ -163,7 +166,8 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
 
     @Override
     public boolean exists() {
-        return doExists(getIndexCoordinates());
+        return observations().observe(OpenSearchOperationName.INDEX_EXISTS, getIndexCoordinates(),
+                () -> doExists(getIndexCoordinates()));
     }
 
     private boolean doExists(IndexCoordinates indexCoordinates) {
@@ -178,8 +182,11 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
     @Override
     public void refresh() {
 
-        RefreshRequest refreshRequest = requestConverter.indicesRefreshRequest(getIndexCoordinates());
-        execute(client -> client.refresh(refreshRequest));
+        observations().observe(OpenSearchOperationName.INDEX_REFRESH, getIndexCoordinates(), () -> {
+            final var refreshRequest = requestConverter.indicesRefreshRequest(getIndexCoordinates());
+            execute(client -> client.refresh(refreshRequest));
+            return null;
+        });
     }
 
     @Override
@@ -217,24 +224,28 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
     }
 
     @Override
-    public boolean putMapping(Document mapping) {
+    public boolean putMapping(final Document mapping) {
 
         Assert.notNull(mapping, "mapping must not be null");
 
-        PutMappingRequest putMappingRequest = requestConverter.indicesPutMappingRequest(getIndexCoordinates(), mapping);
-        PutMappingResponse putMappingResponse = execute(client -> client.putMapping(putMappingRequest));
-        return putMappingResponse.acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_PUT_MAPPING, getIndexCoordinates(), () -> {
+            final var putMappingRequest = requestConverter.indicesPutMappingRequest(getIndexCoordinates(), mapping);
+            final var putMappingResponse = execute(client -> client.putMapping(putMappingRequest));
+            return putMappingResponse.acknowledged();
+        });
     }
 
     @Override
     public Map<String, Object> getMapping() {
 
-        IndexCoordinates indexCoordinates = getIndexCoordinates();
-        GetMappingRequest getMappingRequest = requestConverter.indicesGetMappingRequest(indexCoordinates);
-        GetMappingResponse getMappingResponse = execute(client -> client.getMapping(getMappingRequest));
+        return observations().observe(OpenSearchOperationName.INDEX_GET_MAPPING, getIndexCoordinates(), () -> {
+            final var indexCoordinates = getIndexCoordinates();
+            final var getMappingRequest = requestConverter.indicesGetMappingRequest(indexCoordinates);
+            final var getMappingResponse = execute(client -> client.getMapping(getMappingRequest));
 
-        Document mappingResponse = responseConverter.indicesGetMapping(getMappingResponse, indexCoordinates);
-        return mappingResponse;
+            final var mappingResponse = responseConverter.indicesGetMapping(getMappingResponse, indexCoordinates);
+            return mappingResponse;
+        });
     }
 
     @Override
@@ -261,176 +272,210 @@ public class IndicesTemplate extends ChildTemplate<OpenSearchTransport, OpenSear
     }
 
     @Override
-    public Settings getSettings(boolean includeDefaults) {
+    public Settings getSettings(final boolean includeDefaults) {
 
-        GetIndicesSettingsRequest getIndicesSettingsRequest = requestConverter
-                .indicesGetSettingsRequest(getIndexCoordinates(), includeDefaults);
-        GetIndicesSettingsResponse getIndicesSettingsResponse = execute(
-                client -> client.getSettings(getIndicesSettingsRequest));
-        return responseConverter.indicesGetSettings(getIndicesSettingsResponse, getIndexCoordinates().getIndexName());
+        return observations().observe(OpenSearchOperationName.INDEX_GET_SETTINGS, getIndexCoordinates(), () -> {
+            final var getIndicesSettingsRequest = requestConverter
+                    .indicesGetSettingsRequest(getIndexCoordinates(), includeDefaults);
+            final var getIndicesSettingsResponse = execute(
+                    client -> client.getSettings(getIndicesSettingsRequest));
+            return responseConverter.indicesGetSettings(getIndicesSettingsResponse, getIndexCoordinates().getIndexName());
+        });
     }
 
     @Override
-    public boolean alias(AliasActions aliasActions) {
+    public boolean alias(final AliasActions aliasActions) {
 
         Assert.notNull(aliasActions, "aliasActions must not be null");
 
-        UpdateAliasesRequest updateAliasesRequest = requestConverter.indicesUpdateAliasesRequest(aliasActions);
-        UpdateAliasesResponse updateAliasesResponse = execute(client -> client.updateAliases(updateAliasesRequest));
-        return updateAliasesResponse.acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_ALIAS, null, () -> {
+            final var updateAliasesRequest = requestConverter.indicesUpdateAliasesRequest(aliasActions);
+            final var updateAliasesResponse = execute(client -> client.updateAliases(updateAliasesRequest));
+            return updateAliasesResponse.acknowledged();
+        });
     }
 
     @Override
-    public Map<String, Set<AliasData>> getAliases(String... aliasNames) {
+    public Map<String, Set<AliasData>> getAliases(final String... aliasNames) {
 
         Assert.notNull(aliasNames, "aliasNames must not be null");
 
-        GetAliasRequest getAliasRequest = requestConverter.indicesGetAliasRequest(aliasNames, null);
-        var getAliasResponse = execute(client -> client.getAlias(getAliasRequest));
-        return responseConverter.indicesGetAliasData(getAliasResponse);
+        return observations().observe(OpenSearchOperationName.INDEX_GET_ALIASES, null, () -> {
+            final var getAliasRequest = requestConverter.indicesGetAliasRequest(aliasNames, null);
+            final var getAliasResponse = execute(client -> client.getAlias(getAliasRequest));
+            return responseConverter.indicesGetAliasData(getAliasResponse);
+        });
     }
 
     @Override
-    public Map<String, Set<AliasData>> getAliasesForIndex(String... indexNames) {
+    public Map<String, Set<AliasData>> getAliasesForIndex(final String... indexNames) {
 
         Assert.notNull(indexNames, "indexNames must not be null");
 
-        GetAliasRequest getAliasRequest = requestConverter.indicesGetAliasRequest(null, indexNames);
-        var getAliasResponse = execute(client -> client.getAlias(getAliasRequest));
-        return responseConverter.indicesGetAliasData(getAliasResponse);
+        return observations().observe(OpenSearchOperationName.INDEX_GET_ALIASES, indexNames.length == 0 ? null : IndexCoordinates.of(indexNames), () -> {
+            final var getAliasRequest = requestConverter.indicesGetAliasRequest(null, indexNames);
+            final var getAliasResponse = execute(client -> client.getAlias(getAliasRequest));
+            return responseConverter.indicesGetAliasData(getAliasResponse);
+        });
     }
 
     @Override
-    public boolean putTemplate(PutTemplateRequest putTemplateRequest) {
+    public boolean putTemplate(final PutTemplateRequest putTemplateRequest) {
 
         Assert.notNull(putTemplateRequest, "putTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.PutTemplateRequest putTemplateRequestES = requestConverter
-                .indicesPutTemplateRequest(putTemplateRequest);
-        return execute(client -> client.putTemplate(putTemplateRequestES)).acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_PUT_TEMPLATE, null, () -> {
+            final var putTemplateRequestES = requestConverter
+                    .indicesPutTemplateRequest(putTemplateRequest);
+            return execute(client -> client.putTemplate(putTemplateRequestES)).acknowledged();
+        });
     }
 
     @Override
-    public TemplateData getTemplate(GetTemplateRequest getTemplateRequest) {
+    public TemplateData getTemplate(final GetTemplateRequest getTemplateRequest) {
 
         Assert.notNull(getTemplateRequest, "getTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.GetTemplateRequest getTemplateRequestES = requestConverter
-                .indicesGetTemplateRequest(getTemplateRequest);
-        GetTemplateResponse getTemplateResponse = execute(client -> client.getTemplate(getTemplateRequestES));
+        return observations().observe(OpenSearchOperationName.INDEX_GET_TEMPLATE, null, () -> {
+            final var getTemplateRequestES = requestConverter
+                    .indicesGetTemplateRequest(getTemplateRequest);
+            final var getTemplateResponse = execute(client -> client.getTemplate(getTemplateRequestES));
 
-        return responseConverter.indicesGetTemplateData(getTemplateResponse, getTemplateRequest.getTemplateName());
+            return responseConverter.indicesGetTemplateData(getTemplateResponse, getTemplateRequest.getTemplateName());
+        });
     }
 
     @Override
-    public boolean existsTemplate(ExistsTemplateRequest existsTemplateRequest) {
+    public boolean existsTemplate(final ExistsTemplateRequest existsTemplateRequest) {
 
         Assert.notNull(existsTemplateRequest, "existsTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.ExistsTemplateRequest existsTemplateRequestSO = requestConverter
-                .indicesExistsTemplateRequest(existsTemplateRequest);
-        return execute(client -> client.existsTemplate(existsTemplateRequestSO)).value();
+        return observations().observe(OpenSearchOperationName.INDEX_EXISTS_TEMPLATE, null, () -> {
+            final var existsTemplateRequestSO = requestConverter
+                    .indicesExistsTemplateRequest(existsTemplateRequest);
+            return execute(client -> client.existsTemplate(existsTemplateRequestSO)).value();
+        });
     }
 
     @Override
-    public boolean deleteTemplate(DeleteTemplateRequest deleteTemplateRequest) {
+    public boolean deleteTemplate(final DeleteTemplateRequest deleteTemplateRequest) {
 
         Assert.notNull(deleteTemplateRequest, "deleteTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.DeleteTemplateRequest deleteTemplateRequestES = requestConverter
-                .indicesDeleteTemplateRequest(deleteTemplateRequest);
-        return execute(client -> client.deleteTemplate(deleteTemplateRequestES)).acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_DELETE_TEMPLATE, null, () -> {
+            final var deleteTemplateRequestES = requestConverter
+                    .indicesDeleteTemplateRequest(deleteTemplateRequest);
+            return execute(client -> client.deleteTemplate(deleteTemplateRequestES)).acknowledged();
+        });
     }
 
     @Override
-    public boolean putIndexTemplate(PutIndexTemplateRequest putIndexTemplateRequest) {
+    public boolean putIndexTemplate(final PutIndexTemplateRequest putIndexTemplateRequest) {
 
-        org.opensearch.client.opensearch.indices.PutIndexTemplateRequest putIndexTemplateRequestES = requestConverter
-                .indicesPutIndexTemplateRequest(putIndexTemplateRequest);
+        return observations().observe(OpenSearchOperationName.INDEX_PUT_INDEX_TEMPLATE, null, () -> {
+            final var putIndexTemplateRequestES = requestConverter
+                    .indicesPutIndexTemplateRequest(putIndexTemplateRequest);
 
-        return execute(client -> client.putIndexTemplate(putIndexTemplateRequestES)).acknowledged();
+            return execute(client -> client.putIndexTemplate(putIndexTemplateRequestES)).acknowledged();
+        });
     }
 
     @Override
-    public boolean existsIndexTemplate(ExistsIndexTemplateRequest existsIndexTemplateRequest) {
+    public boolean existsIndexTemplate(final ExistsIndexTemplateRequest existsIndexTemplateRequest) {
 
         Assert.notNull(existsIndexTemplateRequest, "existsIndexTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.ExistsIndexTemplateRequest existsTemplateRequestES = requestConverter
-                .indicesExistsIndexTemplateRequest(existsIndexTemplateRequest);
-        return execute(client -> client.existsIndexTemplate(existsTemplateRequestES)).value();
+        return observations().observe(OpenSearchOperationName.INDEX_EXISTS_INDEX_TEMPLATE, null, () -> {
+            final var existsTemplateRequestES = requestConverter
+                    .indicesExistsIndexTemplateRequest(existsIndexTemplateRequest);
+            return execute(client -> client.existsIndexTemplate(existsTemplateRequestES)).value();
+        });
     }
 
     @Override
-    public List<TemplateResponse> getIndexTemplate(GetIndexTemplateRequest getIndexTemplateRequest) {
+    public List<TemplateResponse> getIndexTemplate(final GetIndexTemplateRequest getIndexTemplateRequest) {
 
         Assert.notNull(getIndexTemplateRequest, "getIndexTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.GetIndexTemplateRequest getIndexTemplateRequestES = requestConverter
-                .indicesGetIndexTemplateRequest(getIndexTemplateRequest);
-        var getIndexTemplateResponse = execute(client -> client.getIndexTemplate(getIndexTemplateRequestES));
-        return responseConverter.getIndexTemplates(getIndexTemplateResponse);
+        return observations().observe(OpenSearchOperationName.INDEX_GET_INDEX_TEMPLATE, null, () -> {
+            final var getIndexTemplateRequestES = requestConverter
+                    .indicesGetIndexTemplateRequest(getIndexTemplateRequest);
+            final var getIndexTemplateResponse = execute(client -> client.getIndexTemplate(getIndexTemplateRequestES));
+            return responseConverter.getIndexTemplates(getIndexTemplateResponse);
+        });
     }
 
     @Override
-    public boolean deleteIndexTemplate(DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
+    public boolean deleteIndexTemplate(final DeleteIndexTemplateRequest deleteIndexTemplateRequest) {
 
         Assert.notNull(deleteIndexTemplateRequest, "deleteIndexTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.indices.DeleteIndexTemplateRequest deleteIndexTemplateRequestES = requestConverter
-                .indicesDeleteIndexTemplateRequest(deleteIndexTemplateRequest);
-        return execute(client -> client.deleteIndexTemplate(deleteIndexTemplateRequestES)).acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_DELETE_INDEX_TEMPLATE, null, () -> {
+            final var deleteIndexTemplateRequestES = requestConverter
+                    .indicesDeleteIndexTemplateRequest(deleteIndexTemplateRequest);
+            return execute(client -> client.deleteIndexTemplate(deleteIndexTemplateRequestES)).acknowledged();
+        });
     }
 
     @Override
-    public boolean putComponentTemplate(PutComponentTemplateRequest putComponentTemplateRequest) {
+    public boolean putComponentTemplate(final PutComponentTemplateRequest putComponentTemplateRequest) {
 
         Assert.notNull(putComponentTemplateRequest, "putComponentTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.cluster.PutComponentTemplateRequest putComponentTemplateRequestES = requestConverter
-                .clusterPutComponentTemplateRequest(putComponentTemplateRequest);
-        // the new Elasticsearch client has this call in the cluster index
-        return clusterTemplate.execute(client -> client.putComponentTemplate(putComponentTemplateRequestES)).acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_PUT_COMPONENT_TEMPLATE, null, () -> {
+            final var putComponentTemplateRequestES = requestConverter
+                    .clusterPutComponentTemplateRequest(putComponentTemplateRequest);
+            // the new Elasticsearch client has this call in the cluster index
+            return clusterTemplate.execute(client -> client.putComponentTemplate(putComponentTemplateRequestES)).acknowledged();
+        });
     }
 
     @Override
-    public boolean existsComponentTemplate(ExistsComponentTemplateRequest existsComponentTemplateRequest) {
+    public boolean existsComponentTemplate(final ExistsComponentTemplateRequest existsComponentTemplateRequest) {
 
         Assert.notNull(existsComponentTemplateRequest, "existsComponentTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.cluster.ExistsComponentTemplateRequest existsComponentTemplateRequestES = requestConverter
-                .clusterExistsComponentTemplateRequest(existsComponentTemplateRequest);
-        return clusterTemplate.execute(client -> client.existsComponentTemplate(existsComponentTemplateRequestES)).value();
+        return observations().observe(OpenSearchOperationName.INDEX_EXISTS_COMPONENT_TEMPLATE, null, () -> {
+            final var existsComponentTemplateRequestES = requestConverter
+                    .clusterExistsComponentTemplateRequest(existsComponentTemplateRequest);
+            return clusterTemplate.execute(client -> client.existsComponentTemplate(existsComponentTemplateRequestES)).value();
+        });
     }
 
     @Override
-    public List<TemplateResponse> getComponentTemplate(GetComponentTemplateRequest getComponentTemplateRequest) {
+    public List<TemplateResponse> getComponentTemplate(final GetComponentTemplateRequest getComponentTemplateRequest) {
 
-        org.opensearch.client.opensearch.cluster.GetComponentTemplateRequest getComponentTemplateRequestES = requestConverter
-                .clusterGetComponentTemplateRequest(getComponentTemplateRequest);
-        var response = clusterTemplate.execute(client -> client.getComponentTemplate(getComponentTemplateRequestES));
-        return responseConverter.clusterGetComponentTemplates(response);
+        return observations().observe(OpenSearchOperationName.INDEX_GET_COMPONENT_TEMPLATE, null, () -> {
+            final var getComponentTemplateRequestES = requestConverter
+                    .clusterGetComponentTemplateRequest(getComponentTemplateRequest);
+            final var response = clusterTemplate.execute(client -> client.getComponentTemplate(getComponentTemplateRequestES));
+            return responseConverter.clusterGetComponentTemplates(response);
+        });
     }
 
     @Override
-    public boolean deleteComponentTemplate(DeleteComponentTemplateRequest deleteComponentTemplateRequest) {
+    public boolean deleteComponentTemplate(final DeleteComponentTemplateRequest deleteComponentTemplateRequest) {
 
         Assert.notNull(deleteComponentTemplateRequest, "deleteComponentTemplateRequest must not be null");
 
-        org.opensearch.client.opensearch.cluster.DeleteComponentTemplateRequest deleteComponentTemplateRequestES = requestConverter
-                .clusterDeleteComponentTemplateRequest(deleteComponentTemplateRequest);
-        return clusterTemplate.execute(client -> client.deleteComponentTemplate(deleteComponentTemplateRequestES))
-                .acknowledged();
+        return observations().observe(OpenSearchOperationName.INDEX_DELETE_COMPONENT_TEMPLATE, null, () -> {
+            final var deleteComponentTemplateRequestES = requestConverter
+                    .clusterDeleteComponentTemplateRequest(deleteComponentTemplateRequest);
+            return clusterTemplate.execute(client -> client.deleteComponentTemplate(deleteComponentTemplateRequestES))
+                    .acknowledged();
+        });
     }
 
     @Override
-    public List<IndexInformation> getInformation(IndexCoordinates indexCoordinates) {
+    public List<IndexInformation> getInformation(final IndexCoordinates indexCoordinates) {
 
         Assert.notNull(indexCoordinates, "indexCoordinates must not be null");
 
-        GetIndexRequest getIndexRequest = requestConverter.indicesGetIndexRequest(indexCoordinates);
-        GetIndexResponse getIndexResponse = execute(client -> client.get(getIndexRequest));
-        return responseConverter.indicesGetIndexInformations(getIndexResponse);
+        return observations().observe(OpenSearchOperationName.INDEX_GET_INFORMATION, indexCoordinates, () -> {
+            final var getIndexRequest = requestConverter.indicesGetIndexRequest(indexCoordinates);
+            final var getIndexResponse = execute(client -> client.get(getIndexRequest));
+            return responseConverter.indicesGetIndexInformations(getIndexResponse);
+        });
     }
 
     // region Helper functions

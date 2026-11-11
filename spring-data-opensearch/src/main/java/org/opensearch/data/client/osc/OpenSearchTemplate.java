@@ -17,6 +17,7 @@ package org.opensearch.data.client.osc;
 
 import static org.opensearch.data.client.osc.TypeUtils.*;
 
+import io.micrometer.observation.ObservationRegistry;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,13 +33,14 @@ import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.Time;
 import org.opensearch.client.opensearch.core.*;
-import org.opensearch.client.opensearch.core.DeletePitRequest;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.opensearch.core.msearch.MultiSearchResponseItem;
 import org.opensearch.client.opensearch.core.search.SearchResult;
 import org.opensearch.client.transport.Version;
 import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
 import org.opensearch.data.core.OpenSearchOperations;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.client.UnsupportedBackendOperation;
 import org.springframework.data.elasticsearch.core.AbstractElasticsearchTemplate;
@@ -85,6 +87,8 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
     private static final Log LOGGER = LogFactory.getLog(OpenSearchTemplate.class);
 
+    @Nullable private OpenSearchObservationConvention observationConvention;
+
     private final OpenSearchClient client;
     private final RequestConverter requestConverter;
     private final ResponseConverter responseConverter;
@@ -122,17 +126,53 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     protected AbstractElasticsearchTemplate doCopy() {
         return new OpenSearchTemplate(client, elasticsearchConverter, mappingParametersCustomizer);
     }
+
+    @Override
+    protected void customizeCopy(final AbstractElasticsearchTemplate copy) {
+        if (copy instanceof OpenSearchTemplate template) {
+            template.observationConvention = observationConvention;
+        }
+    }
+
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+        super.setApplicationContext(applicationContext);
+        if (observationRegistry == ObservationRegistry.NOOP) {
+            applicationContext.getBeanProvider(ObservationRegistry.class).ifAvailable(this::setObservationRegistry);
+        }
+        if (observationConvention == null) {
+            applicationContext.getBeanProvider(OpenSearchObservationConvention.class).ifAvailable(this::setObservationConvention);
+        }
+    }
+
+    /**
+     * Set a custom convention. A {@literal null} value restores the default convention.
+     * Template copies retain this configuration.
+     *
+     * @param observationConvention the custom convention, or {@literal null}
+     */
+    public void setObservationConvention(@Nullable final OpenSearchObservationConvention observationConvention) {
+        this.observationConvention = observationConvention;
+    }
+
+    private OpenSearchObservationSupport observations() {
+        return new OpenSearchObservationSupport(observationRegistry, observationConvention);
+    }
     // endregion
 
     // region child templates
     @Override
-    public IndexOperations indexOps(Class<?> clazz) {
-        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, clazz);
+    public IndexOperations indexOps(final Class<?> clazz) {
+        final var template = new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, clazz);
+        template.setObservationSupportFactory(this::observations);
+        return template;
     }
 
     @Override
-    public IndexOperations indexOps(IndexCoordinates index) {
-        return new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, index);
+    public IndexOperations indexOps(final IndexCoordinates index) {
+        final var template = new IndicesTemplate(client.indices(), getClusterTemplate(), elasticsearchConverter, mappingParametersCustomizer, index);
+        template.setObservationSupportFactory(this::observations);
+        return template;
     }
 
     @Override
@@ -141,48 +181,85 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     private ClusterTemplate getClusterTemplate() {
-        return new ClusterTemplate(client.cluster(), elasticsearchConverter);
+        final var template = new ClusterTemplate(client.cluster(), elasticsearchConverter);
+        template.setObservationSupportFactory(this::observations);
+        return template;
     }
     // endregion
 
     // region document operations
     @Override
-    @Nullable
-    public <T> T get(String id, Class<T> clazz, IndexCoordinates index) {
-
-        GetRequest getRequest = requestConverter.documentGetRequest(elasticsearchConverter.convertId(id),
-                routingResolver.getRouting(), index);
-        GetResponse<EntityAsMap> getResponse = execute(client -> client.get(getRequest, EntityAsMap.class));
-
-        ReadDocumentCallback<T> callback = new ReadDocumentCallback<>(elasticsearchConverter, clazz, index);
-        return callback.doWith(DocumentAdapters.from(getResponse));
+    public <T> T save(final T entity, final IndexCoordinates index) {
+        return observations().observe(OpenSearchOperationName.SAVE, index, () -> super.save(entity, index));
     }
 
     @Override
-    public <T> List<MultiGetItem<T>> multiGet(Query query, Class<T> clazz, IndexCoordinates index) {
+    public String index(final IndexQuery query, final IndexCoordinates index) {
+        return observations().observe(OpenSearchOperationName.INDEX, index, () -> super.index(query, index));
+    }
+
+    @Override
+    public boolean exists(final String id, final IndexCoordinates index) {
+        return observations().observe(OpenSearchOperationName.EXISTS, index, () -> super.exists(id, index));
+    }
+
+    @Override
+    public String delete(final String id, final IndexCoordinates index) {
+        return observations().observe(OpenSearchOperationName.DELETE, index, () -> super.delete(id, index));
+    }
+
+    @Override
+    public List<IndexedObjectInformation> bulkOperation(final List<?> queries, final BulkOptions bulkOptions,
+            final IndexCoordinates index) {
+        Assert.notNull(queries, "queries must not be null");
+        return observations().observe(OpenSearchOperationName.BULK, index, queries.size(),
+                () -> super.bulkOperation(queries, bulkOptions, index));
+    }
+
+    @Override
+    @Nullable
+    public <T> T get(final String id, final Class<T> clazz, final IndexCoordinates index) {
+
+        return observations().observe(OpenSearchOperationName.GET, index, () -> {
+            final var getRequest = requestConverter.documentGetRequest(elasticsearchConverter.convertId(id),
+                    routingResolver.getRouting(), index);
+            final var getResponse = execute(client -> client.get(getRequest, EntityAsMap.class));
+
+            final var callback = new ReadDocumentCallback<>(elasticsearchConverter, clazz, index);
+            return callback.doWith(DocumentAdapters.from(getResponse));
+        });
+    }
+
+    @Override
+    public <T> List<MultiGetItem<T>> multiGet(final Query query, final Class<T> clazz, final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(clazz, "clazz must not be null");
 
-        MgetRequest request = requestConverter.documentMgetRequest(query, clazz, index);
-        MgetResponse<EntityAsMap> result = execute(client -> client.mget(request, EntityAsMap.class));
+        return observations().observe(OpenSearchOperationName.MULTI_GET, index, () -> {
+            final var request = requestConverter.documentMgetRequest(query, clazz, index);
+            final var result = execute(client -> client.mget(request, EntityAsMap.class));
 
-        ReadDocumentCallback<T> callback = new ReadDocumentCallback<>(elasticsearchConverter, clazz, index);
+            final var callback = new ReadDocumentCallback<>(elasticsearchConverter, clazz, index);
 
-        return DocumentAdapters.from(result).stream() //
-                .map(multiGetItem -> MultiGetItem.of( //
-                        multiGetItem.isFailed() ? null : callback.doWith(multiGetItem.getItem()), multiGetItem.getFailure())) //
-                .collect(Collectors.toList());
+            return DocumentAdapters.from(result).stream() //
+                    .map(multiGetItem -> MultiGetItem.of( //
+                            multiGetItem.isFailed() ? null : callback.doWith(multiGetItem.getItem()), multiGetItem.getFailure())) //
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
-    public void bulkUpdate(List<UpdateQuery> queries, BulkOptions bulkOptions, IndexCoordinates index) {
+    public void bulkUpdate(final List<UpdateQuery> queries, final BulkOptions bulkOptions, final IndexCoordinates index) {
 
         Assert.notNull(queries, "queries must not be null");
         Assert.notNull(bulkOptions, "bulkOptions must not be null");
         Assert.notNull(index, "index must not be null");
 
-        doBulkOperation(queries, bulkOptions, index);
+        observations().observe(OpenSearchOperationName.BULK, index, queries.size(), () -> {
+            doBulkOperation(queries, bulkOptions, index);
+            return null;
+        });
     }
 
     @Override
@@ -191,38 +268,44 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public ByQueryResponse delete(DeleteQuery query, Class<?> clazz, IndexCoordinates index) {
+    public ByQueryResponse delete(final DeleteQuery query, final Class<?> clazz, final IndexCoordinates index) {
         Assert.notNull(query, "query must not be null");
 
-        DeleteByQueryRequest request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
-                clazz, index, getRefreshPolicy());
+        return observations().observe(OpenSearchOperationName.DELETE_BY_QUERY, index, () -> {
+            final var request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
+                    clazz, index, getRefreshPolicy());
 
-        DeleteByQueryResponse response = execute(client -> client.deleteByQuery(request));
+            final var response = execute(client -> client.deleteByQuery(request));
 
-        return responseConverter.byQueryResponse(response);
+            return responseConverter.byQueryResponse(response);
+        });
     }
 
     @Override
-    public UpdateResponse update(UpdateQuery updateQuery, IndexCoordinates index) {
+    public UpdateResponse update(final UpdateQuery updateQuery, final IndexCoordinates index) {
 
-        UpdateRequest<Document, ?> request = requestConverter.documentUpdateRequest(updateQuery, index, getRefreshPolicy(),
-                routingResolver.getRouting());
-        org.opensearch.client.opensearch.core.UpdateResponse<Document> response = execute(
-                client -> client.update(request, Document.class));
-        return UpdateResponse.of(result(response.result()));
+        return observations().observe(OpenSearchOperationName.UPDATE, index, () -> {
+            final var request = requestConverter.documentUpdateRequest(updateQuery, index, getRefreshPolicy(),
+                    routingResolver.getRouting());
+            final var response = execute(
+                    client -> client.update(request, Document.class));
+            return UpdateResponse.of(result(response.result()));
+        });
     }
 
     @Override
-    public ByQueryResponse updateByQuery(UpdateQuery updateQuery, IndexCoordinates index) {
+    public ByQueryResponse updateByQuery(final UpdateQuery updateQuery, final IndexCoordinates index) {
 
         Assert.notNull(updateQuery, "updateQuery must not be null");
         Assert.notNull(index, "index must not be null");
 
-        UpdateByQueryRequest request = requestConverter.documentUpdateByQueryRequest(updateQuery, index,
-                getRefreshPolicy());
+        return observations().observe(OpenSearchOperationName.UPDATE_BY_QUERY, index, () -> {
+            final var request = requestConverter.documentUpdateByQueryRequest(updateQuery, index,
+                    getRefreshPolicy());
 
-        UpdateByQueryResponse byQueryResponse = execute(client -> client.updateByQuery(request));
-        return responseConverter.byQueryResponse(byQueryResponse);
+            final var byQueryResponse = execute(client -> client.updateByQuery(request));
+            return responseConverter.byQueryResponse(byQueryResponse);
+        });
     }
 
     @Override
@@ -276,30 +359,36 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public ReindexResponse reindex(ReindexRequest reindexRequest) {
+    public ReindexResponse reindex(final ReindexRequest reindexRequest) {
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        org.opensearch.client.opensearch.core.ReindexRequest reindexRequestES = requestConverter.reindex(reindexRequest,
-                true);
-        org.opensearch.client.opensearch.core.ReindexResponse reindexResponse = execute(
-                client -> client.reindex(reindexRequestES));
-        return responseConverter.reindexResponse(reindexResponse);
+        return observations().observe(OpenSearchOperationName.REINDEX, reindexRequest.getSource().getIndexes(), () -> {
+            final var reindexRequestES = requestConverter.reindex(reindexRequest,
+                    true);
+            final var reindexResponse = execute(
+                    client -> client.reindex(reindexRequestES));
+            return responseConverter.reindexResponse(reindexResponse);
+        });
     }
 
     @Override
-    public String submitReindex(ReindexRequest reindexRequest) {
+    public String submitReindex(final ReindexRequest reindexRequest) {
 
-        org.opensearch.client.opensearch.core.ReindexRequest reindexRequestES = requestConverter.reindex(reindexRequest,
-                false);
-        org.opensearch.client.opensearch.core.ReindexResponse reindexResponse = execute(
-                client -> client.reindex(reindexRequestES));
+        Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        if (reindexResponse.task() == null) {
-            throw new UnsupportedBackendOperation("OpenSearchClient did not return a task id on submit request");
-        }
+        return observations().observe(OpenSearchOperationName.SUBMIT_REINDEX, reindexRequest.getSource().getIndexes(), () -> {
+            final var reindexRequestES = requestConverter.reindex(reindexRequest,
+                    false);
+            final var reindexResponse = execute(
+                    client -> client.reindex(reindexRequestES));
 
-        return reindexResponse.task();
+            if (reindexResponse.task() == null) {
+                throw new UnsupportedBackendOperation("OpenSearchClient did not return a task id on submit request");
+            }
+
+            return reindexResponse.task();
+        });
     }
 
     @Override
@@ -317,7 +406,8 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
     @Override
     public String getClusterVersion() {
-        return execute(client -> client.info().version().number());
+        return observations().observe(OpenSearchOperationName.CLUSTER_INFO, null,
+                () -> execute(client -> client.info().version().number()));
     }
 
     @Override
@@ -332,31 +422,35 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
     // region search operations
     @Override
-    public long count(Query query, @Nullable Class<?> clazz, IndexCoordinates index) {
+    public long count(final Query query, @Nullable final Class<?> clazz, final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(index, "index must not be null");
 
-        SearchRequest searchRequest = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index,
-                true);
+        return observations().observe(OpenSearchOperationName.COUNT, index, () -> {
+            final var searchRequest = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index,
+                    true);
 
-        SearchResponse<EntityAsMap> searchResponse = execute(client -> client.search(searchRequest, EntityAsMap.class));
+            final var searchResponse = execute(client -> client.search(searchRequest, EntityAsMap.class));
 
-        return searchResponse.hits().total().value();
+            return searchResponse.hits().total().value();
+        });
     }
 
     @Override
-    public <T> SearchHits<T> search(Query query, Class<T> clazz, IndexCoordinates index) {
+    public <T> SearchHits<T> search(final Query query, final Class<T> clazz, final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(clazz, "clazz must not be null");
         Assert.notNull(index, "index must not be null");
 
-        if (query instanceof SearchTemplateQuery searchTemplateQuery) {
-            return doSearch(searchTemplateQuery, clazz, index);
-        } else {
-            return doSearch(query, clazz, index);
-        }
+        return observations().observe(OpenSearchOperationName.SEARCH, index, () -> {
+            if (query instanceof SearchTemplateQuery searchTemplateQuery) {
+                return doSearch(searchTemplateQuery, clazz, index);
+            } else {
+                return doSearch(query, clazz, index);
+            }
+        });
     }
 
     protected <T> SearchHits<T> doSearch(Query query, Class<T> clazz, IndexCoordinates index) {
@@ -398,30 +492,34 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public <T> SearchScrollHits<T> searchScrollStart(long scrollTimeInMillis, Query query, Class<T> clazz,
-            IndexCoordinates index) {
+    public <T> SearchScrollHits<T> searchScrollStart(final long scrollTimeInMillis, final Query query, final Class<T> clazz,
+            final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(query.getPageable(), "pageable of query must not be null.");
 
-        SearchRequest request = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index, false,
-                scrollTimeInMillis);
-        SearchResponse<EntityAsMap> response = execute(client -> client.search(request, EntityAsMap.class));
+        return observations().observe(OpenSearchOperationName.SCROLL_START, index, () -> {
+            final var request = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index, false,
+                    scrollTimeInMillis);
+            final var response = execute(client -> client.search(request, EntityAsMap.class));
 
-        return getSearchScrollHits(clazz, index, response);
+            return getSearchScrollHits(clazz, index, response);
+        });
     }
 
     @Override
-    public <T> SearchScrollHits<T> searchScrollContinue(String scrollId, long scrollTimeInMillis, Class<T> clazz,
-            IndexCoordinates index) {
+    public <T> SearchScrollHits<T> searchScrollContinue(final String scrollId, final long scrollTimeInMillis, final Class<T> clazz,
+            final IndexCoordinates index) {
 
         Assert.notNull(scrollId, "scrollId must not be null");
 
-        ScrollRequest request = ScrollRequest
-                .of(sr -> sr.scrollId(scrollId).scroll(Time.of(t -> t.time(scrollTimeInMillis + "ms"))));
-        ScrollResponse<EntityAsMap> response = execute(client -> client.scroll(request, EntityAsMap.class));
+        return observations().observe(OpenSearchOperationName.SCROLL_CONTINUE, index, () -> {
+            final var request = ScrollRequest
+                    .of(sr -> sr.scrollId(scrollId).scroll(Time.of(t -> t.time(scrollTimeInMillis + "ms"))));
+            final var response = execute(client -> client.scroll(request, EntityAsMap.class));
 
-        return getSearchScrollHits(clazz, index, response);
+            return getSearchScrollHits(clazz, index, response);
+        });
     }
 
     private <T> SearchScrollHits<T> getSearchScrollHits(Class<T> clazz, IndexCoordinates index,
@@ -435,14 +533,17 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public void searchScrollClear(List<String> scrollIds) {
+    public void searchScrollClear(final List<String> scrollIds) {
 
         Assert.notNull(scrollIds, "scrollIds must not be null");
 
-        if (!scrollIds.isEmpty()) {
-            ClearScrollRequest request = ClearScrollRequest.of(csr -> csr.scrollId(scrollIds));
-            execute(client -> client.clearScroll(request));
-        }
+        observations().observe(OpenSearchOperationName.SCROLL_CLEAR, null, () -> {
+            if (!scrollIds.isEmpty()) {
+                final var request = ClearScrollRequest.of(csr -> csr.scrollId(scrollIds));
+                execute(client -> client.clearScroll(request));
+            }
+            return null;
+        });
     }
 
     @Override
@@ -481,8 +582,8 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public List<SearchHits<?>> multiSearch(List<? extends Query> queries, List<Class<?>> classes,
-            List<IndexCoordinates> indexes) {
+    public List<SearchHits<?>> multiSearch(final List<? extends Query> queries, final List<Class<?>> classes,
+            final List<IndexCoordinates> indexes) {
 
         Assert.notNull(queries, "queries must not be null");
         Assert.notNull(classes, "classes must not be null");
@@ -490,23 +591,27 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
         Assert.isTrue(queries.size() == classes.size() && queries.size() == indexes.size(),
                 "queries, classes and indexes must have the same size");
 
-        List<MultiSearchQueryParameter> multiSearchQueryParameters = new ArrayList<>(queries.size());
-        Iterator<Class<?>> it = classes.iterator();
-        Iterator<IndexCoordinates> indexesIt = indexes.iterator();
+        final var distinctIndexes = new java.util.HashSet<>(indexes);
+        final var observedIndex = distinctIndexes.size() == 1 ? distinctIndexes.iterator().next() : null;
+        return observations().observe(OpenSearchOperationName.MULTI_SEARCH, observedIndex, () -> {
+            final var multiSearchQueryParameters = new ArrayList<MultiSearchQueryParameter>(queries.size());
+            final var it = classes.iterator();
+            final var indexesIt = indexes.iterator();
 
-        Assert.isTrue(!queries.isEmpty(), "queries should have at least 1 query");
-        boolean isSearchTemplateQuery = queries.get(0) instanceof SearchTemplateQuery;
+            Assert.isTrue(!queries.isEmpty(), "queries should have at least 1 query");
+            final var isSearchTemplateQuery = queries.get(0) instanceof SearchTemplateQuery;
 
-        for (Query query : queries) {
-            Assert.isTrue((query instanceof SearchTemplateQuery) == isSearchTemplateQuery,
-                    "SearchTemplateQuery can't be mixed with other types of query in multiple search");
+            for (final var query : queries) {
+                Assert.isTrue((query instanceof SearchTemplateQuery) == isSearchTemplateQuery,
+                        "SearchTemplateQuery can't be mixed with other types of query in multiple search");
 
-            Class<?> clazz = it.next();
-            IndexCoordinates index = indexesIt.next();
-            multiSearchQueryParameters.add(new MultiSearchQueryParameter(query, clazz, index));
-        }
+                final var clazz = it.next();
+                final var index = indexesIt.next();
+                multiSearchQueryParameters.add(new MultiSearchQueryParameter(query, clazz, index));
+            }
 
-        return multiSearch(multiSearchQueryParameters, isSearchTemplateQuery);
+            return multiSearch(multiSearchQueryParameters, isSearchTemplateQuery);
+        });
     }
 
     private List<SearchHits<?>> multiSearch(List<MultiSearchQueryParameter> multiSearchQueryParameters,
@@ -608,32 +713,38 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     }
 
     @Override
-    public String openPointInTime(IndexCoordinates index, Duration keepAlive, Boolean ignoreUnavailable) {
+    public String openPointInTime(final IndexCoordinates index, final Duration keepAlive, final Boolean ignoreUnavailable) {
 
         Assert.notNull(index, "index must not be null");
         Assert.notNull(keepAlive, "keepAlive must not be null");
         Assert.notNull(ignoreUnavailable, "ignoreUnavailable must not be null");
 
-        var request = requestConverter.searchOpenPointInTimeRequest(index, keepAlive, ignoreUnavailable);
-        return execute(client -> client.createPit(request)).pitId();
+        return observations().observe(OpenSearchOperationName.OPEN_POINT_IN_TIME, index, () -> {
+            final var request = requestConverter.searchOpenPointInTimeRequest(index, keepAlive, ignoreUnavailable);
+            return execute(client -> client.createPit(request)).pitId();
+        });
     }
 
     @Override
-    public Boolean closePointInTime(String pit) {
+    public Boolean closePointInTime(final String pit) {
 
         Assert.notNull(pit, "pit must not be null");
 
-        DeletePitRequest request = requestConverter.searchClosePointInTime(pit);
-        var response = execute(client -> client.deletePit(request));
-        return !response.pits().isEmpty();
+        return observations().observe(OpenSearchOperationName.CLOSE_POINT_IN_TIME, null, () -> {
+            final var request = requestConverter.searchClosePointInTime(pit);
+            final var response = execute(client -> client.deletePit(request));
+            return !response.pits().isEmpty();
+        });
     }
 
     @Override
     public List<PitInfo> listPointInTime() {
-        return execute(client -> client.getAllPits()).pits()
-            .stream()
-            .map(pit -> new PitInfo(pit.pitId(), pit.creationTime(), pit.keepAlive() == null ? null : Duration.ofMillis(pit.keepAlive())))
-            .toList();
+        return observations().observe(OpenSearchOperationName.LIST_POINT_IN_TIME, null, () -> {
+            return execute(client -> client.getAllPits()).pits()
+                .stream()
+                .map(pit -> new PitInfo(pit.pitId(), pit.creationTime(), pit.keepAlive() == null ? null : Duration.ofMillis(pit.keepAlive())))
+                .toList();
+        });
     }
 
     @Override
@@ -645,30 +756,36 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
 
     // region script methods
     @Override
-    public boolean putScript(Script script) {
+    public boolean putScript(final Script script) {
 
         Assert.notNull(script, "script must not be null");
 
-        var request = requestConverter.scriptPut(script);
-        return execute(client -> client.putScript(request)).acknowledged();
+        return observations().observe(OpenSearchOperationName.PUT_SCRIPT, null, () -> {
+            final var request = requestConverter.scriptPut(script);
+            return execute(client -> client.putScript(request)).acknowledged();
+        });
     }
 
     @Nullable
     @Override
-    public Script getScript(String name) {
+    public Script getScript(final String name) {
 
         Assert.notNull(name, "name must not be null");
 
-        var request = requestConverter.scriptGet(name);
-        return responseConverter.scriptResponse(execute(client -> client.getScript(request)));
+        return observations().observe(OpenSearchOperationName.GET_SCRIPT, null, () -> {
+            final var request = requestConverter.scriptGet(name);
+            return responseConverter.scriptResponse(execute(client -> client.getScript(request)));
+        });
     }
 
-    public boolean deleteScript(String name) {
+    public boolean deleteScript(final String name) {
 
         Assert.notNull(name, "name must not be null");
 
-        DeleteScriptRequest request = requestConverter.scriptDelete(name);
-        return execute(client -> client.deleteScript(request)).acknowledged();
+        return observations().observe(OpenSearchOperationName.DELETE_SCRIPT, null, () -> {
+            final var request = requestConverter.scriptDelete(name);
+            return execute(client -> client.deleteScript(request)).acknowledged();
+        });
     }
     // endregion
 

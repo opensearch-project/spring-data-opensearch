@@ -9,8 +9,6 @@
 
 package org.opensearch.data.client.osc;
 
-import org.opensearch.client.opensearch.cluster.HealthRequest;
-import org.opensearch.client.opensearch.cluster.HealthResponse;
 import org.opensearch.client.transport.OpenSearchTransport;
 import org.springframework.data.elasticsearch.core.cluster.ClusterHealth;
 import org.springframework.data.elasticsearch.core.cluster.ReactiveClusterOperations;
@@ -32,9 +30,11 @@ public class ReactiveClusterTemplate
     @Override
     public Mono<ClusterHealth> health() {
 
-        HealthRequest healthRequest = requestConverter.clusterHealthRequest();
-        Mono<HealthResponse> healthResponse = Mono.from(execute(client -> client.health(healthRequest)));
-        return healthResponse.map(responseConverter::clusterHealth);
+        return observations().mono(OpenSearchOperationName.CLUSTER_HEALTH, null, () -> {
+            final var healthRequest = requestConverter.clusterHealthRequest();
+            final var healthResponse = Mono.from(execute(client -> client.health(healthRequest)));
+            return healthResponse.map(responseConverter::clusterHealth);
+        });
     }
 
 }
