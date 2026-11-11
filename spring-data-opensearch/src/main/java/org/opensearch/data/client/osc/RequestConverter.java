@@ -665,7 +665,7 @@ class RequestConverter {
                     .id(id) //
                     .document(elasticsearchConverter.mapObject(queryObject));
         } else if (query.getSource() != null) {
-            builder.document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
+            builder.id(query.getId()).document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
         } else {
             throw new InvalidDataAccessApiUsageException(
                     "object or source is null, failed to index the document [id: " + query.getId() + ']');
@@ -707,7 +707,7 @@ class RequestConverter {
                     .id(id) //
                     .document(elasticsearchConverter.mapObject(queryObject));
         } else if (query.getSource() != null) {
-            builder.document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
+            builder.id(query.getId()).document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
         } else {
             throw new InvalidDataAccessApiUsageException(
                     "object or source is null, failed to index the document [id: " + query.getId() + ']');
@@ -795,10 +795,31 @@ class RequestConverter {
         });
     }
 
-    public BulkRequest documentBulkRequest(List<?> queries, BulkOptions bulkOptions, IndexCoordinates indexCoordinates,
-            @Nullable RefreshPolicy refreshPolicy) {
+    public BulkRequest documentBulkRequest(final List<?> queries, final BulkOptions bulkOptions,
+            final IndexCoordinates indexCoordinates, @Nullable final RefreshPolicy refreshPolicy) {
 
-        BulkRequest.Builder builder = new BulkRequest.Builder();
+        final var builder = bulkRequestBuilder(bulkOptions, refreshPolicy);
+        final var operations = queries.stream().map(query -> bulkOperation(query, indexCoordinates)).toList();
+        return builder.operations(operations).build();
+    }
+
+    BulkOperation bulkOperation(final Object query, final IndexCoordinates indexCoordinates) {
+        final var builder = new BulkOperation.Builder();
+        if (query instanceof IndexQuery indexQuery) {
+            if (indexQuery.getOpType() == IndexQuery.OpType.CREATE) {
+                builder.create(bulkCreateOperation(indexQuery, indexCoordinates, null));
+            } else {
+                builder.index(bulkIndexOperation(indexQuery, indexCoordinates, null));
+            }
+        } else if (query instanceof UpdateQuery updateQuery) {
+            builder.update(bulkUpdateOperation(updateQuery, indexCoordinates, null));
+        }
+        return builder.build();
+    }
+
+    BulkRequest.Builder bulkRequestBuilder(final BulkOptions bulkOptions,
+            @Nullable final RefreshPolicy refreshPolicy) {
+        final var builder = new BulkRequest.Builder();
 
         if (bulkOptions.getTimeout() != null) {
             builder.timeout(tb -> tb.time(Long.valueOf(bulkOptions.getTimeout().toMillis()).toString() + "ms"));
@@ -819,24 +840,7 @@ class RequestConverter {
 
         getRouting(bulkOptions.getRoutingId()).ifPresent(builder::routing);
 
-        List<BulkOperation> operations = queries.stream().map(query -> {
-            BulkOperation.Builder ob = new BulkOperation.Builder();
-            if (query instanceof IndexQuery indexQuery) {
-
-                if (indexQuery.getOpType() == IndexQuery.OpType.CREATE) {
-                    ob.create(bulkCreateOperation(indexQuery, indexCoordinates, refreshPolicy));
-                } else {
-                    ob.index(bulkIndexOperation(indexQuery, indexCoordinates, refreshPolicy));
-                }
-            } else if (query instanceof UpdateQuery updateQuery) {
-                ob.update(bulkUpdateOperation(updateQuery, indexCoordinates, refreshPolicy));
-            }
-            return ob.build();
-        }).collect(Collectors.toList());
-
-        builder.operations(operations);
-
-        return builder.build();
+        return builder;
     }
 
     public GetRequest documentGetRequest(String id, @Nullable String routing, IndexCoordinates indexCoordinates) {
