@@ -843,6 +843,19 @@ class RequestConverter {
         return builder;
     }
 
+    BulkOperation bulkDeleteOperation(final String id, @Nullable final String routing,
+            final IndexCoordinates indexCoordinates) {
+
+        Assert.notNull(id, "id must not be null");
+        Assert.notNull(indexCoordinates, "indexCoordinates must not be null");
+
+        return BulkOperation.of(operation -> operation.delete(delete -> {
+            delete.index(indexCoordinates.getIndexName()).id(id);
+            getRouting(routing).ifPresent(delete::routing);
+            return delete;
+        }));
+    }
+
     public GetRequest documentGetRequest(String id, @Nullable String routing, IndexCoordinates indexCoordinates) {
 
         Assert.notNull(id, "id must not be null");
