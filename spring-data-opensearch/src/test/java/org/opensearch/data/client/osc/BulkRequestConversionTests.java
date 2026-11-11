@@ -68,4 +68,15 @@ class BulkRequestConversionTests {
         assertThat(request.operations().get(2).update().retryOnConflict()).isEqualTo(3);
         assertThat(request.operations().get(2).update().routing()).isEqualTo("update-route");
     }
+
+    @Test
+    void shouldPreserveExplicitIdsWhenIndexingAndCreatingFromJsonSource() {
+        for (final var opType : IndexQuery.OpType.values()) {
+            final var query = new IndexQueryBuilder().withId("explicit-id").withSource("{\"message\":\"test\"}")
+                    .withOpType(opType).build();
+            final var operation = converter.bulkOperation(query, index);
+            assertThat(operation.isCreate() ? operation.create().id() : operation.index().id())
+                    .isEqualTo("explicit-id");
+        }
+    }
 }

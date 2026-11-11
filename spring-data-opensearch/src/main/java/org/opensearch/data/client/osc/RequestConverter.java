@@ -665,7 +665,7 @@ class RequestConverter {
                     .id(id) //
                     .document(elasticsearchConverter.mapObject(queryObject));
         } else if (query.getSource() != null) {
-            builder.document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
+            builder.id(query.getId()).document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
         } else {
             throw new InvalidDataAccessApiUsageException(
                     "object or source is null, failed to index the document [id: " + query.getId() + ']');
@@ -707,7 +707,7 @@ class RequestConverter {
                     .id(id) //
                     .document(elasticsearchConverter.mapObject(queryObject));
         } else if (query.getSource() != null) {
-            builder.document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
+            builder.id(query.getId()).document(new DefaultStringObjectMap<>().fromJson(query.getSource()));
         } else {
             throw new InvalidDataAccessApiUsageException(
                     "object or source is null, failed to index the document [id: " + query.getId() + ']');
