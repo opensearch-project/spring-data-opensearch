@@ -194,6 +194,37 @@ public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
 }
 ```
 
+## Size-limited bulk requests
+
+With `opensearch-java`, bulk index and update calls can split their operations into several requests.
+Set a maximum operation count, a maximum serialized size in bytes, or both:
+
+```java
+final var options = BulkOptions.builder()
+    .withMaxOperations(1000)
+    .withMaxSize(5 * 1024 * 1024L)
+    .build();
+
+operations.bulkIndex(queries, options, index);
+```
+
+Both limits are unset by default.
+Requests preserve the operation order and run one after another.
+The byte limit includes each operation's metadata and line separators.
+An operation that exceeds the byte limit on its own goes into a separate request.
+Only the last request applies the refresh policy.
+
+Set template defaults with `OpenSearchTemplate.setBulkOptions(options)` or `ReactiveOpenSearchTemplate.setBulkOptions(options)`.
+In configuration subclasses, override `bulkOptions()` instead.
+Each limit from the template applies when the call does not set that limit.
+These defaults also apply to `save(Iterable)`, repository `saveAll`, and reactive saves.
+Reactive saves that already buffer by count can split each buffer further.
+
+Item failures from all requests produce one `BulkFailureException` after the last request.
+A request-level failure stops further requests.
+Successful writes are not rolled back.
+The legacy `RestHighLevelClient` does not apply these limits and continues to send one bulk request.
+
 ## Spring AOT Support
 
 Spring Data OpenSearch supports [Spring Ahead of Time Optimizations](https://docs.spring.io/spring-framework/reference/core/aot.html)

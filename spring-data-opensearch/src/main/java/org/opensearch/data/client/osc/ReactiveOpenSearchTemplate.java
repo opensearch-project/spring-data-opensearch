@@ -236,14 +236,18 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
         return doBulkOperation(queries, bulkOptions, index).then();
     }
 
-    private Flux<BulkResponseItem> doBulkOperation(List<?> queries, BulkOptions bulkOptions, IndexCoordinates index) {
+    private Flux<BulkResponseItem> doBulkOperation(final List<?> queries, final BulkOptions bulkOptions,
+            final IndexCoordinates index) {
 
-        BulkRequest bulkRequest = requestConverter.documentBulkRequest(queries, bulkOptions, index, getRefreshPolicy());
-        return client.bulk(bulkRequest)
-                .onErrorMap(e -> new UncategorizedElasticsearchException("Error executing bulk request", e))
-                .flatMap(this::checkForBulkOperationFailure) //
-                .flatMapMany(response -> Flux.fromIterable(response.items()));
-
+        return Flux.defer(() -> Flux.fromIterable(requestConverter.documentBulkRequests(
+                        queries, bulkOptions, getBulkOptions(), index, getRefreshPolicy()))
+                .concatMap(request -> client.bulk(request)
+                        .onErrorMap(e -> new UncategorizedElasticsearchException("Error executing bulk request", e)))
+                .flatMapIterable(BulkResponse::items)
+                .collectList()
+                .flatMap(items -> checkForBulkOperationFailure(BulkResponse.of(builder -> builder.items(items).took(0)
+                        .errors(items.stream().anyMatch(item -> item.error() != null)))))
+                .flatMapMany(response -> Flux.fromIterable(response.items())));
     }
 
     private Mono<BulkResponse> checkForBulkOperationFailure(BulkResponse bulkResponse) {
