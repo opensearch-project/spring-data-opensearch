@@ -47,6 +47,9 @@ import org.springframework.data.elasticsearch.core.IndexedObjectInformation;
 import org.springframework.data.elasticsearch.core.MultiGetItem;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.SearchScrollHits;
+import org.springframework.data.elasticsearch.core.bulk.BulkIngester;
+import org.springframework.data.elasticsearch.core.bulk.BulkIngesterListener;
+import org.springframework.data.elasticsearch.core.bulk.BulkIngesterOptions;
 import org.springframework.data.elasticsearch.core.cluster.ClusterOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -146,6 +149,18 @@ public class OpenSearchTemplate extends AbstractElasticsearchTemplate implements
     // endregion
 
     // region document operations
+    /**
+     * Creates a bulk ingester backed by the OpenSearch Java client. Closing the ingester flushes pending operations
+     * and waits for requests and listeners without closing the client.
+     *
+     * @since 3.2
+     */
+    @Override
+    public <C> BulkIngester<C> bulkIngester(final BulkIngesterOptions options, final IndexCoordinates index,
+            final BulkIngesterListener<C> listener) {
+        return new OpenSearchBulkIngester<>(this, client, requestConverter, exceptionTranslator, options, index, listener);
+    }
+
     @Override
     @Nullable
     public <T> T get(String id, Class<T> clazz, IndexCoordinates index) {

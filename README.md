@@ -145,6 +145,57 @@ To use Spring Boot 3.x auto configuration support for testing:
 </dependency>
 ```
 
+### Bulk ingester
+
+The bulk ingester collects individual index, create, update, and delete operations and sends them in bulk requests.
+It requires the OpenSearch Java client (`osc.OpenSearchTemplate`).
+The legacy REST high-level client does not support this API.
+
+The caller must provide a `BulkIngesterListener` to receive results and request failures.
+Each operation can carry a context, such as a source record ID, that the listener receives with its result.
+
+```java
+import java.time.Duration;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.bulk.BulkIngesterListener;
+import org.springframework.data.elasticsearch.core.bulk.BulkIngesterOptions;
+import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+
+void ingestPersons(final ElasticsearchOperations operations, final Iterable<Person> persons,
+        final BulkIngesterListener<String> listener) {
+    final var options = BulkIngesterOptions.builder()
+            .withMaxOperations(500)
+            .withFlushInterval(Duration.ofSeconds(5))
+            .build();
+
+    try (final var ingester = operations.bulkIngester(options, Person.class, listener)) {
+        for (final var person : persons) {
+            ingester.add(new IndexQueryBuilder().withObject(person).build(), person.getId());
+        }
+        ingester.addDelete("obsolete-id", null, "delete obsolete-id");
+    }
+}
+```
+
+Closing the ingester sends remaining operations and waits for requests and listeners.
+It does not close the client.
+Entity mapping, auditing, and before-convert callbacks run when an index operation is added.
+Successful index and create operations update entity IDs, versions, sequence numbers, and primary terms, then run after-save callbacks.
+Failed operations do not update entities or run after-save callbacks.
+
+The ingester applies the template refresh policy and the request configuration in `BulkIngesterOptions.getBulkOptions()` to every request.
+Only the limits in `BulkIngesterOptions` control batches.
+Limits in the nested `BulkOptions` and template default `BulkOptions` do not apply.
+A request can exceed `maxSize` by one operation because the client sends it after that operation reaches the limit.
+
+Adding operations or flushing can block when the maximum number of requests is already in progress.
+Do not use the ingester on reactive threads.
+Listeners must be thread-safe because requests can complete concurrently.
+Do not call `add`, `addDelete`, `flush`, or `close` from a listener or an after-save callback.
+The ingester rejects these calls to prevent a deadlock.
+Item failures appear in the results, and request failures reach the listener as translated exceptions.
+The ingester does not retry failed operations.
+
 ## Getting Started
 
 Here is a quick teaser of an application using Spring Data Repositories in Java:

@@ -173,6 +173,23 @@ class RequestConverterTest {
     }
 
     @Test
+    void shouldConvertBulkDeleteWithRouting() {
+        final var operation = requestConverter.bulkDeleteOperation("id", "route", IndexCoordinates.of("index"));
+
+        assertThat(operation.isDelete()).isTrue();
+        assertThat(operation.delete().id()).isEqualTo("id");
+        assertThat(operation.delete().index()).isEqualTo("index");
+        assertThat(operation.delete().routing()).isEqualTo("route");
+    }
+
+    @Test
+    void shouldConvertBulkDeleteWithoutRouting() {
+        final var operation = requestConverter.bulkDeleteOperation("id", null, IndexCoordinates.of("index"));
+
+        assertThat(operation.delete().routing()).isNull();
+    }
+
+    @Test
     void getRouting() {
 
         assertTrue(requestConverter.getRouting(null).isEmpty());
