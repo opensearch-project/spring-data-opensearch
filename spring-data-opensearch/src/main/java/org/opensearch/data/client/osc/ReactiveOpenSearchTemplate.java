@@ -12,6 +12,8 @@ package org.opensearch.data.client.osc;
 import static org.opensearch.client.util.ApiTypeHelper.*;
 import static org.opensearch.data.client.osc.TypeUtils.*;
 
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,11 +28,12 @@ import org.opensearch.client.json.JsonpMapper;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.CreatePitResponse;
-import org.opensearch.client.opensearch.core.DeletePitRequest;
 import org.opensearch.client.opensearch.core.bulk.BulkResponseItem;
 import org.opensearch.client.transport.Version;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.NoSuchIndexException;
@@ -41,6 +44,7 @@ import org.springframework.data.elasticsearch.core.AggregationContainer;
 import org.springframework.data.elasticsearch.core.IndexedObjectInformation;
 import org.springframework.data.elasticsearch.core.MultiGetItem;
 import org.springframework.data.elasticsearch.core.ReactiveIndexOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.cluster.ReactiveClusterOperations;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -69,6 +73,9 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
 
     private static final Log LOGGER = LogFactory.getLog(ReactiveOpenSearchTemplate.class);
 
+    @Nullable private OpenSearchObservationConvention observationConvention;
+    private final ReactiveOpenSearchObservationSupport observationSupport = this::createObservation;
+
     private final ReactiveOpenSearchClient client;
     private final RequestConverter requestConverter;
     private final ResponseConverter responseConverter;
@@ -87,7 +94,100 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
         exceptionTranslator = new OpenSearchExceptionTranslator(jsonpMapper);
     }
 
+    @Override
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+        super.setApplicationContext(applicationContext);
+        if (observationRegistry == ObservationRegistry.NOOP) {
+            applicationContext.getBeanProvider(ObservationRegistry.class).ifAvailable(this::setObservationRegistry);
+        }
+        if (observationConvention == null) {
+            applicationContext.getBeanProvider(OpenSearchObservationConvention.class).ifAvailable(this::setObservationConvention);
+        }
+    }
+
+    /**
+     * Set a custom convention. A {@literal null} value restores the default convention.
+     * Template copies retain this configuration.
+     *
+     * @param observationConvention the custom convention, or {@literal null}
+     */
+    public void setObservationConvention(@Nullable final OpenSearchObservationConvention observationConvention) {
+        this.observationConvention = observationConvention;
+    }
+
+    private <T> Mono<T> observeMono(final OpenSearchOperationName operation, @Nullable final IndexCoordinates index,
+            final Mono<T> mono) {
+        return observationSupport.observeMono(operation, index, null, mono);
+    }
+
+    private <T> Flux<T> observeFlux(final OpenSearchOperationName operation, @Nullable final IndexCoordinates index,
+            final Flux<T> flux) {
+        return observeFlux(operation, index, null, flux);
+    }
+
+    private <T> Flux<T> observeFlux(final OpenSearchOperationName operation, @Nullable final IndexCoordinates index,
+            @Nullable final Integer batchSize, final Flux<T> flux) {
+        return observationSupport.observeFlux(operation, index, batchSize, flux);
+    }
+
+    private Observation createObservation(final OpenSearchOperationName operation,
+            @Nullable final IndexCoordinates index, @Nullable final Integer batchSize) {
+        final var context = new OpenSearchObservationContext(operation, index);
+        context.setBatchSize(batchSize);
+        return OpenSearchObservation.OPENSEARCH_COMMAND_OBSERVATION.observation(observationConvention,
+                DefaultOpenSearchObservationConvention.INSTANCE, () -> context, observationRegistry);
+    }
+
+    @Override
+    protected void customizeCopy(final AbstractReactiveElasticsearchTemplate copy) {
+        if (copy instanceof ReactiveOpenSearchTemplate template) {
+            template.observationConvention = observationConvention;
+        }
+    }
+
     // region Document operations
+    @Override
+    public <T> Mono<T> save(final T entity, final IndexCoordinates index) {
+        Assert.notNull(entity, "Entity must not be null!");
+        Assert.notNull(index, "index must not be null");
+        return observeMono(OpenSearchOperationName.SAVE, index, Mono.defer(() -> super.save(entity, index)));
+    }
+
+    @Override
+    public Mono<Boolean> exists(final String id, final IndexCoordinates index) {
+        Assert.notNull(id, "id must not be null");
+        Assert.notNull(index, "index must not be null");
+        return observeMono(OpenSearchOperationName.EXISTS, index, Mono.defer(() -> super.exists(id, index)));
+    }
+
+    @Override
+    public Mono<String> delete(final Object entity, final IndexCoordinates index) {
+        return observeMono(OpenSearchOperationName.DELETE, index, Mono.defer(() -> super.delete(entity, index)));
+    }
+
+    @Override
+    public Mono<String> delete(final String id, final IndexCoordinates index) {
+        Assert.notNull(id, "id must not be null");
+        Assert.notNull(index, "index must not be null");
+        return observeMono(OpenSearchOperationName.DELETE, index, Mono.defer(() -> super.delete(id, index)));
+    }
+
+    @Override
+    public <T> Flux<SearchHit<T>> search(final Query query, final Class<?> entityType, final Class<T> resultType,
+            final IndexCoordinates index) {
+        Assert.notNull(query, "query must not be null");
+        Assert.notNull(entityType, "clazz must not be null");
+        Assert.notNull(index, "index must not be null");
+        return observeFlux(OpenSearchOperationName.SEARCH, index, Flux.defer(() -> super.search(query, entityType, resultType, index)));
+    }
+
+    @Override
+    public Mono<Long> count(final Query query, final Class<?> entityType, final IndexCoordinates index) {
+        Assert.notNull(query, "query must not be null");
+        Assert.notNull(index, "index must not be null");
+        return observeMono(OpenSearchOperationName.COUNT, index, Mono.defer(() -> super.count(query, entityType, index)));
+    }
+
     @Override
     protected <T> Mono<Tuple2<T, IndexResponseMetaData>> doIndex(T entity, IndexCoordinates index) {
 
@@ -105,14 +205,18 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    public <T> Flux<T> saveAll(Mono<? extends Collection<? extends T>> entitiesPublisher, IndexCoordinates index) {
+    public <T> Flux<T> saveAll(final Mono<? extends Collection<? extends T>> entitiesPublisher, final IndexCoordinates index) {
 
         Assert.notNull(entitiesPublisher, "entitiesPublisher must not be null!");
 
-        return entitiesPublisher //
-                .flatMapMany(entities -> Flux.fromIterable(entities) //
-                        .concatMap(entity -> maybeCallbackBeforeConvert(entity, index)) //
-                ).collectList() //
+        return entitiesPublisher.flatMapMany(entities -> observeFlux(OpenSearchOperationName.BULK, index,
+                entities.size(), Flux.defer(() -> saveAllEntities(entities, index))));
+    }
+
+    private <T> Flux<T> saveAllEntities(final Collection<? extends T> entityCollection, final IndexCoordinates index) {
+        return Flux.fromIterable(entityCollection)
+                .concatMap(entity -> maybeCallbackBeforeConvert(entity, index))
+                .collectList() //
                 .map(Entities::new) //
                 .flatMapMany(entities -> {
 
@@ -123,9 +227,9 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
                     return doBulkOperation(entities.indexQueries(), BulkOptions.defaultOptions(), index)//
                             .index() //
                             .flatMap(indexAndResponse -> {
-                                T savedEntity = entities.entityAt(indexAndResponse.getT1());
-                                BulkResponseItem response = indexAndResponse.getT2();
-                                var updatedEntity = entityOperations.updateIndexedObject(
+                                final var savedEntity = entities.entityAt(indexAndResponse.getT1());
+                                final var response = indexAndResponse.getT2();
+                                final var updatedEntity = entityOperations.updateIndexedObject(
                                         savedEntity, new IndexedObjectInformation( //
                                                 response.id(), //
                                                 response.index(), //
@@ -154,71 +258,81 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    public Mono<ByQueryResponse> delete(DeleteQuery query, Class<?> entityType, IndexCoordinates index) {
+    public Mono<ByQueryResponse> delete(final DeleteQuery query, final Class<?> entityType, final IndexCoordinates index) {
         Assert.notNull(query, "query must not be null");
 
-        DeleteByQueryRequest request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
-                entityType, index, getRefreshPolicy());
-        return Mono.from(execute(client -> client.deleteByQuery(request))).map(responseConverter::byQueryResponse);
+        return observeMono(OpenSearchOperationName.DELETE_BY_QUERY, index, Mono.defer(() -> {
+            final var request = requestConverter.documentDeleteByQueryRequest(query, routingResolver.getRouting(),
+                    entityType, index, getRefreshPolicy());
+            return Mono.from(execute(client -> client.deleteByQuery(request))).map(responseConverter::byQueryResponse);
+        }));
     }
 
     @Override
-    public <T> Mono<T> get(String id, Class<T> entityType, IndexCoordinates index) {
+    public <T> Mono<T> get(final String id, final Class<T> entityType, final IndexCoordinates index) {
 
         Assert.notNull(id, "id must not be null");
         Assert.notNull(entityType, "entityType must not be null");
         Assert.notNull(index, "index must not be null");
 
-        GetRequest getRequest = requestConverter.documentGetRequest(id, routingResolver.getRouting(), index);
+        return observeMono(OpenSearchOperationName.GET, index, Mono.defer(() -> {
+            final var getRequest = requestConverter.documentGetRequest(id, routingResolver.getRouting(), index);
 
-        Mono<GetResponse<EntityAsMap>> getResponse = Mono
-                .from(execute(client -> client.get(getRequest, EntityAsMap.class)));
+            final var getResponse = Mono
+                    .from(execute(client -> client.get(getRequest, EntityAsMap.class)));
 
-        ReadDocumentCallback<T> callback = new ReadDocumentCallback<>(converter, entityType, index);
-        return getResponse.flatMap(response -> callback.toEntity(DocumentAdapters.from(response)));
+            final var callback = new ReadDocumentCallback<>(converter, entityType, index);
+            return getResponse.flatMap(response -> callback.toEntity(DocumentAdapters.from(response)));
+        }));
     }
 
     @Override
-    public Mono<ReindexResponse> reindex(ReindexRequest reindexRequest) {
+    public Mono<ReindexResponse> reindex(final ReindexRequest reindexRequest) {
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        org.opensearch.client.opensearch.core.ReindexRequest reindexRequestES = requestConverter.reindex(reindexRequest,
-                true);
+        return observeMono(OpenSearchOperationName.REINDEX, reindexRequest.getSource().getIndexes(), Mono.defer(() -> {
+            final var reindexRequestES = requestConverter.reindex(reindexRequest,
+                    true);
 
-        return Mono.from(execute( //
-                client -> client.reindex(reindexRequestES))).map(responseConverter::reindexResponse);
+            return Mono.from(execute( //
+                    client -> client.reindex(reindexRequestES))).map(responseConverter::reindexResponse);
+        }));
     }
 
     @Override
-    public Mono<String> submitReindex(ReindexRequest reindexRequest) {
+    public Mono<String> submitReindex(final ReindexRequest reindexRequest) {
 
         Assert.notNull(reindexRequest, "reindexRequest must not be null");
 
-        org.opensearch.client.opensearch.core.ReindexRequest reindexRequestES = requestConverter.reindex(reindexRequest,
-                false);
+        return observeMono(OpenSearchOperationName.SUBMIT_REINDEX, reindexRequest.getSource().getIndexes(), Mono.defer(() -> {
+            final var reindexRequestES = requestConverter.reindex(reindexRequest,
+                    false);
 
-        return Mono.from(execute( //
-                client -> client.reindex(reindexRequestES)))
-                .flatMap(response -> (response.task() == null)
-                        ? Mono.error(
-                                new UnsupportedBackendOperation("ElasticsearchClient did not return a task id on submit request"))
-                        : Mono.just(response.task()));
+            return Mono.from(execute( //
+                    client -> client.reindex(reindexRequestES)))
+                    .flatMap(response -> (response.task() == null)
+                            ? Mono.error(
+                                    new UnsupportedBackendOperation("ElasticsearchClient did not return a task id on submit request"))
+                            : Mono.just(response.task()));
+        }));
     }
 
     @Override
-    public Mono<UpdateResponse> update(UpdateQuery updateQuery, IndexCoordinates index) {
+    public Mono<UpdateResponse> update(final UpdateQuery updateQuery, final IndexCoordinates index) {
 
         Assert.notNull(updateQuery, "UpdateQuery must not be null");
         Assert.notNull(index, "Index must not be null");
 
-        UpdateRequest<Document, ?> request = requestConverter.documentUpdateRequest(updateQuery, index, getRefreshPolicy(),
-                routingResolver.getRouting());
+        return observeMono(OpenSearchOperationName.UPDATE, index, Mono.defer(() -> {
+            final var request = requestConverter.documentUpdateRequest(updateQuery, index, getRefreshPolicy(),
+                    routingResolver.getRouting());
 
-        return Mono.from(execute(client -> client.update(request, Document.class))).flatMap(response -> {
-            UpdateResponse.Result result = result(response.result());
-            return result == null ? Mono.empty() : Mono.just(UpdateResponse.of(result));
-        });
+            return Mono.from(execute(client -> client.update(request, Document.class))).flatMap(response -> {
+                final var result = result(response.result());
+                return result == null ? Mono.empty() : Mono.just(UpdateResponse.of(result));
+            });
+        }));
     }
 
     @Override
@@ -227,13 +341,14 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    public Mono<Void> bulkUpdate(List<UpdateQuery> queries, BulkOptions bulkOptions, IndexCoordinates index) {
+    public Mono<Void> bulkUpdate(final List<UpdateQuery> queries, final BulkOptions bulkOptions, final IndexCoordinates index) {
 
         Assert.notNull(queries, "List of UpdateQuery must not be null");
         Assert.notNull(bulkOptions, "BulkOptions must not be null");
         Assert.notNull(index, "Index must not be null");
 
-        return doBulkOperation(queries, bulkOptions, index).then();
+        return observeFlux(OpenSearchOperationName.BULK, index, queries.size(),
+                Flux.defer(() -> doBulkOperation(queries, bulkOptions, index))).then();
     }
 
     private Flux<BulkResponseItem> doBulkOperation(List<?> queries, BulkOptions bulkOptions, IndexCoordinates index) {
@@ -291,27 +406,29 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    public <T> Flux<MultiGetItem<T>> multiGet(Query query, Class<T> clazz, IndexCoordinates index) {
+    public <T> Flux<MultiGetItem<T>> multiGet(final Query query, final Class<T> clazz, final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(clazz, "clazz must not be null");
 
-        MgetRequest request = requestConverter.documentMgetRequest(query, clazz, index);
+        return observeFlux(OpenSearchOperationName.MULTI_GET, index, Flux.defer(() -> {
+            final var request = requestConverter.documentMgetRequest(query, clazz, index);
 
-        ReadDocumentCallback<T> callback = new ReadDocumentCallback<>(converter, clazz, index);
+            final var callback = new ReadDocumentCallback<>(converter, clazz, index);
 
-        Publisher<MgetResponse<EntityAsMap>> response = execute(client -> client.mget(request, EntityAsMap.class));
+            final var response = execute(client -> client.mget(request, EntityAsMap.class));
 
-        return Mono.from(response)//
-                .flatMapMany(it -> Flux.fromIterable(DocumentAdapters.from(it))) //
-                .flatMap(multiGetItem -> {
-                    if (multiGetItem.isFailed()) {
-                        return Mono.just(MultiGetItem.of(null, multiGetItem.getFailure()));
-                    } else {
-                        return callback.toEntity(multiGetItem.getItem()) //
-                                .map(t -> MultiGetItem.of(t, multiGetItem.getFailure()));
-                    }
-                });
+            return Mono.from(response)//
+                    .flatMapMany(it -> Flux.fromIterable(DocumentAdapters.from(it))) //
+                    .flatMap(multiGetItem -> {
+                        if (multiGetItem.isFailed()) {
+                            return Mono.just(MultiGetItem.of(null, multiGetItem.getFailure()));
+                        } else {
+                            return callback.toEntity(multiGetItem.getItem()) //
+                                    .map(t -> MultiGetItem.of(t, multiGetItem.getFailure()));
+                        }
+                    });
+        }));
     }
 
     // endregion
@@ -486,21 +603,23 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    protected <T> Mono<SearchDocumentResponse> doFindForResponse(Query query, Class<?> clazz, IndexCoordinates index) {
+    protected <T> Mono<SearchDocumentResponse> doFindForResponse(final Query query, final Class<?> clazz, final IndexCoordinates index) {
 
         Assert.notNull(query, "query must not be null");
         Assert.notNull(index, "index must not be null");
 
-        SearchRequest searchRequest = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index,
-                false);
+        return observeMono(OpenSearchOperationName.SEARCH, index, Mono.defer(() -> {
+            final var searchRequest = requestConverter.searchRequest(query, routingResolver.getRouting(), clazz, index,
+                    false);
 
-        // noinspection unchecked
-        SearchDocumentCallback<T> callback = new ReadSearchDocumentCallback<>((Class<T>) clazz, index);
-        SearchDocumentResponse.EntityCreator<T> entityCreator = searchDocument -> callback.toEntity(searchDocument)
-                .toFuture();
+            // noinspection unchecked
+            final var callback = new ReadSearchDocumentCallback<>((Class<T>) clazz, index);
+            final SearchDocumentResponse.EntityCreator<T> entityCreator = searchDocument -> callback.toEntity(searchDocument)
+                    .toFuture();
 
-        return Mono.from(execute(client -> client.search(searchRequest, EntityAsMap.class)))
-                .map(searchResponse -> SearchDocumentResponseBuilder.from(searchResponse, entityCreator, jsonpMapper));
+            return Mono.from(execute(client -> client.search(searchRequest, EntityAsMap.class)))
+                    .map(searchResponse -> SearchDocumentResponseBuilder.from(searchResponse, entityCreator, jsonpMapper));
+        }));
     }
 
     @Override
@@ -513,52 +632,62 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
     }
 
     @Override
-    public Mono<String> openPointInTime(IndexCoordinates index, Duration keepAlive, Boolean ignoreUnavailable) {
+    public Mono<String> openPointInTime(final IndexCoordinates index, final Duration keepAlive, final Boolean ignoreUnavailable) {
 
         Assert.notNull(index, "index must not be null");
         Assert.notNull(keepAlive, "keepAlive must not be null");
         Assert.notNull(ignoreUnavailable, "ignoreUnavailable must not be null");
 
-        var request = requestConverter.searchOpenPointInTimeRequest(index, keepAlive, ignoreUnavailable);
-        return Mono.from(execute(client -> client.openPointInTime(request))).map(CreatePitResponse::pitId);
+        return observeMono(OpenSearchOperationName.OPEN_POINT_IN_TIME, index, Mono.defer(() -> {
+            final var request = requestConverter.searchOpenPointInTimeRequest(index, keepAlive, ignoreUnavailable);
+            return Mono.from(execute(client -> client.openPointInTime(request))).map(CreatePitResponse::pitId);
+        }));
     }
 
     @Override
-    public Mono<Boolean> closePointInTime(String pit) {
+    public Mono<Boolean> closePointInTime(final String pit) {
 
         Assert.notNull(pit, "pit must not be null");
 
-        DeletePitRequest request = requestConverter.searchClosePointInTime(pit);
-        return Mono.from(execute(client -> client.closePointInTime(request))).map(r -> !r.pits().isEmpty());
+        return observeMono(OpenSearchOperationName.CLOSE_POINT_IN_TIME, null, Mono.defer(() -> {
+            final var request = requestConverter.searchClosePointInTime(pit);
+            return Mono.from(execute(client -> client.closePointInTime(request))).map(r -> !r.pits().isEmpty());
+        }));
     }
 
     // endregion
 
     // region script operations
     @Override
-    public Mono<Boolean> putScript(Script script) {
+    public Mono<Boolean> putScript(final Script script) {
 
         Assert.notNull(script, "script must not be null");
 
-        var request = requestConverter.scriptPut(script);
-        return Mono.from(execute(client -> client.putScript(request))).map(PutScriptResponse::acknowledged);
+        return observeMono(OpenSearchOperationName.PUT_SCRIPT, null, Mono.defer(() -> {
+            final var request = requestConverter.scriptPut(script);
+            return Mono.from(execute(client -> client.putScript(request))).map(PutScriptResponse::acknowledged);
+        }));
     }
 
     @Override
-    public Mono<Script> getScript(String name) {
+    public Mono<Script> getScript(final String name) {
 
         Assert.notNull(name, "name must not be null");
 
-        var request = requestConverter.scriptGet(name);
-        return Mono.from(execute(client -> client.getScript(request))).mapNotNull(responseConverter::scriptResponse);
+        return observeMono(OpenSearchOperationName.GET_SCRIPT, null, Mono.defer(() -> {
+            final var request = requestConverter.scriptGet(name);
+            return Mono.from(execute(client -> client.getScript(request))).mapNotNull(responseConverter::scriptResponse);
+        }));
     }
 
     @Override
-    public Mono<Boolean> deleteScript(String name) {
+    public Mono<Boolean> deleteScript(final String name) {
         Assert.notNull(name, "name must not be null");
 
-        var request = requestConverter.scriptDelete(name);
-        return Mono.from(execute(client -> client.deleteScript(request))).map(DeleteScriptResponse::acknowledged);
+        return observeMono(OpenSearchOperationName.DELETE_SCRIPT, null, Mono.defer(() -> {
+            final var request = requestConverter.scriptDelete(name);
+            return Mono.from(execute(client -> client.deleteScript(request))).map(DeleteScriptResponse::acknowledged);
+        }));
     }
     // endregion
 
@@ -574,21 +703,26 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
 
     @Override
     public Mono<String> getClusterVersion() {
-        return Mono.from(execute((ReactiveOpenSearchClient reactiveElasticsearchClient) -> {
-            try (var ignored = DANGEROUS_disableRequiredPropertiesCheck(true)) {
-                return reactiveElasticsearchClient.info();
-            }
-        })).map(infoResponse -> infoResponse.version().number());
+        return observeMono(OpenSearchOperationName.CLUSTER_INFO, null,
+                Mono.defer(() -> Mono.from(execute((ReactiveOpenSearchClient reactiveElasticsearchClient) -> {
+                    try (final var ignored = DANGEROUS_disableRequiredPropertiesCheck(true)) {
+                        return reactiveElasticsearchClient.info();
+                    }
+                })).map(infoResponse -> infoResponse.version().number())));
     }
 
     @Override
-    public ReactiveIndexOperations indexOps(IndexCoordinates index) {
-        return new ReactiveIndicesTemplate(client.indices(), getReactiveClusterTemplate(), converter, index);
+    public ReactiveIndexOperations indexOps(final IndexCoordinates index) {
+        final var template = new ReactiveIndicesTemplate(client.indices(), getReactiveClusterTemplate(), converter, index);
+        template.observationSupport = observationSupport;
+        return template;
     }
 
     @Override
-    public ReactiveIndexOperations indexOps(Class<?> clazz) {
-        return new ReactiveIndicesTemplate(client.indices(), getReactiveClusterTemplate(), converter, clazz);
+    public ReactiveIndexOperations indexOps(final Class<?> clazz) {
+        final var template = new ReactiveIndicesTemplate(client.indices(), getReactiveClusterTemplate(), converter, clazz);
+        template.observationSupport = observationSupport;
+        return template;
     }
 
     @Override
@@ -600,7 +734,9 @@ public class ReactiveOpenSearchTemplate extends AbstractReactiveElasticsearchTem
      * @since 5.1
      */
     private ReactiveClusterTemplate getReactiveClusterTemplate() {
-        return new ReactiveClusterTemplate(client.cluster(), converter);
+        final var template = new ReactiveClusterTemplate(client.cluster(), converter);
+        template.observationSupport = observationSupport;
+        return template;
     }
 
     @Override
