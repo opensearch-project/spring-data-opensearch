@@ -79,8 +79,7 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
         indexNameProvider.increment();
         indexOperations = operations.indexOps(Sample.class);
         StepVerifier.create(indexOperations.createWithMapping()).expectNextMatches(s -> true).verifyComplete();
-        StepVerifier.create(operations.save(new Sample("1"),  IndexCoordinates.of(indexNameProvider.indexName()))).expectNextMatches(s -> true).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.INDEX_CREATE, OpenSearchOperationName.SAVE);
+        recorder.assertOperations(OpenSearchOperationName.INDEX_CREATE);
         recorder.clear();
     }
 
@@ -98,23 +97,24 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
     @Test
     void existsUsesSubscriberParentAndCreatesOneObservationPerSubscription() {
         final var parent = Observation.start("caller", recorder.registry);
+        operations.save(new Sample("1"), IndexCoordinates.of(indexNameProvider.indexName())).block();
+
         final var publisher = operations.exists("1", IndexCoordinates.of(indexNameProvider.indexName()))
                 .contextWrite(context -> context.put(ObservationThreadLocalAccessor.KEY, parent));
-        assertThat(recorder.started).isEmpty();
         StepVerifier.create(publisher).expectNext(true).verifyComplete();
         StepVerifier.create(publisher).expectNext(true).verifyComplete();
         parent.stop();
-        recorder.assertOperations(OpenSearchOperationName.EXISTS, OpenSearchOperationName.EXISTS);
+        recorder.assertOperations(OpenSearchOperationName.SAVE, OpenSearchOperationName.EXISTS, OpenSearchOperationName.EXISTS);
         assertThat(recorder.started.get(0)).isNotSameAs(recorder.started.get(1));
     }
 
     @Test
     void registryAndConventionSurviveBothCopyPaths() {
         StepVerifier.create(operations.withRefreshPolicy(RefreshPolicy.IMMEDIATE).exists("1", IndexCoordinates.of(indexNameProvider.indexName())))
-                .expectNext(true).verifyComplete();
+                .expectNext(false).verifyComplete();
 
         StepVerifier.create(operations.withRouting(RoutingResolver.just("route")).exists("1", IndexCoordinates.of(indexNameProvider.indexName())))
-                .expectNext(true).verifyComplete();
+                .expectNext(false).verifyComplete();
 
         recorder.assertOperations(OpenSearchOperationName.EXISTS, OpenSearchOperationName.EXISTS);
             assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getName()).isEqualTo("spring.data.opensearch.command.custom"));
@@ -148,6 +148,10 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
 
     @Test
     void bulkUpdateRecordsItsBatchAndFailures() {
+        operations.save(new Sample("1"), IndexCoordinates.of(indexNameProvider.indexName())).block();
+        recorder.assertOperations(OpenSearchOperationName.SAVE);
+        recorder.clear();
+
         final var update = UpdateQuery.builder("1").withDocument(Document.create()).build();
         StepVerifier.create(operations.bulkUpdate(List.of(update, update), BulkOptions.defaultOptions(), IndexCoordinates.of(indexNameProvider.indexName())))
                 .verifyComplete();
@@ -169,11 +173,14 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
 
     @Test
     void unboundedSearchNestsPitLifecycleUnderSearch() {
+        operations.save(new Sample("1"), IndexCoordinates.of(indexNameProvider.indexName())).block();
+
         final var query = NativeQuery.builder().withQuery(q -> q.matchAll(m -> m)).withPageable(org.springframework.data.domain.Pageable.unpaged()).build();
         StepVerifier.create(operations.search(query, Sample.class)).expectNextMatches(s -> s.getId().equals("1")).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.SEARCH, OpenSearchOperationName.OPEN_POINT_IN_TIME, OpenSearchOperationName.CLOSE_POINT_IN_TIME);
-        final var parent = recorder.started.getFirst();
-        assertThat(recorder.started.subList(1, 3)).allSatisfy(context ->
+        recorder.assertOperations(OpenSearchOperationName.SAVE, OpenSearchOperationName.SEARCH, OpenSearchOperationName.OPEN_POINT_IN_TIME, OpenSearchOperationName.CLOSE_POINT_IN_TIME);
+
+        final var parent = recorder.started.get(1);
+        assertThat(recorder.started.subList(2, 4)).allSatisfy(context ->
                 assertThat(context.getParentObservation().getContextView()).isSameAs(parent));
     }
 

@@ -11,6 +11,8 @@ import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 final class ObservationRecorder implements ObservationHandler<OpenSearchObservationContext> {
     final ObservationRegistry registry = ObservationRegistry.create();
@@ -37,8 +39,10 @@ final class ObservationRecorder implements ObservationHandler<OpenSearchObservat
     }
 
     void assertOperations(final OpenSearchOperationName... operations) {
-        assertThat(started).extracting(OpenSearchObservationContext::getOperationName).containsExactly(operations);
-        assertThat(stopped).hasSameSizeAs(started).containsAll(started);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            assertThat(started).extracting(OpenSearchObservationContext::getOperationName).containsExactly(operations);
+            assertThat(stopped).hasSameSizeAs(started).containsAll(started);
+        });
     }
 
     void clear() {
