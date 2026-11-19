@@ -5,6 +5,7 @@
 package org.opensearch.data.client.osc;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.elasticsearch.core.IndexOperationsAdapter.blocking;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -14,6 +15,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -40,7 +42,7 @@ import reactor.test.StepVerifier;
 
 @SpringIntegrationTest
 @ContextConfiguration(classes = { ReactiveOpenSearchTemplateObservationIntegrationTests.Config.class })
-@DisplayName("Using Reactive OpenSearch Client with Observations")
+@DisplayName("Using Reactive OpenSearch Client with Observations (CustomConvention)")
 class ReactiveOpenSearchTemplateObservationIntegrationTests {
 
     @Autowired private IndexNameProvider indexNameProvider;
@@ -77,7 +79,7 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
         indexNameProvider.increment();
         indexOperations = operations.indexOps(Sample.class);
         StepVerifier.create(indexOperations.createWithMapping()).expectNextMatches(s -> true).verifyComplete();
-        StepVerifier.create(operations.save(new Sample("1"))).expectNextMatches(s -> true).verifyComplete();
+        StepVerifier.create(operations.save(new Sample("1"),  IndexCoordinates.of(indexNameProvider.indexName()))).expectNextMatches(s -> true).verifyComplete();
         recorder.assertOperations(OpenSearchOperationName.INDEX_CREATE, OpenSearchOperationName.SAVE);
         recorder.clear();
     }
@@ -85,6 +87,12 @@ class ReactiveOpenSearchTemplateObservationIntegrationTests {
     @AfterEach
     public void after() {
         recorder.clear();
+    }
+
+    @Test
+    @Order(java.lang.Integer.MAX_VALUE)
+    void cleanup() {
+        blocking(operations.indexOps(IndexCoordinates.of(indexNameProvider.getPrefix() + '*'))).delete();
     }
 
     @Test

@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -47,7 +48,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @SpringIntegrationTest
 @ContextConfiguration(classes = { OpenSearchTemplateObservationIntegrationTests.Config.class })
-@DisplayName("Using OpenSearch Client with Observations")
+@DisplayName("Using OpenSearch Client with Observations (CustomConvention)")
 class OpenSearchTemplateObservationIntegrationTests {
     @Autowired private IndexNameProvider indexNameProvider;
     @Autowired private ElasticsearchOperations operations;
@@ -90,6 +91,12 @@ class OpenSearchTemplateObservationIntegrationTests {
     @AfterEach
     public void after() {
         recorder.clear();
+    }
+
+    @Test
+    @Order(java.lang.Integer.MAX_VALUE)
+    void cleanup() {
+        operations.indexOps(IndexCoordinates.of(indexNameProvider.getPrefix() + '*')).delete();
     }
 
     @Test

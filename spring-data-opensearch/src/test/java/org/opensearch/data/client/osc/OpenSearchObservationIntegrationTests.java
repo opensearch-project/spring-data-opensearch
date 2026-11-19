@@ -6,155 +6,144 @@ package org.opensearch.data.client.osc;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.data.core.OpenSearchMappingParametersCustomizer;
+import org.opensearch.data.client.junit.jupiter.OpenSearchTemplateConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.core.RefreshPolicy;
-import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.index.*;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.elasticsearch.core.reindex.ReindexRequest;
 import org.springframework.data.elasticsearch.core.script.Script;
-import org.springframework.data.elasticsearch.junit.jupiter.ClusterConnectionInfo;
-import org.springframework.data.elasticsearch.junit.jupiter.SpringDataElasticsearchExtension;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import org.springframework.data.elasticsearch.junit.jupiter.SpringIntegrationTest;
+import org.springframework.data.elasticsearch.utils.IndexNameProvider;
+import org.springframework.test.context.ContextConfiguration;
 
-@Tag("integration-test")
-@ExtendWith(SpringDataElasticsearchExtension.class)
+@SpringIntegrationTest
+@ContextConfiguration(classes = { OpenSearchObservationIntegrationTests.Config.class })
+@DisplayName("Using Imperative OpenSearch Client with Observations")
 class OpenSearchObservationIntegrationTests {
-    private final ObservationRecorder recorder = new ObservationRecorder();
-    private OpenSearchClient client;
-    private OpenSearchTemplate template;
-    private ReactiveOpenSearchTemplate reactiveTemplate;
-    private IndexCoordinates index;
+    @Autowired private IndexNameProvider indexNameProvider;
+    @Autowired private ElasticsearchOperations operations;
+    @Autowired private ObservationRecorder recorder;
+    private IndexOperations indexOperations;
+
+    @Configuration
+    @Import({ OpenSearchTemplateConfiguration.class })
+    static class Config {
+        @Bean
+        IndexNameProvider indexNameProvider() {
+            return new IndexNameProvider("integration-entity-observed-imperative-os");
+        }
+
+        @Bean
+        ObservationRecorder observationRecorder() {
+            return new ObservationRecorder();
+        }
+
+        @Bean
+        ObservationRegistry observationRegistry(ObservationRecorder recorder) {
+            return recorder.registry;
+        }
+    }
 
     @BeforeEach
-    void setUp(final ClusterConnectionInfo connection) {
-        client = OpenSearchClients.createImperative(ClientConfiguration.builder()
-                .connectedTo(connection.getHost() + ":" + connection.getHttpPort()).build());
-        final var converter = new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext());
-        converter.afterPropertiesSet();
-        template = new OpenSearchTemplate(client, converter, new OpenSearchMappingParametersCustomizer());
-        template.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-        reactiveTemplate = new ReactiveOpenSearchTemplate(new ReactiveOpenSearchClient(client._transport()), converter);
-        reactiveTemplate.setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-        index = IndexCoordinates.of("observation-" + UUID.randomUUID());
-        template.indexOps(index).create();
-        template.setObservationRegistry(recorder.registry);
-        reactiveTemplate.setObservationRegistry(recorder.registry);
+    public void before() {
+        indexNameProvider.increment();
+        indexOperations = operations.indexOps(Entity.class);
+        indexOperations.createWithMapping();
+        recorder.clear();
+    }
+
+    @Test
+    @Order(java.lang.Integer.MAX_VALUE)
+    void cleanup() {
+        operations.indexOps(IndexCoordinates.of(indexNameProvider.getPrefix() + '*')).delete();
     }
 
     @AfterEach
-    void cleanUp() throws Exception {
-        if (client != null) {
-            try {
-                if (template != null && index != null) {
-                    template.indexOps(index).delete();
-                }
-            } finally {
-                client._transport().close();
-            }
-        }
+    public void after() {
+        recorder.clear();
     }
 
     @Test
     void imperativeDocumentsBulkSearchAndScroll() {
-        template.save(new Entity("1", "first"), index);
-        assertThat(template.get("1", Entity.class, index)).isNotNull();
-        assertThat(template.exists("1", index)).isTrue();
-        template.save(List.of(new Entity("2", "second"), new Entity("3", "third")), index);
-        template.bulkUpdate(List.of(UpdateQuery.builder("1").withDocument(Document.parse("{\"message\":\"changed\"}")).build()),
-                BulkOptions.defaultOptions(), index);
+        operations.save(new Entity("1", "first"), IndexCoordinates.of(indexNameProvider.indexName()));
+        assertThat(operations.get("1", Entity.class, IndexCoordinates.of(indexNameProvider.indexName()))).isNotNull();
+        assertThat(operations.exists("1", IndexCoordinates.of(indexNameProvider.indexName()))).isTrue();
+        operations.save(List.of(new Entity("2", "second"), new Entity("3", "third")), IndexCoordinates.of(indexNameProvider.indexName()));
+        operations.bulkUpdate(List.of(UpdateQuery.builder("1").withDocument(Document.parse("{\"message\":\"changed\"}")).build()),
+                BulkOptions.defaultOptions(), IndexCoordinates.of(indexNameProvider.indexName()));
         final var query = NativeQuery.builder().withQuery(q -> q.matchAll(m -> m)).build();
-        assertThat(template.count(query, Entity.class, index)).isEqualTo(3);
-        assertThat(template.search(query, Entity.class, index).getTotalHits()).isEqualTo(3);
-        assertThat(template.multiSearch(List.of(query, query), Entity.class, index)).hasSize(2);
+        assertThat(operations.count(query, Entity.class, IndexCoordinates.of(indexNameProvider.indexName()))).isEqualTo(3);
+        assertThat(operations.search(query, Entity.class, IndexCoordinates.of(indexNameProvider.indexName())).getTotalHits()).isEqualTo(3);
+        assertThat(operations.multiSearch(List.of(query, query), Entity.class, IndexCoordinates.of(indexNameProvider.indexName()))).hasSize(2);
         recorder.assertOperations(OpenSearchOperationName.SAVE, OpenSearchOperationName.GET, OpenSearchOperationName.EXISTS,
                 OpenSearchOperationName.BULK, OpenSearchOperationName.BULK, OpenSearchOperationName.COUNT,
                 OpenSearchOperationName.SEARCH, OpenSearchOperationName.MULTI_SEARCH);
         assertThat(recorder.stopped.get(3).getBatchSize()).isEqualTo(2);
-        assertThat(recorder.stopped.getLast().getIndexName()).isEqualTo(index.getIndexName());
+        assertThat(recorder.stopped.getLast().getIndexName()).isEqualTo(indexNameProvider.indexName());
         assertThat(recorder.stopped).allSatisfy(context ->
                 assertThat(context.getLowCardinalityKeyValues()).hasSize(1));
         recorder.clear();
 
         query.setPageable(PageRequest.of(0, 1));
-        try (final var stream = template.searchForStream(query, Entity.class, index)) {
+        try (final var stream = operations.searchForStream(query, Entity.class, IndexCoordinates.of(indexNameProvider.indexName()))) {
             assertThat(stream.stream().count()).isEqualTo(3);
         }
         assertThat(recorder.started).extracting(OpenSearchObservationContext::getOperationName)
                 .contains(OpenSearchOperationName.SCROLL_START, OpenSearchOperationName.SCROLL_CONTINUE, OpenSearchOperationName.SCROLL_CLEAR)
                 .doesNotContain(OpenSearchOperationName.SEARCH);
         assertThat(recorder.stopped).hasSameSizeAs(recorder.started);
-    }
-
-    @Test
-    void reactiveDocumentsAndResponseSearchesUseCallerParent() {
-        final var parent = Observation.start("caller", recorder.registry);
-        final var query = NativeQuery.builder().withQuery(q -> q.matchAll(m -> m)).build();
-        StepVerifier.create(reactiveTemplate.save(new Entity("1", "first"), index)
-                .thenMany(reactiveTemplate.saveAll(Mono.just(List.of(new Entity("2", "second"))), index))
-                .then(reactiveTemplate.exists("1", index))
-                .contextWrite(context -> context.put(ObservationThreadLocalAccessor.KEY, parent)))
-                .expectNext(true).verifyComplete();
-        parent.stop();
-        recorder.assertOperations(OpenSearchOperationName.SAVE, OpenSearchOperationName.BULK, OpenSearchOperationName.EXISTS);
-        assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getParentObservation()).isSameAs(parent));
-        recorder.clear();
-        StepVerifier.create(reactiveTemplate.searchForPage(query, Entity.class, index)).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveTemplate.searchForHits(query, Entity.class, index)).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveTemplate.aggregate(query, Entity.class, index)).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.SEARCH, OpenSearchOperationName.SEARCH, OpenSearchOperationName.SEARCH);
+        assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getName()).isEqualTo("spring.data.opensearch.command"));
     }
 
     @Test
     void indexClusterAndTemplateOperations() {
-        final var indices = template.indexOps(index);
-        assertThat(indices.exists()).isTrue();
-        indices.putMapping(Document.parse("{\"properties\":{\"message\":{\"type\":\"text\"}}}"));
-        assertThat(indices.getMapping()).isNotEmpty();
-        assertThat(indices.getSettings()).isNotNull();
-        indices.refresh();
-        assertThat(indices.getInformation(index)).hasSize(1);
-        assertThat(template.cluster().health()).isNotNull();
-        assertThat(template.getClusterVersion()).isNotBlank();
+        assertThat(indexOperations.exists()).isTrue();
+        indexOperations.putMapping(Document.parse("{\"properties\":{\"message\":{\"type\":\"text\"}}}"));
+        assertThat(indexOperations.getMapping()).isNotEmpty();
+        assertThat(indexOperations.getSettings()).isNotNull();
+        indexOperations.refresh();
+        assertThat(indexOperations.getInformation(IndexCoordinates.of(indexNameProvider.indexName()))).hasSize(1);
+        assertThat(operations.cluster().health()).isNotNull();
+        assertThat(((OpenSearchTemplate)operations).getClusterVersion()).isNotBlank();
+
         recorder.assertOperations(OpenSearchOperationName.INDEX_EXISTS, OpenSearchOperationName.INDEX_PUT_MAPPING,
                 OpenSearchOperationName.INDEX_GET_MAPPING, OpenSearchOperationName.INDEX_GET_SETTINGS,
                 OpenSearchOperationName.INDEX_REFRESH, OpenSearchOperationName.INDEX_GET_INFORMATION,
                 OpenSearchOperationName.CLUSTER_HEALTH, OpenSearchOperationName.CLUSTER_INFO);
         recorder.clear();
 
-        final var name = index.getIndexName() + "-template";
+        final var name = indexNameProvider.indexName() + "-template";
         try {
-            assertThat(indices.putTemplate(PutTemplateRequest.builder(name, name + "-*").build())).isTrue();
-            assertThat(indices.existsTemplate(new ExistsTemplateRequest(name))).isTrue();
-            assertThat(indices.getTemplate(new GetTemplateRequest(name))).isNotNull();
-            assertThat(indices.deleteTemplate(new DeleteTemplateRequest(name))).isTrue();
-            assertThat(indices.putIndexTemplate(PutIndexTemplateRequest.builder().withName(name).withIndexPatterns(name + "-*").build())).isTrue();
-            assertThat(indices.existsIndexTemplate(new ExistsIndexTemplateRequest(name))).isTrue();
-            assertThat(indices.getIndexTemplate(new GetIndexTemplateRequest(name))).hasSize(1);
-            assertThat(indices.deleteIndexTemplate(new DeleteIndexTemplateRequest(name))).isTrue();
-            assertThat(indices.putComponentTemplate(PutComponentTemplateRequest.builder().withName(name)
+            assertThat(indexOperations.putTemplate(PutTemplateRequest.builder(name, name + "-*").build())).isTrue();
+            assertThat(indexOperations.existsTemplate(new ExistsTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.getTemplate(new GetTemplateRequest(name))).isNotNull();
+            assertThat(indexOperations.deleteTemplate(new DeleteTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.putIndexTemplate(PutIndexTemplateRequest.builder().withName(name).withIndexPatterns(name + "-*").build())).isTrue();
+            assertThat(indexOperations.existsIndexTemplate(new ExistsIndexTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.getIndexTemplate(new GetIndexTemplateRequest(name))).hasSize(1);
+            assertThat(indexOperations.deleteIndexTemplate(new DeleteIndexTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.putComponentTemplate(PutComponentTemplateRequest.builder().withName(name)
                     .withTemplateData(ComponentTemplateRequestData.builder().withSettings(new Settings()).build()).build())).isTrue();
-            assertThat(indices.existsComponentTemplate(new ExistsComponentTemplateRequest(name))).isTrue();
-            assertThat(indices.getComponentTemplate(new GetComponentTemplateRequest(name))).hasSize(1);
-            assertThat(indices.deleteComponentTemplate(new DeleteComponentTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.existsComponentTemplate(new ExistsComponentTemplateRequest(name))).isTrue();
+            assertThat(indexOperations.getComponentTemplate(new GetComponentTemplateRequest(name))).hasSize(1);
+            assertThat(indexOperations.deleteComponentTemplate(new DeleteComponentTemplateRequest(name))).isTrue();
             recorder.assertOperations(OpenSearchOperationName.INDEX_PUT_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_TEMPLATE,
                     OpenSearchOperationName.INDEX_GET_TEMPLATE, OpenSearchOperationName.INDEX_DELETE_TEMPLATE,
                     OpenSearchOperationName.INDEX_PUT_INDEX_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_INDEX_TEMPLATE,
@@ -162,125 +151,52 @@ class OpenSearchObservationIntegrationTests {
                     OpenSearchOperationName.INDEX_PUT_COMPONENT_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_COMPONENT_TEMPLATE,
                     OpenSearchOperationName.INDEX_GET_COMPONENT_TEMPLATE, OpenSearchOperationName.INDEX_DELETE_COMPONENT_TEMPLATE);
             assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getIndexName()).isNull());
+            assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getName()).isEqualTo("spring.data.opensearch.command"));
         } finally {
-            if (indices.existsTemplate(new ExistsTemplateRequest(name))) {
-                indices.deleteTemplate(new DeleteTemplateRequest(name));
+            if (indexOperations.existsTemplate(new ExistsTemplateRequest(name))) {
+                indexOperations.deleteTemplate(new DeleteTemplateRequest(name));
             }
-            if (indices.existsIndexTemplate(new ExistsIndexTemplateRequest(name))) {
-                indices.deleteIndexTemplate(new DeleteIndexTemplateRequest(name));
+            if (indexOperations.existsIndexTemplate(new ExistsIndexTemplateRequest(name))) {
+                indexOperations.deleteIndexTemplate(new DeleteIndexTemplateRequest(name));
             }
-            if (indices.existsComponentTemplate(new ExistsComponentTemplateRequest(name))) {
-                indices.deleteComponentTemplate(new DeleteComponentTemplateRequest(name));
+            if (indexOperations.existsComponentTemplate(new ExistsComponentTemplateRequest(name))) {
+                indexOperations.deleteComponentTemplate(new DeleteComponentTemplateRequest(name));
             }
         }
-    }
-
-    @Test
-    void reactiveIndexClusterAndPitOperations() {
-        final var indices = reactiveTemplate.indexOps(index);
-        StepVerifier.create(indices.exists()).expectNext(true).verifyComplete();
-        StepVerifier.create(indices.putMapping(Mono.just(Document.parse("{\"properties\":{\"message\":{\"type\":\"text\"}}}"))))
-                .expectNext(true).verifyComplete();
-        StepVerifier.create(indices.getMapping()).expectNextCount(1).verifyComplete();
-        StepVerifier.create(indices.getSettings()).expectNextCount(1).verifyComplete();
-        StepVerifier.create(indices.refresh()).verifyComplete();
-        StepVerifier.create(indices.getInformation(index)).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveTemplate.cluster().health()).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveTemplate.getClusterVersion()).expectNextCount(1).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.INDEX_EXISTS, OpenSearchOperationName.INDEX_PUT_MAPPING,
-                OpenSearchOperationName.INDEX_GET_MAPPING, OpenSearchOperationName.INDEX_GET_SETTINGS,
-                OpenSearchOperationName.INDEX_REFRESH, OpenSearchOperationName.INDEX_GET_INFORMATION,
-                OpenSearchOperationName.CLUSTER_HEALTH, OpenSearchOperationName.CLUSTER_INFO);
-        recorder.clear();
-        StepVerifier.create(reactiveTemplate.openPointInTime(index, Duration.ofMinutes(1))
-                .flatMap(reactiveTemplate::closePointInTime)).expectNext(true).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.OPEN_POINT_IN_TIME, OpenSearchOperationName.CLOSE_POINT_IN_TIME);
     }
 
     @Test
     void aliasLookupsTagOnlyExplicitIndices() {
-        final var alias = index.getIndexName() + "-alias";
+        final var alias = indexNameProvider.indexName() + "-alias";
         final var actions = new AliasActions(new AliasAction.Add(AliasActionParameters.builder()
-                .withIndices(index.getIndexName()).withAliases(alias).build()));
-        final var indices = template.indexOps(index);
-        assertThat(indices.alias(actions)).isTrue();
-        assertThat(indices.getAliases(alias)).containsKey(index.getIndexName());
-        assertThat(indices.getAliasesForIndex(index.getIndexName())).containsKey(index.getIndexName());
+                .withIndices(indexNameProvider.indexName()).withAliases(alias).build()));
+        assertThat(indexOperations.alias(actions)).isTrue();
+        assertThat(indexOperations.getAliases(alias)).containsKey(indexNameProvider.indexName());
+        assertThat(indexOperations.getAliasesForIndex(indexNameProvider.indexName())).containsKey(indexNameProvider.indexName());
         recorder.assertOperations(OpenSearchOperationName.INDEX_ALIAS, OpenSearchOperationName.INDEX_GET_ALIASES, OpenSearchOperationName.INDEX_GET_ALIASES);
         assertThat(recorder.stopped.get(0).getIndexName()).isNull();
         assertThat(recorder.stopped.get(1).getIndexName()).isNull();
-        assertThat(recorder.stopped.get(2).getIndexName()).isEqualTo(index.getIndexName());
-        recorder.clear();
-
-        final var reactiveIndices = reactiveTemplate.indexOps(index);
-        StepVerifier.create(reactiveIndices.alias(actions)).expectNext(true).verifyComplete();
-        StepVerifier.create(reactiveIndices.getAliases(alias)).expectNextCount(1).verifyComplete();
-        StepVerifier.create(reactiveIndices.getAliasesForIndex(index.getIndexName())).expectNextCount(1).verifyComplete();
-        recorder.assertOperations(OpenSearchOperationName.INDEX_ALIAS, OpenSearchOperationName.INDEX_GET_ALIASES, OpenSearchOperationName.INDEX_GET_ALIASES);
-        assertThat(recorder.stopped.get(0).getIndexName()).isNull();
-        assertThat(recorder.stopped.get(1).getIndexName()).isNull();
-        assertThat(recorder.stopped.get(2).getIndexName()).isEqualTo(index.getIndexName());
-    }
-
-    @Test
-    void reactiveTemplateOperationsObserveOncePerPublicCall() {
-        final var indices = reactiveTemplate.indexOps(index);
-        final var name = index.getIndexName() + "-reactive-template";
-        try {
-            StepVerifier.create(indices.putTemplate(PutTemplateRequest.builder(name, name + "-*").build()))
-                    .expectNext(true).verifyComplete();
-            StepVerifier.create(indices.existsTemplate(new ExistsTemplateRequest(name))).expectNext(true).verifyComplete();
-            StepVerifier.create(indices.getTemplate(new GetTemplateRequest(name))).expectNextCount(1).verifyComplete();
-            StepVerifier.create(indices.deleteTemplate(new DeleteTemplateRequest(name))).expectNext(true).verifyComplete();
-            StepVerifier.create(indices.putIndexTemplate(PutIndexTemplateRequest.builder().withName(name).withIndexPatterns(name + "-*").build()))
-                    .expectNext(true).verifyComplete();
-            StepVerifier.create(indices.existsIndexTemplate(new ExistsIndexTemplateRequest(name))).expectNext(true).verifyComplete();
-            StepVerifier.create(indices.getIndexTemplate(new GetIndexTemplateRequest(name))).expectNextCount(1).verifyComplete();
-            StepVerifier.create(indices.deleteIndexTemplate(new DeleteIndexTemplateRequest(name))).expectNext(true).verifyComplete();
-            StepVerifier.create(indices.putComponentTemplate(PutComponentTemplateRequest.builder().withName(name)
-                    .withTemplateData(ComponentTemplateRequestData.builder().withSettings(new Settings()).build()).build()))
-                    .expectNext(true).verifyComplete();
-            StepVerifier.create(indices.existsComponentTemplate(new ExistsComponentTemplateRequest(name))).expectNext(true).verifyComplete();
-            StepVerifier.create(indices.getComponentTemplate(new GetComponentTemplateRequest(name))).expectNextCount(1).verifyComplete();
-            StepVerifier.create(indices.deleteComponentTemplate(new DeleteComponentTemplateRequest(name))).expectNext(true).verifyComplete();
-            recorder.assertOperations(OpenSearchOperationName.INDEX_PUT_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_TEMPLATE,
-                    OpenSearchOperationName.INDEX_GET_TEMPLATE, OpenSearchOperationName.INDEX_DELETE_TEMPLATE,
-                    OpenSearchOperationName.INDEX_PUT_INDEX_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_INDEX_TEMPLATE,
-                    OpenSearchOperationName.INDEX_GET_INDEX_TEMPLATE, OpenSearchOperationName.INDEX_DELETE_INDEX_TEMPLATE,
-                    OpenSearchOperationName.INDEX_PUT_COMPONENT_TEMPLATE, OpenSearchOperationName.INDEX_EXISTS_COMPONENT_TEMPLATE,
-                    OpenSearchOperationName.INDEX_GET_COMPONENT_TEMPLATE, OpenSearchOperationName.INDEX_DELETE_COMPONENT_TEMPLATE);
-            assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getIndexName()).isNull());
-        } finally {
-            final var imperativeIndices = template.indexOps(index);
-            if (imperativeIndices.existsTemplate(new ExistsTemplateRequest(name))) {
-                imperativeIndices.deleteTemplate(new DeleteTemplateRequest(name));
-            }
-            if (imperativeIndices.existsIndexTemplate(new ExistsIndexTemplateRequest(name))) {
-                imperativeIndices.deleteIndexTemplate(new DeleteIndexTemplateRequest(name));
-            }
-            if (imperativeIndices.existsComponentTemplate(new ExistsComponentTemplateRequest(name))) {
-                imperativeIndices.deleteComponentTemplate(new DeleteComponentTemplateRequest(name));
-            }
-        }
+        assertThat(recorder.stopped.get(2).getIndexName()).isEqualTo(indexNameProvider.indexName());
+        assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getName()).isEqualTo("spring.data.opensearch.command"));
     }
 
     @Test
     void scriptsPitAndReindex() {
-        final var name = index.getIndexName() + "-script";
-        final var target = IndexCoordinates.of(index.getIndexName() + "-target");
+        final var name = indexNameProvider.indexName() + "-script";
+        final var target = IndexCoordinates.of(indexNameProvider.indexName() + "-target");
         var storedScriptExists = false;
         try {
             final var script = Script.builder().withId(name).withLanguage("painless").withSource("return 1").build();
-            assertThat(template.putScript(script)).isTrue();
+            assertThat(operations.putScript(script)).isTrue();
             storedScriptExists = true;
-            assertThat(template.getScript(name)).isNotNull();
-            assertThat(template.deleteScript(name)).isTrue();
+            assertThat(operations.getScript(name)).isNotNull();
+            assertThat(operations.deleteScript(name)).isTrue();
             storedScriptExists = false;
-            final var pit = template.openPointInTime(index, Duration.ofMinutes(1));
-            assertThat(template.closePointInTime(pit)).isTrue();
-            final var request = ReindexRequest.builder(index, target).build();
-            assertThat(template.reindex(request)).isNotNull();
-            assertThat(template.submitReindex(request)).isNotBlank();
+            final var pit = operations.openPointInTime(IndexCoordinates.of(indexNameProvider.indexName()), Duration.ofMinutes(1));
+            assertThat(operations.closePointInTime(pit)).isTrue();
+            final var request = ReindexRequest.builder(IndexCoordinates.of(indexNameProvider.indexName()), target).build();
+            assertThat(operations.reindex(request)).isNotNull();
+            assertThat(operations.submitReindex(request)).isNotBlank();
             recorder.assertOperations(OpenSearchOperationName.PUT_SCRIPT, OpenSearchOperationName.GET_SCRIPT,
                     OpenSearchOperationName.DELETE_SCRIPT, OpenSearchOperationName.OPEN_POINT_IN_TIME,
                     OpenSearchOperationName.CLOSE_POINT_IN_TIME, OpenSearchOperationName.REINDEX, OpenSearchOperationName.SUBMIT_REINDEX);
@@ -288,34 +204,18 @@ class OpenSearchObservationIntegrationTests {
                     .filteredOn(context -> context.getOperationName() == OpenSearchOperationName.REINDEX
                             || context.getOperationName() == OpenSearchOperationName.SUBMIT_REINDEX)
                     .hasSize(2).allSatisfy(context -> {
-                        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo(index.getIndexName());
+                        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo(indexNameProvider.indexName());
                         assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
                     });
-            recorder.clear();
-            StepVerifier.create(reactiveTemplate.putScript(script)).expectNext(true).verifyComplete();
-            storedScriptExists = true;
-            StepVerifier.create(reactiveTemplate.getScript(name)).expectNextCount(1).verifyComplete();
-            StepVerifier.create(reactiveTemplate.deleteScript(name)).expectNext(true).verifyComplete();
-            storedScriptExists = false;
-            StepVerifier.create(reactiveTemplate.reindex(request)).expectNextCount(1).verifyComplete();
-            StepVerifier.create(reactiveTemplate.submitReindex(request)).expectNextCount(1).verifyComplete();
-            recorder.assertOperations(OpenSearchOperationName.PUT_SCRIPT, OpenSearchOperationName.GET_SCRIPT,
-                    OpenSearchOperationName.DELETE_SCRIPT, OpenSearchOperationName.REINDEX, OpenSearchOperationName.SUBMIT_REINDEX);
-            assertThat(recorder.stopped)
-                    .filteredOn(context -> context.getOperationName() == OpenSearchOperationName.REINDEX
-                            || context.getOperationName() == OpenSearchOperationName.SUBMIT_REINDEX)
-                    .hasSize(2).allSatisfy(context -> {
-                        assertThat(context.getHighCardinalityKeyValue("spring.data.collection").getValue()).isEqualTo(index.getIndexName());
-                        assertThat(context.getLowCardinalityKeyValue("spring.data.collection")).isNull();
-                    });
+            assertThat(recorder.stopped).allSatisfy(context -> assertThat(context.getName()).isEqualTo("spring.data.opensearch.command"));
         } finally {
             if (storedScriptExists) {
-                template.deleteScript(name);
+                operations.deleteScript(name);
             }
-            template.indexOps(target).delete();
+            operations.indexOps(target).delete();
         }
     }
 
-    @org.springframework.data.elasticsearch.annotations.Document(indexName = "unused-observation-entity")
+    @org.springframework.data.elasticsearch.annotations.Document(indexName = "#{@indexNameProvider.indexName()}")
     record Entity(@Id String id, String message) {}
 }
