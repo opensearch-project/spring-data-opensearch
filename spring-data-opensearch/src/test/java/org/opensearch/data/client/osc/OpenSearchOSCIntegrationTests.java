@@ -34,10 +34,13 @@ import org.opensearch.data.client.junit.jupiter.OpenSearchTemplateConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.core.ElasticsearchIntegrationTests;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilder;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -45,6 +48,7 @@ import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.core.query.RescorerQuery;
 import org.springframework.data.elasticsearch.core.query.ScriptData;
 import org.springframework.data.elasticsearch.core.query.ScriptedField;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
@@ -57,6 +61,39 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = { OpenSearchOSCIntegrationTests.Config.class })
 @DisplayName("Using OpenSearch Client")
 public class OpenSearchOSCIntegrationTests extends ElasticsearchIntegrationTests {
+
+    @Test
+    void shouldSaveWithBulkLimitsAndGeneratedIds() {
+        final var template = (OpenSearchTemplate) operations;
+        final var previousOptions = template.getBulkOptions();
+        final var index = IndexCoordinates.of(indexNameProvider.indexName());
+        final var entities = List.of(SampleEntity.builder().message("one").build(),
+                SampleEntity.builder().message("two").build(), SampleEntity.builder().message("three").build());
+        template.setBulkOptions(BulkOptions.builder().withMaxOperations(1).withMaxSize(1024).build());
+        try {
+            final var saved = template.save(entities, index);
+            assertThat(saved).extracting(SampleEntity::getId).doesNotContainNull().doesNotHaveDuplicates();
+            assertThat(saved).extracting(SampleEntity::getMessage).containsExactly("one", "two", "three");
+            operations.indexOps(index).refresh();
+            assertThat(operations.count(Query.findAll(), SampleEntity.class, index)).isEqualTo(3);
+        } finally {
+            template.setBulkOptions(previousOptions);
+        }
+    }
+
+    @Test
+    void shouldAggregateSizeLimitedBulkUpdateFailuresWithoutRollingBackWrites() {
+        final var index = IndexCoordinates.of(indexNameProvider.indexName());
+        operations.save(SampleEntity.builder().id("existing").message("initial").build(), index);
+        final var queries = List.of("missing-one", "existing", "missing-two").stream()
+                .map(id -> UpdateQuery.builder(id).withDocument(Document.from(Map.of("message", "changed"))).build())
+                .toList();
+
+        assertThatThrownBy(() -> operations.bulkUpdate(queries, BulkOptions.builder().withMaxSize(1).build(), index))
+                .isInstanceOfSatisfying(BulkFailureException.class,
+                        exception -> assertThat(exception.getFailedDocuments()).containsOnlyKeys("missing-one", "missing-two"));
+        assertThat(operations.get("existing", SampleEntity.class, index).getMessage()).isEqualTo("changed");
+    }
 
     @Configuration
     @Import({ OpenSearchTemplateConfiguration.class })

@@ -105,8 +105,9 @@ public abstract class OpenSearchConfiguration extends ElasticsearchConfiguration
     public ElasticsearchOperations opensearchOperations(ElasticsearchConverter elasticsearchConverter,
             OpenSearchClient elasticsearchClient, MappingParametersCustomizer opensearchMappingParametersCustomizer) {
 
-        OpenSearchTemplate template = new OpenSearchTemplate(elasticsearchClient, elasticsearchConverter, opensearchMappingParametersCustomizer);
+        final var template = new OpenSearchTemplate(elasticsearchClient, elasticsearchConverter, opensearchMappingParametersCustomizer);
         template.setRefreshPolicy(refreshPolicy());
+        template.setBulkOptions(bulkOptions());
 
         return template;
     }

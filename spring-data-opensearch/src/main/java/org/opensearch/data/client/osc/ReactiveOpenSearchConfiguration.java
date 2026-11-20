@@ -92,9 +92,10 @@ public abstract class ReactiveOpenSearchConfiguration extends ElasticsearchConfi
     public ReactiveElasticsearchOperations reactiveElasticsearchOperations(ElasticsearchConverter elasticsearchConverter,
             ReactiveOpenSearchClient reactiveElasticsearchClient) {
 
-        ReactiveOpenSearchTemplate template = new ReactiveOpenSearchTemplate(reactiveElasticsearchClient,
+        final var template = new ReactiveOpenSearchTemplate(reactiveElasticsearchClient,
                 elasticsearchConverter);
         template.setRefreshPolicy(refreshPolicy());
+        template.setBulkOptions(bulkOptions());
 
         return template;
     }

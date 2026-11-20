@@ -27,6 +27,7 @@ import org.opensearch.data.client.osc.Aggregation;
 import org.opensearch.data.client.osc.NativeQuery;
 import org.opensearch.data.client.osc.OpenSearchAggregation;
 import org.opensearch.data.client.osc.Queries;
+import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -35,13 +36,37 @@ import org.springframework.data.elasticsearch.core.AggregationContainer;
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchIntegrationTests;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
+import reactor.core.publisher.Mono;
 
 @ContextConfiguration(classes = ReactiveElasticsearchOSCIntegrationTests.Config.class)
 public class ReactiveElasticsearchOSCIntegrationTests extends ReactiveElasticsearchIntegrationTests {
+
+    @Test
+    void shouldSaveWithBulkLimitsAndGeneratedIds() {
+        final var template = (ReactiveOpenSearchTemplate) operations;
+        final var previousOptions = template.getBulkOptions();
+        final var entities = List.of("one", "two", "three").stream().map(message -> {
+            final var entity = randomEntity(message);
+            entity.setId(null);
+            entity.setVersion(null);
+            return entity;
+        }).toList();
+        template.setBulkOptions(BulkOptions.builder().withMaxOperations(1).withMaxSize(1024).build());
+        try {
+            final var saved = template.saveAll(Mono.just(entities), template.getIndexCoordinatesFor(SampleEntity.class))
+                    .collectList().block();
+            assertThat(saved).extracting(SampleEntity::getId).doesNotContainNull().doesNotHaveDuplicates();
+            assertThat(saved).extracting(SampleEntity::getMessage).containsExactly("one", "two", "three");
+            assertThat(operations.count(Query.findAll(), SampleEntity.class).block()).isEqualTo(3);
+        } finally {
+            template.setBulkOptions(previousOptions);
+        }
+    }
 
     @Test // #2745
     @DisplayName("should use sort defined in native unbounded query")
