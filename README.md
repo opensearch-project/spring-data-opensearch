@@ -209,6 +209,55 @@ To use Spring Boot 3.x auto configuration support for testing:
 </dependency>
 ```
 
+## Getting Started
+
+Here is a quick teaser of an application using Spring Data Repositories in Java:
+
+```java
+public interface PersonRepository extends CrudRepository<Person, Long> {
+
+  List<Person> findByLastname(String lastname);
+
+  List<Person> findByFirstnameLike(String firstname);
+}
+```
+
+```java
+@Service
+public class MyService {
+
+  private final PersonRepository repository;
+
+  public MyService(PersonRepository repository) {
+    this.repository = repository;
+  }
+
+  public void doWork() {
+
+    repository.deleteAll();
+
+    Person person = new Person();
+    person.setFirstname("Oliver");
+    person.setLastname("Gierke");
+    repository.save(person);
+
+    List<Person> lastNameResults = repository.findByLastname("Gierke");
+    List<Person> firstNameResults = repository.findByFirstnameLike("Oli");
+ }
+}
+```
+
+Or, using the reactive Spring Data Repositories:
+
+```java
+public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
+
+  Flux<Person> findByLastname(String lastname);
+
+  Flux<Person> findByFirstnameLike(String firstname);
+}
+```
+
 ### Bulk ingester
 
 The bulk ingester collects individual index, create, update, and delete operations and sends them in bulk requests.
@@ -264,55 +313,6 @@ With an observation registry, the ingester records one `bulk` observation per re
 The observation stops after the listener completes.
 Request failures record the translated exception.
 Item failures remain in the results and do not mark the request observation as failed.
-
-## Getting Started
-
-Here is a quick teaser of an application using Spring Data Repositories in Java:
-
-```java
-public interface PersonRepository extends CrudRepository<Person, Long> {
-
-  List<Person> findByLastname(String lastname);
-
-  List<Person> findByFirstnameLike(String firstname);
-}
-```
-
-```java
-@Service
-public class MyService {
-
-  private final PersonRepository repository;
-
-  public MyService(PersonRepository repository) {
-    this.repository = repository;
-  }
-
-  public void doWork() {
-
-    repository.deleteAll();
-
-    Person person = new Person();
-    person.setFirstname("Oliver");
-    person.setLastname("Gierke");
-    repository.save(person);
-
-    List<Person> lastNameResults = repository.findByLastname("Gierke");
-    List<Person> firstNameResults = repository.findByFirstnameLike("Oli");
- }
-}
-```
-
-Or, using the reactive Spring Data Repositories:
-
-```java
-public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
-
-  Flux<Person> findByLastname(String lastname);
-
-  Flux<Person> findByFirstnameLike(String firstname);
-}
-```
 
 ## Size-limited bulk requests
 
