@@ -42,7 +42,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Assertions;
@@ -63,6 +64,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.VersionConflictException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -482,6 +484,104 @@ public abstract class ElasticsearchIntegrationTests {
 
 		// then
 		assertThat(searchHits.getTotalHits()).isEqualTo(2);
+	}
+
+	@Test // #3345
+	@DisplayName("should split bulk index by max operations and return infos in query order")
+	void shouldSplitBulkIndexByMaxOperationsAndReturnInfosInQueryOrder() {
+
+		final var entities = IntStream.range(0, 5) //
+				.mapToObj(i -> SampleEntity.builder().message("message " + i).build()) //
+				.toList();
+		final var bulkOptions = BulkOptions.builder().withMaxOperations(2).build();
+
+		final var infos = operations.bulkIndex(getIndexQueries(entities), bulkOptions,
+				IndexCoordinates.of(indexNameProvider.indexName()));
+
+		assertThat(infos).hasSize(5);
+		for (var i = 0; i < 5; i++) {
+			final var id = infos.get(i).id();
+			assertThat(id).isNotNull();
+			assertThat(entities.get(i).getId()).isEqualTo(id);
+			final var saved = operations.get(id, SampleEntity.class, IndexCoordinates.of(indexNameProvider.indexName()));
+			assertThat(saved).isNotNull();
+			assertThat(saved.getMessage()).isEqualTo("message " + i);
+		}
+	}
+
+	@Test // #3345
+	@DisplayName("should split bulk index by max size")
+	void shouldSplitBulkIndexByMaxSize() {
+
+		final var entities = IntStream.range(0, 10) //
+				.mapToObj(i -> SampleEntity.builder().id("id-" + i).message("x".repeat(100)).build()) //
+				.toList();
+		final var bulkOptions = BulkOptions.builder().withMaxSize(300L).build();
+
+		final var infos = operations.bulkIndex(getIndexQueries(entities), bulkOptions,
+				IndexCoordinates.of(indexNameProvider.indexName()));
+
+		assertThat(infos).extracting(IndexedObjectInformation::id)
+				.containsExactlyElementsOf(entities.stream().map(SampleEntity::getId).toList());
+		assertThat(operations.count(operations.matchAllQuery(), SampleEntity.class,
+				IndexCoordinates.of(indexNameProvider.indexName()))).isEqualTo(10);
+	}
+
+	@Test // #3345
+	@DisplayName("should split bulk update by max operations")
+	void shouldSplitBulkUpdateByMaxOperations() {
+
+		final var entities = IntStream.range(0, 5) //
+				.mapToObj(i -> SampleEntity.builder().id("id-" + i).message("before").build()) //
+				.toList();
+		operations.save(entities);
+		final var updateQueries = entities.stream() //
+				.map(entity -> UpdateQuery.builder(entity.getId()) //
+						.withDocument(org.springframework.data.elasticsearch.core.document.Document.create() //
+								.append("message", "after")) //
+						.build()) //
+				.toList();
+
+		operations.bulkUpdate(updateQueries, BulkOptions.builder().withMaxOperations(2).build(),
+				IndexCoordinates.of(indexNameProvider.indexName()));
+
+		entities.forEach(entity -> {
+			final var updated = operations.get(entity.getId(), SampleEntity.class);
+			assertThat(updated).isNotNull();
+			assertThat(updated.getMessage()).isEqualTo("after");
+		});
+	}
+
+	@Test // #3345
+	@DisplayName("should collect item failures of all split bulk requests")
+	void shouldCollectItemFailuresOfAllSplitBulkRequests() {
+
+		final var id1 = nextIdAsString();
+		final var id2 = nextIdAsString();
+		final var id3 = nextIdAsString();
+		final var id4 = nextIdAsString();
+		operations.save(new VersionedEntity(id2, 5L), new VersionedEntity(id4, 5L));
+
+		// the documents for id2 and id4 are rejected because of their lower version
+		final var indexQueries = Stream.of( //
+				new VersionedEntity(id1, 1L), //
+				new VersionedEntity(id2, 1L), //
+				new VersionedEntity(id3, 1L), //
+				new VersionedEntity(id4, 1L)) //
+				.map(entity -> new IndexQueryBuilder().withId(entity.getId()).withObject(entity)
+						.withVersion(entity.getVersion()).build()) //
+				.toList();
+		final var bulkOptions = BulkOptions.builder().withMaxOperations(1).build();
+
+		assertThatThrownBy(() -> operations.bulkIndex(indexQueries, bulkOptions, VersionedEntity.class))
+				.asInstanceOf(InstanceOfAssertFactories.type(BulkFailureException.class))
+				.extracting(BulkFailureException::getFailedDocuments)
+				.asInstanceOf(InstanceOfAssertFactories.map(String.class, BulkFailureException.FailureDetails.class))
+				.containsOnlyKeys(id2, id4);
+
+		// requests are not rolled back and the requests after a failed one are still sent
+		assertThat(operations.exists(id1, VersionedEntity.class)).isTrue();
+		assertThat(operations.exists(id3, VersionedEntity.class)).isTrue();
 	}
 
 	@Test
@@ -4578,6 +4678,13 @@ public abstract class ElasticsearchIntegrationTests {
 		@Id private String id;
 		@Nullable
 		@Version private Long version;
+
+		public VersionedEntity() {}
+
+		public VersionedEntity(@Nullable String id, @Nullable java.lang.Long version) {
+			this.id = id;
+			this.version = version;
+		}
 
 		@Nullable
 		public String getId() {

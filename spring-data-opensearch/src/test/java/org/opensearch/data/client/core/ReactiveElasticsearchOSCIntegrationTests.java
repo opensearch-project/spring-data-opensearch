@@ -27,21 +27,78 @@ import org.opensearch.data.client.osc.Aggregation;
 import org.opensearch.data.client.osc.NativeQuery;
 import org.opensearch.data.client.osc.OpenSearchAggregation;
 import org.opensearch.data.client.osc.Queries;
+import org.opensearch.data.client.osc.ReactiveOpenSearchClient;
+import org.opensearch.data.client.osc.ReactiveOpenSearchConfiguration;
+import org.opensearch.data.client.osc.ReactiveOpenSearchTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.core.AggregationContainer;
 import org.springframework.data.elasticsearch.core.ReactiveElasticsearchIntegrationTests;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.query.BaseQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.data.elasticsearch.utils.IndexNameProvider;
 import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
+import reactor.core.publisher.Mono;
 
 @ContextConfiguration(classes = ReactiveElasticsearchOSCIntegrationTests.Config.class)
 public class ReactiveElasticsearchOSCIntegrationTests extends ReactiveElasticsearchIntegrationTests {
+
+    @Autowired private ReactiveOpenSearchClient reactiveOpenSearchClient;
+
+    @Test
+    void shouldSaveWithBulkLimitsAndGeneratedIds() {
+        final var template = (ReactiveOpenSearchTemplate) operations;
+        final var previousOptions = template.getBulkOptions();
+        final var entities = List.of("one", "two", "three").stream().map(message -> {
+            final var entity = randomEntity(message);
+            entity.setId(null);
+            entity.setVersion(null);
+            return entity;
+        }).toList();
+        template.setBulkOptions(BulkOptions.builder().withMaxOperations(1).withMaxSize(1024).build());
+        try {
+            final var saved = template.saveAll(Mono.just(entities), template.getIndexCoordinatesFor(SampleEntity.class))
+                    .collectList().block();
+            assertThat(saved).extracting(SampleEntity::getId).doesNotContainNull().doesNotHaveDuplicates();
+            assertThat(saved).extracting(SampleEntity::getVersion).containsOnly(1L);
+            assertThat(saved).extracting(SampleEntity::getMessage).containsExactly("one", "two", "three");
+            // only the last request refreshes, which makes the documents of all requests visible
+            assertThat(operations.count(Query.findAll(), SampleEntity.class).block()).isEqualTo(3);
+        } finally {
+            template.setBulkOptions(previousOptions);
+        }
+    }
+
+    @Test
+    void shouldApplyBulkOptionsFromConfiguration() {
+        final var options = BulkOptions.builder().withMaxOperations(1).build();
+        final var configuration = new ReactiveOpenSearchConfiguration() {
+            @Override
+            public ClientConfiguration clientConfiguration() {
+                return ClientConfiguration.localhost();
+            }
+
+            @Override
+            protected BulkOptions bulkOptions() {
+                return options;
+            }
+        };
+
+        final var template = (ReactiveOpenSearchTemplate) configuration.reactiveElasticsearchOperations(
+                operations.getElasticsearchConverter(), reactiveOpenSearchClient);
+        template.saveAll(List.of(randomEntity("one"), randomEntity("two")), SampleEntity.class).blockLast();
+
+        assertThat(template.getBulkOptions()).isSameAs(options);
+        operations.indexOps(SampleEntity.class).refresh().block();
+        assertThat(operations.count(Query.findAll(), SampleEntity.class).block()).isEqualTo(2);
+    }
 
     @Test // #2745
     @DisplayName("should use sort defined in native unbounded query")

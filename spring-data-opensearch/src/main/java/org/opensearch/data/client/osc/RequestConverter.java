@@ -817,6 +817,23 @@ class RequestConverter {
         return builder.build();
     }
 
+    List<BulkRequest> documentBulkRequests(final List<?> queries, final BulkOptions bulkOptions,
+            final BulkOptions defaultBulkOptions, final IndexCoordinates indexCoordinates,
+            @Nullable final RefreshPolicy refreshPolicy) {
+
+        final var operations = queries.stream().map(query -> bulkOperation(query, indexCoordinates)).toList();
+        final var batches = new BulkRequestSplitter(jsonpMapper).split(operations, bulkOptions, defaultBulkOptions);
+        final var requests = new ArrayList<BulkRequest>(batches.size());
+        for (var i = 0; i < batches.size(); i++) {
+            final var builder = bulkRequestBuilder(bulkOptions, refreshPolicy);
+            if (i < batches.size() - 1) {
+                builder.refresh(Refresh.False);
+            }
+            requests.add(builder.operations(batches.get(i)).build());
+        }
+        return requests;
+    }
+
     BulkRequest.Builder bulkRequestBuilder(final BulkOptions bulkOptions,
             @Nullable final RefreshPolicy refreshPolicy) {
         final var builder = new BulkRequest.Builder();
