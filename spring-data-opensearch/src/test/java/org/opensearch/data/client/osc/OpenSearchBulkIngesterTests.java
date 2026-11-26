@@ -127,7 +127,10 @@ class OpenSearchBulkIngesterTests {
 
         assertThat(requests).hasSize(2);
         observations.assertOperations(OpenSearchOperationName.BULK, OpenSearchOperationName.BULK);
-        assertThat(observations.stopped).extracting(OpenSearchObservationContext::getBatchSize).containsExactly(2, 1);
+        assertThat(observations.started).extracting(OpenSearchObservationContext::getBatchSize).containsExactly(2, 1);
+        // the client completes batches on separate threads, so they can stop in any order
+        assertThat(observations.stopped).extracting(OpenSearchObservationContext::getBatchSize)
+                .containsExactlyInAnyOrder(2, 1);
         assertThat(observations.stopped).allSatisfy(context -> {
             assertThat(context.getName()).isEqualTo("spring.data.opensearch.command");
             assertThat(context.getIndexCoordinates()).isEqualTo(INDEX);
