@@ -209,6 +209,55 @@ To use Spring Boot 3.x auto configuration support for testing:
 </dependency>
 ```
 
+## Getting Started
+
+Here is a quick teaser of an application using Spring Data Repositories in Java:
+
+```java
+public interface PersonRepository extends CrudRepository<Person, Long> {
+
+  List<Person> findByLastname(String lastname);
+
+  List<Person> findByFirstnameLike(String firstname);
+}
+```
+
+```java
+@Service
+public class MyService {
+
+  private final PersonRepository repository;
+
+  public MyService(PersonRepository repository) {
+    this.repository = repository;
+  }
+
+  public void doWork() {
+
+    repository.deleteAll();
+
+    Person person = new Person();
+    person.setFirstname("Oliver");
+    person.setLastname("Gierke");
+    repository.save(person);
+
+    List<Person> lastNameResults = repository.findByLastname("Gierke");
+    List<Person> firstNameResults = repository.findByFirstnameLike("Oli");
+ }
+}
+```
+
+Or, using the reactive Spring Data Repositories:
+
+```java
+public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
+
+  Flux<Person> findByLastname(String lastname);
+
+  Flux<Person> findByFirstnameLike(String firstname);
+}
+```
+
 ### Bulk ingester
 
 The bulk ingester collects individual index, create, update, and delete operations and sends them in bulk requests.
@@ -265,54 +314,36 @@ The observation stops after the listener completes.
 Request failures record the translated exception.
 Item failures remain in the results and do not mark the request observation as failed.
 
-## Getting Started
+## Size-limited bulk requests
 
-Here is a quick teaser of an application using Spring Data Repositories in Java:
-
-```java
-public interface PersonRepository extends CrudRepository<Person, Long> {
-
-  List<Person> findByLastname(String lastname);
-
-  List<Person> findByFirstnameLike(String firstname);
-}
-```
+With `opensearch-java`, bulk index and update calls can split their operations into several requests.
+Set a maximum operation count, a maximum serialized size in bytes, or both:
 
 ```java
-@Service
-public class MyService {
+final var options = BulkOptions.builder()
+    .withMaxOperations(1000)
+    .withMaxSize(5 * 1024 * 1024L)
+    .build();
 
-  private final PersonRepository repository;
-
-  public MyService(PersonRepository repository) {
-    this.repository = repository;
-  }
-
-  public void doWork() {
-
-    repository.deleteAll();
-
-    Person person = new Person();
-    person.setFirstname("Oliver");
-    person.setLastname("Gierke");
-    repository.save(person);
-
-    List<Person> lastNameResults = repository.findByLastname("Gierke");
-    List<Person> firstNameResults = repository.findByFirstnameLike("Oli");
- }
-}
+operations.bulkIndex(queries, options, index);
 ```
 
-Or, using the reactive Spring Data Repositories:
+Both limits are unset by default.
+Requests preserve the operation order and run one after another.
+The byte limit includes each operation's metadata and line separators.
+An operation that exceeds the byte limit on its own goes into a separate request.
+Only the last request applies the refresh policy.
 
-```java
-public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
+Set template defaults with `OpenSearchTemplate.setBulkOptions(options)` or `ReactiveOpenSearchTemplate.setBulkOptions(options)`.
+In configuration subclasses, override `bulkOptions()` instead.
+Each limit from the template applies when the call does not set that limit.
+These defaults also apply to `save(Iterable)`, repository `saveAll`, and reactive saves.
+Reactive saves that already buffer by count can split each buffer further.
 
-  Flux<Person> findByLastname(String lastname);
-
-  Flux<Person> findByFirstnameLike(String firstname);
-}
-```
+Item failures from all requests produce one `BulkFailureException` after the last request.
+A request-level failure stops further requests.
+Successful writes are not rolled back.
+The legacy `RestHighLevelClient` does not apply these limits and continues to send one bulk request.
 
 ## Spring AOT Support
 
